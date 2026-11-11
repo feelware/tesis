@@ -105,27 +105,26 @@
 
 == 1.1. Situación problemática
 
-En entornos formales de educación musical, alcanzar un buen desempeño en los cursos de habilidades auditivas requiere de mucha práctica, pues la dificultad de estos aumenta raṕidamente (Royston y Wilson, 2024). Estos cursos representan un obstáculo desalentador para muchos estudiantes de música, contribuyendo en ciertos casos a la deserción académica (Barlow, 2016). Las evaluaciones de aptitud auditiva consisten en escuchar una grabación proporcionada por el docente y transcribirla en papel. Calificar estas evaluaciones suele tomar varios días a los docentes, lo que impide al alumno obtener retroalimentación instantánea (Pesek et al., 2020b). Kleppinger (2017) señala que estas evaluaciones no se alinean consistentemente con lo que se espera que los estudiantes aprendan. Su naturaleza "contrarreloj" genera ansiedad incluso en estudiantes de alto rendimiento, lo que más adelante se transforma en perspectivas pesimistas sobre la utilidad de estos cursos. Chenette (2016) argumenta que el material de estudio para entrenamiento auditivo, al estar fuertemente enlazado a la currícula tradicional de teoría musical, hereda un enfoque eurocentrista, ignorando la música popular y las tradiciones musicales internacionales. Donn et al. (2024) argumentan que muchos de los métodos de entrenamiento auditivo aplicados en escuelas secundarias británicas fueron diseñados para un contexto musical mucho menos diverso que el contemporáneo.
+En entornos formales de educación musical, alcanzar un buen desempeño en los cursos de habilidades auditivas requiere de mucha práctica, pues la dificultad de estos aumenta rápidamente (Royston y Wilson, 2024). Estos cursos representan un obstáculo desalentador para muchos estudiantes de música, contribuyendo en ciertos casos a la deserción académica (Barlow, 2016). Las evaluaciones de aptitud auditiva consisten en escuchar una grabación proporcionada por el docente y transcribirla en papel. Calificar estas evaluaciones suele tomar varios días a los docentes, lo que impide al alumno obtener retroalimentación instantánea (Pesek et al., 2020b). Kleppinger (2017) señala que estas evaluaciones no se alinean consistentemente con lo que se espera que los estudiantes aprendan. Su naturaleza "contrarreloj" genera ansiedad incluso en estudiantes de alto rendimiento, lo que más adelante se transforma en perspectivas pesimistas sobre la utilidad de estos cursos. Chenette (2021) argumenta que el material de estudio para entrenamiento auditivo, al estar fuertemente enlazado a la currícula tradicional de teoría musical, hereda un enfoque eurocentrista, ignorando la música popular y las tradiciones musicales internacionales. Donn et al. (2024) argumentan que muchos de los métodos de entrenamiento auditivo aplicados en escuelas secundarias británicas fueron diseñados para un contexto musical mucho menos diverso que el contemporáneo.
 
 == 1.2. Formulación del problema
 
 === 1.2.1. Problema general
 
-¿De qué manera un videojuego en línea basado en técnicas de generación y análisis de similitud melódica facilita el desarrollo de habilidades auditivas en estudiantes de música?
+¿En qué medida el uso de un videojuego en línea basado en generación melódica procedural y análisis de similitud melódica contribuye al desarrollo de habilidades auditivas en estudiantes de música?
 
 === 1.2.2. Problemas específicos
 
 #listasin[
-  - ¿Cómo integrar un modelo generador de estructuras melódicas simbólicas existente para la generación automática de ejercicios de dictado y repentización melódica?
-  - ¿Cómo integrar un modelo de análisis de similitud de estructuras melódicas simbólicas existente para evaluar la precisión de interpretaciones y transcripciones musicales?
-  - ¿Cómo integrar un modelo de transcripción musical automática (audio a MIDI) existente para la evaluación de ejercicios de repentización melódica?
-  - ¿Cómo desarrollar un videojuego en línea que integre los modelos descritos para implementar mecánicas de dictado y repentización melódica?
-  - ¿Cómo evaluar la efectividad pedagógica del videojuego implementado mediante un estudio experimental con estudiantes de música?
+  - ¿Cómo influye el diseño de un algoritmo generador de estructuras melódicas simbólicas en su efectividad para la generación automática de ejercicios de dictado y repentización melódica?
+  - ¿Cómo influye el diseño de un algoritmo de análisis de similitud melódica en su efectividad para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+  - ¿Qué impacto tienen los componentes de un videojuego en línea que implementa mecánicas de dictado y repentización melódica en el desarrollo de habilidades auditivas en estudiantes de música?
+  - ¿Cómo la validación del videojuego implementado mediante un estudio experimental con estudiantes de música demuestra la efectividad pedagógica de dicho videojuego?
 ]
 
 == 1.3. Justificación
 
-=== 1.3.2. Justificación teórica
+=== 1.3.1. Justificación teórica
 
 Según Vallejo (2019), muchas de las aplicaciones y plataformas de entrenamiento auditivo existentes no exploran mecánicas más allá de la simple identificación “al oído” de notas e intervalos musicales, sugiriendo una falta de innovación en el diseño de estas. El mismo autor señala que el componente gamificador de estas aplicaciones suele ser superficial y poco útil para facilitar el proceso de aprendizaje. Este fenómeno no es exclusivo al contexto musical, Almeida et al. (2022) demuestran que las plataformas gamificadas que centran su atención en elementos gamificadores superficiales, tales como puntos e insignias, provocan que los usuarios pierdan motivación intrínseca por el tema que se desea enseñar. En este sentido, la presente investigación propone mecánicas de juego poco exploradas en la literatura existente. Así mismo, se pretende aumentar la discusión sobre el uso de técnicas de aprendizaje automático para la retroalimentación automatizada en contextos de educación musical.
 
@@ -137,16 +136,15 @@ Las plataformas existentes de educación musical basadas en juegos no suelen est
 
 === 1.4.1. Objetivo general
 
-Desarrollar un videojuego en línea basado en técnicas de generación y análisis de similitud melódica para el desarrollo de habilidades auditivas en estudiantes de música.
+Desarrollar un videojuego en línea basado en generación melódica procedural y análisis de similitud melódica para el desarrollo de habilidades auditivas en estudiantes de música.
 
 === 1.4.2. Objetivos específicos
 
 #listasin[
-  - Integrar un modelo generador de estructuras melódicas simbólicas existente para la generación automática de ejercicios de dictado y repentización melódica.
-  - Integrar un modelo de análisis de similitud de estructuras melódicas simbólicas existente para evaluar el desempeño de un jugador en ejercicios de dictado y repentización melódica.
-  - Integrar un modelo de transcripción musical automática (audio a MIDI) existente para la evaluación de ejercicios de repentización melódica.
-  - Desarrollar un videojuego en línea que integre los modelos descritos para implementar mecánicas de dictado y repentización melódica.
-  - Evaluar la efectividad pedagógica del videojuego implementado mediante un estudio experimental con estudiantes de música.
+  - Diseñar un algoritmo generador de estructuras melódicas simbólicas para la generación automática de ejercicios de dictado y repentización melódica.
+  - Diseñar de un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+  - Desarrollar un videojuego en línea que implementa mecánicas de dictado y repentización melódica para el desarrollo de habilidades auditivas en estudiantes de música.
+  - ¿Cómo la validación del videojuego implementado mediante un estudio experimental con estudiantes de música demuestra la efectividad pedagógica de dicho videojuego?
 ]
 
 = Capítulo II: Marco teórico
@@ -155,7 +153,7 @@ Desarrollar un videojuego en línea basado en técnicas de generación y anális
 
 Pesek et al. (2020a), en su artículo "Troubadour: A Gamified e-Learning Platform for Ear Training" abordaron los desafíos asociados al entrenamiento auditivo, concretamente al dictado musical, proponiendo una plataforma de código abierto cuyo enfoque central es la identificación de intervalos musicales. La interfaz principal de la aplicación consiste de un teclado virtual con el que el estudiante interactúa. El estudiante escucha una secuencia melódica proporcionada por la plataforma y es su deber introducir aquellas notas que identificó mediante el teclado virtual. La generación de estos ejercicios es automática y su dificultad se ajusta de forma adaptativa. Para aumentar el engagement en los estudiantes, la plataforma incluye elementos gamificadores como insignias, tablas de clasificación y un modo multijugador. Para evaluar la efectividad de esta propuesta, se realizó un estudio A/B con estudiantes de primer y segundo año del Conservatorio de Música y Ballet de Ljubljana. Los estudiantes de primer año que utilizaron la plataforma obtuvieron una puntuación media del 69.8% en sus exámenes finales de dictado, lo que supuso una mejora del 9.2% respecto al grupo de control (60.6%), el cual no utilizó la plataforma.
 
-Chen y Li (2025) realizaron el estudio “A Quasi-Experimental Study on the Application of MuseScore Software to Improve Sight-Singing and Ear-Training Abilities in Music Education at Chuzhou University” para explorar la efectividad del software de notación musical MuseScore como herramienta de aprendizaje en cursos de dictado y repentización musical en la Universidad de Chuzhou. El objetivo fue comparar la precisión rítmica y tonal de aquellos estudiantes que usaron la aplicación con la de aquellos que recurrieron a métodos tradicionales. Se realizó una intervención de ocho semanas a 60 estudiantes de primer año: 30 en grupo experimental y 30 en control. Ambos tuvieron acceso a los mismos materiales y contenido de estudio. Al trabajar con el grupo control, los docentes hicieron uso de ciertas funcionalidades de MuseScore durante clase, tales como el metrónomo al practicar precisión de ritmo y el tempo ajustable para facilitar la repentización (sight-reading). Tras finalizar las ocho semanas, ambos grupos rindieron un examen final. Las calificaciones de este exámen fueron analizadas mediante una prueba t-test. La diferencia más notoria se encontró en el dictado melódico, donde el grupo experimental logró una puntuación promedio de 34.4 frente a 32.3 del grupo control, reflejando una diferencia significativa (p < 0.01) y un tamaño de efecto alto (Cohen’s d = -0.78).
+Chen y Li (2025) realizaron el estudio “A Quasi-Experimental Study on the Application of MuseScore Software to Improve Sight-Singing and Ear-Training Abilities in Music Education at Chuzhou University” para explorar la efectividad del software de notación musical MuseScore como herramienta de aprendizaje en cursos de dictado y repentización musical en la Universidad de Chuzhou. El objetivo fue comparar la precisión rítmica y tonal de aquellos estudiantes que usaron la aplicación con la de aquellos que recurrieron a métodos tradicionales. Se realizó una intervención de ocho semanas a 60 estudiantes de primer año: 30 en grupo experimental y 30 en control. Ambos tuvieron acceso a los mismos materiales y contenido de estudio. Al trabajar con el grupo control, los docentes hicieron uso de ciertas funcionalidades de MuseScore durante clase, tales como el metrónomo al practicar precisión de ritmo y el tempo ajustable para facilitar la repentización (sight-reading). Tras finalizar las ocho semanas, ambos grupos rindieron un examen final. Las calificaciones de este examen fueron analizadas mediante una prueba t-test. La diferencia más notoria se encontró en el dictado melódico, donde el grupo experimental logró una puntuación promedio de 34.4 frente a 32.3 del grupo control, reflejando una diferencia significativa (p < 0.01) y un tamaño de efecto alto (Cohen’s d = -0.78).
 
 C. W. J. Chen (2014) en su estudio “Mobile learning: Using application Auralbook to learn aural skills” investigó la efectividad de la aplicación móvil Auralbook como herramienta para la adquisición de ciertas habilidades auditivas: interpretar una partitura con la voz a primera vista (sight-singing), reconocer características de la pieza escuchada (reconocimiento estilístico) y aplaudir al ritmo correcto. Esta aplicación está especialmente diseñada para que los estudiantes se preparen para las evaluaciones de la Associated Board of the Royal Schools of Music (ABRSM), siendo su plan de estudios la base para las preguntas que la aplicación genera. La metodología empleada en este estudio fue la triangulación de tres fuentes de datos: una cuestionario en línea a 73 usuarios, un análisis de archivos de la base de datos de la aplicación (196 usuarios frecuentes) y entrevistas a dos profesores de piano que utilizan la aplicación para enseñar. Las conclusiones generales confirmaron que Auralbook es una herramienta efectiva, con el 94.59% de los usuarios afirmando que mejoró sus habilidades auditivas. El análisis de datos reveló los progresos más sustanciales en el nivel principiante para reconocimiento estilístico (7.21 de diferencia media) y ritmo (6.03 de diferencia media).
 
@@ -337,7 +335,7 @@ El proceso de diseño incluye la definición de la arquitectura del sistema, mec
 
 === 3.2.4. Demostración
 
-Una vez la propuesta ha sido desarrollada, la cuarta etapa requiere demostrar su actividad para resolver el problema identificado. Durante esta etapa se busca demostrar que el sistema propuesto puede ser usado en el contexto para el que fue diseñado. La demostración consistirá en la implementación del videojuego desarrollado y la realización de sesiones de juego con estudiantes de música. Durante estas sesiones, los participantes interactuarán con el sistema realizando ejercicios de dictado melódico y lectura a primera vista, mientras que la plataforma generará ejercicios, registrará las respuestas y evaluará el rendimiento de forma automática. El objetivo de esta actividad no es medir la eficacia, sino demostrar la viabilidad de la solución propuesta y verificar que el artefacto implementado puede respaldar con éxito el flujo de trabajo previsto durante la fase de diseño.
+Una vez la propuesta ha sido desarrollada, la cuarta etapa requiere demostrar su viabilidad para resolver el problema identificado. Durante esta etapa se busca demostrar que el sistema propuesto puede ser usado en el contexto para el que fue diseñado. La demostración consistirá en la implementación del videojuego desarrollado y la realización de sesiones de juego con estudiantes de música. Durante estas sesiones, los participantes interactuarán con el sistema realizando ejercicios de dictado melódico y lectura a primera vista, mientras que la plataforma generará ejercicios, registrará las respuestas y evaluará el rendimiento de forma automática. El objetivo de esta actividad no es medir la eficacia, sino demostrar la viabilidad de la solución propuesta y verificar que el artefacto implementado puede respaldar con éxito el flujo de trabajo previsto durante la fase de diseño.
 
 === 3.2.5. Evaluación
 
@@ -499,7 +497,7 @@ La partida estará compuesta por rondas alternadas de dictado y repentización. 
 
 Para el cálculo del resultado final se utilizará el promedio aritmético de las puntuaciones globales de las respuestas válidas del jugador:
 
-$ S_"final" = (sum_(i = 1)^n S_i) / n $
+$ S_"jugador" = (sum_(i = 1)^n S_i) / n $
 
 donde $n$ representa el número de respuestas puntuadas del jugador y $S_i$ corresponde a la puntuación global obtenida en cada respuesta. Esta fórmula dará el mismo peso a cada ronda puntuada. Las respuestas que no puedan procesarse por fallos técnicos deberán tratarse mediante una regla explícita de recuperación, en lugar de incorporarse como ceros sin distinguir entre un error musical y un fallo del sistema.
 
@@ -635,7 +633,7 @@ Finalmente, el prototipo se utilizará en sesiones controladas con participantes
 
   Huovinen, E., Ylitalo, A.-K., y Puurtinen, M. (2018). Early Attraction in Temporally Controlled Sight Reading of Music. Journal of Eye Movement Research, 11(2), 1-30. https://doi.org/10.16910/jemr.11.2.3
 
-  Kleppinger, N. S. V. (2017b). Practical and Philosophical Reflections Regarding Aural Skills Assessment. Indiana Theory Review, 33(1-2), 153. https://doi.org/10.2979/inditheorevi.33.1-2.06
+  Kleppinger, N. S. V. (2017). Practical and Philosophical Reflections Regarding Aural Skills Assessment. Indiana Theory Review, 33(1-2), 153. https://doi.org/10.2979/inditheorevi.33.1-2.06
 
   Lingjie, A. (2025). Effectiveness Study of Applying Earmaster for Ear Training in Chinese University Students. International Journal Of Sociologies And Anthropologies Science Reviews, 5(2), 29-38. https://doi.org/10.60027/ijsasr.2025.5514
 
