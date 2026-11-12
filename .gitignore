@@ -1,1 +1,17 @@
 *.pdf
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Entorno y secretos
+.env
+.env.local
+.env.*.local
+
+# Sistema
+.DS_Store
+
