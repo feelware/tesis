@@ -4,7 +4,7 @@
 **Fecha de consolidación:** 3 de noviembre de 2026  
 **Última actualización:** 11 de noviembre de 2026  
 **Idioma principal de trabajo:** español  
-**Estado del desarrollo:** codebase todavía no iniciada; el documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) y su problema y objetivos fueron actualizados por el tesista
+**Estado del desarrollo:** redacción de la tesis pausada temporalmente; existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados
 
 > Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado.
 
@@ -82,8 +82,8 @@ La advertencia anterior sobre el "modelo generativo existente" queda resuelta: l
 
 Observaciones de redacción pendientes (no modificar sin validación):
 
-- Ningún problema específico menciona ahora la transcripción automática de audio a MIDI, que antes tenía un problema propio. Decidir si se reintegra como problema explícito o se asume implícita en la evaluación de interpretaciones.
-- El problema 4 está redactado como pregunta ("¿Cómo la validación ... demuestra ...?"); su sintaxis merece revisión.
+- Ningún problema específico menciona la transcripción automática de audio a MIDI. Decisión del tesista (11-11-2026): **no tendrá problema ni objetivo propios**; queda relegada al problema/objetivo de la construcción del videojuego. El componente se implementa como parte del artefacto (sección 10).
+- El problema 4 mantiene la sintaxis de pregunta ("¿Cómo la validación ... demuestra ...?"); su redacción merece revisión.
 
 ---
 
@@ -97,23 +97,20 @@ Objetivo vigente en `tesis/tesis.typ` (actualizado por el tesista el 11 de novie
 
 ### 4.2. Objetivos específicos actuales
 
-Objetivos vigentes en `tesis/tesis.typ` (actualizados por el tesista el 11 de noviembre de 2026), transcritos tal como están redactados hoy, incluidos sus defectos conocidos (ver 4.3):
+Objetivos vigentes en `tesis/tesis.typ` (corregidos por el tesista el 11-11-2026), transcritos tal como están redactados hoy:
 
 1. Diseñar un algoritmo generador de estructuras melódicas simbólicas para la generación automática de ejercicios de dictado y repentización melódica.
-2. Diseñar de un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+2. Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
 3. Desarrollar un videojuego en línea que implementa mecánicas de dictado y repentización melódica para el desarrollo de habilidades auditivas en estudiantes de música.
-4. ¿Cómo la validación del videojuego implementado mediante un estudio experimental con estudiantes de música demuestra la efectividad pedagógica de dicho videojuego?
+4. Validar el videojuego implementado mediante un estudio experimental con estudiantes de música para demostrar la efectividad pedagógica de dicho videojuego.
 
-Antes había cinco objetivos; el dedicado a integrar un modelo de transcripción musical automática (audio a MIDI) ya no existe como objetivo propio.
+Antes había cinco objetivos; el dedicado a la transcripción musical automática (audio a MIDI) no existe como objetivo propio por decisión del tesista (ver 4.3).
 
 ### 4.3. Ajustes pendientes tras la actualización de objetivos
 
-El ajuste recomendado en versiones anteriores de este documento ya fue realizado por el tesista; la recomendación queda sustituida por los objetivos vigentes del apartado 4.2. Correcciones que quedan pendientes en el borrador:
+El tesista aplicó las correcciones de redacción el 11-11-2026 (objetivo 4 reformulado en infinitivo, "Tabla 4.1" corregido a "Tabla 3", erratas de 1.1/2.1/3.2.2 resueltas) y tomó la decisión sobre la transcripción automática: **no tendrá objetivo asociado** y queda relegada al problema/objetivo de la construcción del videojuego; se implementa igualmente como componente del artefacto (sección 10) porque es necesaria para evaluar la repentización.
 
-- Objetivo 2: contiene el error "Diseñar de un algoritmo..." (sobra "de") y termina en "?" sobrante. Redacción sugerida: "Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores."
-- Objetivo 4: está redactado como pregunta, no como objetivo ("¿Cómo la validación ... demuestra ...?"). Debería reformularse en infinitivo, por ejemplo: "Validar la efectividad pedagógica del videojuego implementado mediante un estudio experimental con estudiantes de música".
-- La transcripción automática de audio a MIDI dejó de tener problema y objetivo propios, pero el componente sigue siendo necesario para evaluar la repentización (sección 10). Decidir con el asesor si se mantiene implícito o se restaura un objetivo explícito de integración/adaptación del transcriptor.
-- En `tesis/tesis.typ` (sección 4.1) el texto dice "se muestran en la Tabla 4.1" pero el rótulo de la tabla es "Tabla 3"; corregir la referencia.
+Pendiente menor: el objetivo 2 aún termina en "?" sobrante ("...de los jugadores?").
 
 El objetivo de evaluación requiere especial atención: la factibilidad de un diseño experimental con grupo control, pretest, postest e intervención suficiente debe contrastarse con el calendario, el tamaño de muestra y la disponibilidad de estudiantes.
 
@@ -497,6 +494,8 @@ Pasos sugeridos:
 
 No inventar respuestas. Mantener estas cuestiones en un registro de decisiones pendientes.
 
+Valores provisionales adoptados en el prototipo (rama `prototipo`, 11-11-2026), implementados y cubiertos por pruebas pero aún sujetos a validación musical con docentes: "longitud" = número de notas; registro centrado en C4 con ventana igual al ambitus del nivel (12/24/36 semitonos); tonalidades C, G, D, A, F, Bb y Eb en mayor y menor natural; sin silencios; notas repetidas permitidas salvo tres iguales seguidas; modulación mediante cambio de centro tonal a la tonalidad relativa (dificultad media, opcional) o a la dominante/subdominante (dificultad alta, obligatoria) en la nota media de la melodía; tempo configurable entre 60 y 120 BPM (defecto 90); rejilla de entrada de dictado de 1, 0.5 y 1/6 de tiempo según el nivel.
+
 ### 8.5. Pruebas del generador
 
 Crear pruebas automatizadas para cada nivel:
@@ -588,6 +587,8 @@ La media aritmética simple es la recomendación inicial porque es transparente,
 Referencia metodológica para las tolerancias y el concepto de matching: documentación de `mir_eval`:
 https://mir-eval.readthedocs.io/latest/api/transcription.html
 
+Tolerancias adoptadas en el prototipo (rama `prototipo`): 0.5 semitono y 50 ms para respuestas de dictado introducidas sobre rejilla; 0.5 semitono y 150 ms para respuestas transcritas de canto, porque los ataques del transcriptor no están cuantizados. Ambas definidas en `src/lib/music/analyzer.ts` y aplicadas consistentemente en cada tipo de ejercicio, según lo permitido en este apartado.
+
 ### 9.5. Pruebas del evaluador
 
 Construir casos unitarios con:
@@ -672,6 +673,8 @@ Preparar un conjunto pequeño de grabaciones vocales con:
 - diferentes micrófonos y navegadores.
 
 Comparar la transcripción automática con MIDI de referencia y calcular precisión de altura y onset. Esta validación técnica no sustituye la evaluación pedagógica del videojuego.
+
+Estado en el prototipo (rama `prototipo`): `@spotify/basic-pitch` quedó integrado y verificado con audio sintético (el modelo detecta correctamente el La4 de una sinusoide de 2 s; ejecutable con `npm run smoke:basic-pitch`). La inferencia corre en un Web Worker; el audio se remuestrea a 22050 Hz mono, se recorta el silencio inicial y se normalizan las notas (redondeo de altura, orden por ataque, fusión de segmentos contiguos de la misma altura con menos de 80 ms de separación). **Falta validar con grabaciones de voz cantada real**, que es la validación exigida en este apartado.
 
 ---
 
@@ -1012,7 +1015,7 @@ No implementar chat interno. No implementar un sistema global de rankings si el 
 
 ## 15. Estrategia de implementación de la codebase
 
-El desarrollo todavía no ha comenzado. El LLM de programación debe trabajar por incrementos verticales y mantener la aplicación ejecutable.
+El desarrollo de la aplicación no ha comenzado en `main`. Existe un prototipo en la rama `prototipo` (ver 15.2) construido por incrementos con un commit por hito. El LLM de programación debe trabajar por incrementos verticales y mantener la aplicación ejecutable.
 
 ### Fase 0 – Validación de decisiones y riesgos
 
@@ -1108,6 +1111,19 @@ Antes de introducir sincronización, conseguir un flujo individual funcional:
 - No subir grabaciones a un repositorio Git.
 - No afirmar que una integración funciona hasta haberla ejecutado en el entorno real.
 - Actualizar este documento cuando una decisión cambie.
+
+### 15.2. Estado del prototipo (rama `prototipo`, noviembre de 2026)
+
+El tesista decidió pausar la redacción y construir un prototipo muy básico del videojuego, con estas decisiones confirmadas: **partida de un solo jugador** (sin usuarios ni salas; corresponde a la Fase 3 de este plan), **Payload + PostgreSQL desde ya** (estructura de repositorio al estilo de `~/dev/docestantes`), **aplicación en la raíz del repositorio** (con `docs/` intacto) e **interfaz musical de piano roll** tanto para el dictado como para la lectura en repentización.
+
+Contenido del prototipo, verificado con build limpia, 39 pruebas unitarias y pruebas de humo:
+
+- `src/lib/music/`: tipos canónicos de melodía (con registro de modulaciones), generador procedural determinista por semilla y analizador de similitud con matching bipartito máximo, con pruebas de Vitest para generador (26) y analizador (13).
+- `src/lib/transcription/`: transcripción con `@spotify/basic-pitch` en Web Worker, con remuestreo a 22050 Hz mono, recorte de silencio inicial y normalización de notas; verificada con audio sintético (`npm run smoke:basic-pitch`).
+- `app/(frontend)/`: página única de partida con configuración (dificultad, primera actividad, rondas, tempo), rondas alternadas de dictado y repentización, evaluación por ronda con sub-scores de alturas y ritmo, visualización de errores por color y resumen final con promedio de precisión general.
+- `src/collections/`: colecciones Payload `Melodies` y `GameSessions`; la partida se guarda al terminar (acceso abierto solo a nivel de prototipo; la validación de resultados en servidor y los permisos por rol quedan para la versión completa).
+
+Pendientes del prototipo: prueba interactiva en navegador con micrófono real, validación de la transcripción con voz cantada real, persistencia de las grabaciones de audio (junto con consentimiento y retención), y revisión con docentes de las decisiones musicales provisionales del apartado 8.4.
 
 ---
 
