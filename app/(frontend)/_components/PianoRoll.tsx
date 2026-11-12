@@ -12,6 +12,7 @@ export interface PianoRollProps {
   editable?: boolean;
   onToggleNote?: (midiPitch: number, onsetBeats: number) => void;
   playheadBeat?: number | null;
+  colorForNote?: (note: NoteEvent, index: number) => string | undefined;
 }
 
 const CELL_WIDTH = 16;
@@ -27,6 +28,7 @@ export const PianoRoll = ({
   editable = false,
   onToggleNote,
   playheadBeat = null,
+  colorForNote,
 }: PianoRollProps) => {
   const rows = maxPitch - minPitch + 1;
   const columns = Math.ceil(totalBeats / gridBeats);
@@ -84,12 +86,13 @@ export const PianoRoll = ({
             return (
               <div
                 key={`${note.midiPitch}-${note.onsetBeats}-${index}`}
-                className="absolute rounded-sm bg-indigo-500"
+                className="absolute rounded-sm"
                 style={{
                   left: (note.onsetBeats / gridBeats) * CELL_WIDTH + 1,
                   width: Math.max((note.durationBeats / gridBeats) * CELL_WIDTH - 2, 6),
                   top: row * CELL_HEIGHT + 1,
                   height: CELL_HEIGHT - 2,
+                  backgroundColor: colorForNote?.(note, index) ?? "#6366f1",
                 }}
               />
             );
