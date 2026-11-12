@@ -26,6 +26,11 @@ export const DEFAULT_TOLERANCES: EvaluationTolerances = {
   onsetSeconds: 0.05,
 };
 
+export const TRANSCRIPTION_TOLERANCES: EvaluationTolerances = {
+  pitchSemitones: 0.5,
+  onsetSeconds: 0.15,
+};
+
 const maximumMatching = (compatibility: boolean[][]): [number, number][] => {
   const referenceCount = compatibility.length;
   const estimatedCount = compatibility[0]?.length ?? 0;

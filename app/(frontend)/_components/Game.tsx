@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   generateMelody,
   type Difficulty,
@@ -8,11 +8,10 @@ import {
   type Melody,
   type NoteEvent,
 } from "@/lib/music";
-import { playNotes, type PlaybackHandle } from "@/lib/audio/playback";
 import { ConfigForm, type GameConfig } from "./ConfigForm";
 import { DictationExercise } from "./DictationExercise";
 import { EvaluationPanel } from "./EvaluationPanel";
-import { PianoRoll } from "./PianoRoll";
+import { SightSingingExercise } from "./SightSingingExercise";
 
 type Activity = "dictation" | "sight_singing";
 
@@ -25,6 +24,7 @@ interface Round {
 interface RoundResult {
   evaluation: EvaluationResult;
   response: NoteEvent[];
+  recording: Blob | null;
 }
 
 type Phase = "config" | "playing" | "summary";
@@ -65,8 +65,6 @@ export const Game = () => {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [currentRound, setCurrentRound] = useState(0);
   const [results, setResults] = useState<Record<number, RoundResult>>({});
-  const [playheadBeat, setPlayheadBeat] = useState<number | null>(null);
-  const playbackRef = useRef<PlaybackHandle | null>(null);
 
   const round = rounds[currentRound];
 
@@ -100,19 +98,7 @@ export const Game = () => {
     setPhase("playing");
   };
 
-  const playMelody = (melody: Melody) => {
-    playbackRef.current?.stop();
-    setPlayheadBeat(0);
-    playbackRef.current = playNotes(
-      melody.notes,
-      melody.tempoBpm,
-      setPlayheadBeat,
-    );
-    void playbackRef.current.finished.then(() => setPlayheadBeat(null));
-  };
-
   const advance = () => {
-    playbackRef.current?.stop();
     if (currentRound + 1 < rounds.length) {
       setCurrentRound(currentRound + 1);
     } else {
@@ -121,7 +107,6 @@ export const Game = () => {
   };
 
   const resetGame = () => {
-    playbackRef.current?.stop();
     setPhase("config");
   };
 
@@ -228,40 +213,43 @@ export const Game = () => {
             onComplete={(evaluation, response) =>
               setResults((current) => ({
                 ...current,
-                [round.index]: { evaluation, response },
+                [round.index]: { evaluation, response, recording: null },
               }))
             }
           />
         )
-      ) : (
-        <div className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6">
-          <p className="text-zinc-700">Interpreta esta melodía con la voz.</p>
-          <PianoRoll
-            notes={round.melody.notes}
+      ) : result ? (
+        <>
+          <EvaluationPanel
+            melody={round.melody}
+            response={result.response}
+            evaluation={result.evaluation}
+            gridBeats={gridBeats}
             minPitch={rollRange.minPitch}
             maxPitch={rollRange.maxPitch}
             totalBeats={rollRange.totalBeats}
-            gridBeats={gridBeats}
-            playheadBeat={playheadBeat}
           />
-          <div className="flex gap-3">
-            <button
-              className="rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
-              onClick={() => playMelody(round.melody)}
-            >
-              Escuchar melodía
-            </button>
-            <button
-              className="rounded border border-zinc-300 px-4 py-2"
-              onClick={advance}
-            >
-              {currentRound + 1 < rounds.length ? "Siguiente ronda" : "Ver resumen"}
-            </button>
-          </div>
-          <p className="text-sm text-zinc-500">
-            La grabación y transcripción llegan en el siguiente hito.
-          </p>
-        </div>
+          <button
+            className="rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
+            onClick={advance}
+          >
+            {currentRound + 1 < rounds.length ? "Siguiente ronda" : "Ver resumen"}
+          </button>
+        </>
+      ) : (
+        <SightSingingExercise
+          melody={round.melody}
+          gridBeats={gridBeats}
+          minPitch={rollRange.minPitch}
+          maxPitch={rollRange.maxPitch}
+          totalBeats={rollRange.totalBeats}
+          onComplete={(evaluation, response, recording) =>
+            setResults((current) => ({
+              ...current,
+              [round.index]: { evaluation, response, recording },
+            }))
+          }
+        />
       )}
     </div>
   );

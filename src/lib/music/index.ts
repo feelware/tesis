@@ -23,4 +23,4 @@ export type {
   MatchingResult,
   Score,
 } from "./analyzer";
-export { DEFAULT_TOLERANCES, evaluateSimilarity } from "./analyzer";
+export { DEFAULT_TOLERANCES, TRANSCRIPTION_TOLERANCES, evaluateSimilarity } from "./analyzer";

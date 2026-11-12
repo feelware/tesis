@@ -3,6 +3,23 @@ import type { EvaluatedNote } from "@/lib/music";
 
 const TARGET_SAMPLE_RATE = 22050;
 const MERGE_GAP_SECONDS = 0.08;
+const SILENCE_THRESHOLD = 0.01;
+const LEAD_IN_SECONDS = 0.05;
+
+export const trimLeadingSilence = (
+  audio: Float32Array,
+  sampleRate: number,
+): Float32Array => {
+  let firstSound = 0;
+  while (firstSound < audio.length && Math.abs(audio[firstSound]) < SILENCE_THRESHOLD) {
+    firstSound += 1;
+  }
+  const start = Math.max(
+    0,
+    firstSound - Math.round(LEAD_IN_SECONDS * sampleRate),
+  );
+  return audio.slice(start);
+};
 
 export const resampleToMono = async (
   audioBuffer: AudioBuffer,

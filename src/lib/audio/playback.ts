@@ -73,3 +73,30 @@ export const playNotes = (
     finished,
   };
 };
+
+export const playAudioBuffer = (audioBuffer: AudioBuffer): PlaybackHandle => {
+  const context = new AudioContext();
+  const source = context.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(context.destination);
+  source.start();
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    void context.close();
+  };
+  const finished = new Promise<void>((resolve) => {
+    setTimeout(() => {
+      close();
+      resolve();
+    }, audioBuffer.duration * 1000 + 150);
+  });
+  return {
+    stop: () => {
+      source.stop();
+      close();
+    },
+    finished,
+  };
+};
