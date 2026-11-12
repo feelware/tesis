@@ -142,9 +142,9 @@ Desarrollar un videojuego en línea basado en generación melódica procedural y
 
 #listasin[
   - Diseñar un algoritmo generador de estructuras melódicas simbólicas para la generación automática de ejercicios de dictado y repentización melódica.
-  - Diseñar de un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+  - Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
   - Desarrollar un videojuego en línea que implementa mecánicas de dictado y repentización melódica para el desarrollo de habilidades auditivas en estudiantes de música.
-  - ¿Cómo la validación del videojuego implementado mediante un estudio experimental con estudiantes de música demuestra la efectividad pedagógica de dicho videojuego?
+  - Validar el videojuego implementado mediante un estudio experimental con estudiantes de música para demostrar la efectividad pedagógica de dicho videojuego.
 ]
 
 = Capítulo II: Marco teórico
@@ -385,7 +385,7 @@ El generador de estructuras melódicas será responsable de crear los ejercicios
 
 Esta decisión sigue un principio similar al aplicado en Troubadour, donde las secuencias melódicas se generan mediante un algoritmo que considera la longitud de la secuencia y la distribución de los intervalos para producir ejercicios con distintos niveles de dificultad (Pesek et al., 2020). Para la implementación se utilizará Tonal, una biblioteca de JavaScript que proporciona operaciones sobre notas, intervalos, escalas y tonalidades. Sin embargo, Tonal no genera por sí sola melodías completas; se implementará un algoritmo propio que utilizará sus funciones para aplicar las restricciones musicales definidas.
 
-Se definieron tres niveles de dificultad, cuyos parámetros se muestran en la Tabla 4.1.
+Se definieron tres niveles de dificultad, cuyos parámetros se muestran en la Tabla 3.
 
 #block(breakable: false)[
 #leyenda([Tabla], 3, [Parámetros de generación melódica por nivel de dificultad])

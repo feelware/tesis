@@ -2,8 +2,9 @@
 
 **Proyecto:** Tesis – videojuego web multijugador para entrenamiento auditivo  
 **Fecha de consolidación:** 3 de noviembre de 2026  
+**Última actualización:** 11 de noviembre de 2026  
 **Idioma principal de trabajo:** español  
-**Estado del desarrollo:** todavía no iniciado
+**Estado del desarrollo:** codebase todavía no iniciada; el documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) y su problema y objetivos fueron actualizados por el tesista
 
 > Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado.
 
@@ -31,7 +32,7 @@ La plataforma tendrá cuentas sencillas, salas abiertas por código, sesiones mu
 
 En el proyecto se han proporcionado los siguientes documentos:
 
-- `TESIS.txt`: borrador actual de la tesis. Es la fuente primaria para el problema, formulación, objetivos, justificación, marco teórico, estado del arte y metodología actualmente redactados.
+- `tesis/tesis.typ`: borrador actual de la tesis, en Typst. Es la fuente primaria para el problema, formulación, objetivos, justificación, marco teórico, estado del arte y metodología actualmente redactados. Sustituye al antiguo `TESIS.txt`, eliminado tras la migración. Usa una plantilla de formato cercana a APA 7 (Times New Roman 12pt, interlineado doble, márgenes de 2.54 cm, sangría de 1.27 cm, rótulos de tabla/figura sobre el elemento, referencias con sangría francesa, Anexo A en páginas apaisadas). Se compila con `typst compile tesis/tesis.typ`; `tesis/tesis.pdf` es el PDF compilado y `tesis/fig1.png` / `tesis/fig2.png` son las figuras del documento.
 - `Peffers_2008.md`: artículo metodológico de Peffers et al. que fundamenta el uso de Design Science Research Methodology (DSRM).
 - `Troubadour.md`: antecedente cercano sobre una plataforma gamificada de entrenamiento auditivo. Debe utilizarse como referencia técnica y pedagógica, no como plantilla que deba copiarse.
 - `Freire_vd.md`: tesis de referencia (Freire, 2025) asesorada por el mismo docente que asesora la presente tesis. Debe guiar el nivel de detalle, el tipo de exposición técnica, la organización y el tono académico. No debe copiarse su texto ni trasladarse mecánicamente su estructura a un proyecto diferente.
@@ -62,25 +63,27 @@ La investigación busca abordar esta problemática mediante un videojuego que in
 
 ### 3.2. Problema general vigente en el borrador
 
-> ¿De qué manera un videojuego en línea basado en técnicas de generación y análisis de similitud melódica facilita el desarrollo de habilidades auditivas en estudiantes de música?
+> ¿En qué medida el uso de un videojuego en línea basado en generación melódica procedural y análisis de similitud melódica contribuye al desarrollo de habilidades auditivas en estudiantes de música?
 
-Esta formulación debe revisarse para asegurar que refleje también la transcripción automática de canto y la mecánica de intercambio entre jugadores. Una formulación alternativa que el tesista y su asesor podrían evaluar es:
+Esta es la formulación vigente en `tesis/tesis.typ` (actualizada por el tesista el 11 de noviembre de 2026). Sustituye a la anterior ("¿De qué manera un videojuego en línea basado en técnicas de generación y análisis de similitud melódica facilita...") y recoge parcialmente la alternativa que este documento proponía.
 
-> ¿En qué medida el uso de un videojuego en línea multijugador, basado en generación procedural, transcripción automática y análisis de similitud melódica, contribuye al desarrollo de habilidades de dictado y repentización en estudiantes de música?
-
-No sustituir la pregunta oficial sin validación del tesista y asesor.
+Observación pendiente de confirmar con el tesista y el asesor: la formulación vigente menciona generación procedural y similitud melódica, pero no menciona la transcripción automática de canto ni la mecánica de intercambio entre jugadores, que siguen siendo componentes del diseño (secciones 7 y 10). Si se desea que el problema general los refleje, debe proponerse una redacción explícita; no modificar la pregunta sin validación.
 
 ### 3.3. Problemas específicos del borrador
 
-El borrador plantea preguntas sobre:
+Problemas específicos vigentes (actualizados por el tesista el 11 de noviembre de 2026):
 
-- Integrar un generador de estructuras melódicas simbólicas para crear ejercicios de dictado y repentización.
-- Integrar un método de análisis de similitud melódica para evaluar transcripciones e interpretaciones.
-- Integrar un modelo de transcripción musical automática de audio a MIDI para evaluar la repentización.
-- Desarrollar un videojuego en línea que integre los componentes anteriores.
-- Evaluar la efectividad pedagógica mediante un estudio experimental con estudiantes de música.
+1. ¿Cómo influye el diseño de un algoritmo generador de estructuras melódicas simbólicas en su efectividad para la generación automática de ejercicios de dictado y repentización melódica?
+2. ¿Cómo influye el diseño de un algoritmo de análisis de similitud melódica en su efectividad para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+3. ¿Qué impacto tienen los componentes de un videojuego en línea que implementa mecánicas de dictado y repentización melódica en el desarrollo de habilidades auditivas en estudiantes de música?
+4. ¿Cómo la validación del videojuego implementado mediante un estudio experimental con estudiantes de música demuestra la efectividad pedagógica de dicho videojuego?
 
-**Advertencia de actualización:** la generación de melodías ya no se plantea necesariamente como integración de un modelo generativo preexistente. El tesista está dispuesto a implementar un generador procedural propio, con reglas y parámetros explícitos. Por tanto, el primer problema y objetivo específico deben reformularse para no prometer la integración de un modelo generativo si la solución real será algorítmica.
+La advertencia anterior sobre el "modelo generativo existente" queda resuelta: los problemas ya se formulan en términos de **algoritmos** propios (generador procedural y comparador), no de integración de modelos preexistentes.
+
+Observaciones de redacción pendientes (no modificar sin validación):
+
+- Ningún problema específico menciona ahora la transcripción automática de audio a MIDI, que antes tenía un problema propio. Decidir si se reintegra como problema explícito o se asume implícita en la evaluación de interpretaciones.
+- El problema 4 está redactado como pregunta ("¿Cómo la validación ... demuestra ...?"); su sintaxis merece revisión.
 
 ---
 
@@ -88,31 +91,31 @@ El borrador plantea preguntas sobre:
 
 ### 4.1. Objetivo general actualmente redactado
 
-> Desarrollar un videojuego en línea basado en técnicas de generación y análisis de similitud melódica para el desarrollo de habilidades auditivas en estudiantes de música.
+> Desarrollar un videojuego en línea basado en generación melódica procedural y análisis de similitud melódica para el desarrollo de habilidades auditivas en estudiantes de música.
 
-Debe considerarse una revisión para mencionar la evaluación de interpretaciones vocales mediante transcripción automática y la mecánica multijugador.
+Objetivo vigente en `tesis/tesis.typ` (actualizado por el tesista el 11 de noviembre de 2026). La revisión que este documento proponía ya no aplica: el objetivo refleja la generación procedural. Se mantiene la observación del apartado 3.2: la transcripción automática de canto y la mecánica multijugador no aparecen mencionadas.
 
 ### 4.2. Objetivos específicos actuales
 
-El borrador contiene los siguientes objetivos:
+Objetivos vigentes en `tesis/tesis.typ` (actualizados por el tesista el 11 de noviembre de 2026), transcritos tal como están redactados hoy, incluidos sus defectos conocidos (ver 4.3):
 
-1. Integrar un modelo generador de estructuras melódicas simbólicas existente para la generación automática de ejercicios de dictado y repentización melódica.
-2. Integrar un modelo de análisis de similitud de estructuras melódicas simbólicas existente para evaluar el desempeño de un jugador en ejercicios de dictado y repentización melódica.
-3. Integrar un modelo de transcripción musical automática (audio a MIDI) existente para la evaluación de ejercicios de repentización melódica.
-4. Desarrollar un videojuego en línea que integre los modelos descritos para implementar mecánicas de dictado y repentización melódica.
-5. Evaluar la efectividad pedagógica del videojuego implementado mediante un estudio experimental con estudiantes de música.
+1. Diseñar un algoritmo generador de estructuras melódicas simbólicas para la generación automática de ejercicios de dictado y repentización melódica.
+2. Diseñar de un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+3. Desarrollar un videojuego en línea que implementa mecánicas de dictado y repentización melódica para el desarrollo de habilidades auditivas en estudiantes de música.
+4. ¿Cómo la validación del videojuego implementado mediante un estudio experimental con estudiantes de música demuestra la efectividad pedagógica de dicho videojuego?
 
-### 4.3. Ajuste recomendado de los objetivos
+Antes había cinco objetivos; el dedicado a integrar un modelo de transcripción musical automática (audio a MIDI) ya no existe como objetivo propio.
 
-Dado el cambio técnico, se recomienda discutir con el asesor una versión como la siguiente:
+### 4.3. Ajustes pendientes tras la actualización de objetivos
 
-1. **Diseñar e implementar un algoritmo de generación procedural de estructuras melódicas simbólicas**, parametrizado por dificultad, para producir ejercicios de dictado y repentización.
-2. **Diseñar e implementar un método de evaluación de similitud melódica simbólica** que permita estimar separadamente la precisión de alturas y la precisión rítmica de las respuestas.
-3. **Integrar y adaptar una biblioteca o modelo existente de transcripción automática de audio a MIDI** para convertir las interpretaciones vocales de los jugadores en secuencias simbólicas evaluables.
-4. **Desarrollar un videojuego web multijugador** que integre los componentes anteriores y materialice el intercambio de melodías, transcripciones e interpretaciones en rondas de dictado y repentización.
-5. **Evaluar la efectividad pedagógica del videojuego** mediante un estudio experimental o cuasi-experimental con estudiantes de música, según las condiciones reales de reclutamiento y asignación de participantes.
+El ajuste recomendado en versiones anteriores de este documento ya fue realizado por el tesista; la recomendación queda sustituida por los objetivos vigentes del apartado 4.2. Correcciones que quedan pendientes en el borrador:
 
-No declarar estos objetivos como aprobados hasta que el tesista y asesor los confirmen. El objetivo 5 requiere especial atención: la factibilidad de un diseño experimental con grupo control, pretest, postest e intervención suficiente debe contrastarse con el calendario, el tamaño de muestra y la disponibilidad de estudiantes.
+- Objetivo 2: contiene el error "Diseñar de un algoritmo..." (sobra "de") y termina en "?" sobrante. Redacción sugerida: "Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores."
+- Objetivo 4: está redactado como pregunta, no como objetivo ("¿Cómo la validación ... demuestra ...?"). Debería reformularse en infinitivo, por ejemplo: "Validar la efectividad pedagógica del videojuego implementado mediante un estudio experimental con estudiantes de música".
+- La transcripción automática de audio a MIDI dejó de tener problema y objetivo propios, pero el componente sigue siendo necesario para evaluar la repentización (sección 10). Decidir con el asesor si se mantiene implícito o se restaura un objetivo explícito de integración/adaptación del transcriptor.
+- En `tesis/tesis.typ` (sección 4.1) el texto dice "se muestran en la Tabla 4.1" pero el rótulo de la tabla es "Tabla 3"; corregir la referencia.
+
+El objetivo de evaluación requiere especial atención: la factibilidad de un diseño experimental con grupo control, pretest, postest e intervención suficiente debe contrastarse con el calendario, el tamaño de muestra y la disponibilidad de estudiantes.
 
 ---
 
@@ -163,7 +166,7 @@ La cantidad de participantes todavía no está determinada. Tampoco debe asumirs
 
 ## 6. Estrategia de búsqueda y actualización del estado del arte
 
-### 6.1. Estrategia originalmente descrita en `TESIS.txt`
+### 6.1. Estrategia originalmente descrita en el borrador
 
 La revisión se dividió en cuatro búsquedas o clusters independientes porque las técnicas necesarias para el videojuego son distintas y una búsqueda única podría omitir literatura técnica relevante:
 
@@ -1250,8 +1253,8 @@ Orden recomendado, priorizando decisiones que pueden invalidar el diseño:
 
 ### Prioridad 1 – Actualizar coherencia académica
 
-1. Revisar problema general y problemas específicos.
-2. Actualizar objetivos para reflejar generación procedural, evaluación propia de alturas/onsets y transcripción automática.
+1. (Completado el 11-11-2026) Revisar problema general y problemas específicos: actualizados por el tesista en el borrador.
+2. (Completado parcialmente el 11-11-2026) Actualizar objetivos: objetivos nuevos redactados en el borrador; quedan pendientes la decisión sobre la transcripción automática como objetivo y las correcciones de redacción del apartado 4.3.
 3. Ajustar la sección metodológica DSRM para que distinga claramente diseño/desarrollo, demostración y evaluación.
 4. Revisar alcance y criterios de evaluación con el asesor.
 
@@ -1293,7 +1296,7 @@ Orden recomendado, priorizando decisiones que pueden invalidar el diseño:
 ## 19. Instrucciones operativas para el LLM que continúe el proyecto
 
 1. **Trabaja en español**, salvo que se solicite expresamente otro idioma.
-2. Usa `TESIS.txt` como fuente primaria de lo que ya está escrito y señala toda modificación sustantiva.
+2. Usa `tesis/tesis.typ` como fuente primaria de lo que ya está escrito (el antiguo `TESIS.txt` ya no existe) y señala toda modificación sustantiva. El documento está escrito en Typst con plantilla de formato cercana a APA 7: conserva la estructura de encabezados por niveles, la numeración manual de figuras y tablas, las fórmulas en modo matemático de Typst y la compilación con `typst compile` para verificar que los cambios no rompan el layout.
 3. Antes de redactar una sección académica, revisa los apartados relacionados del borrador y las fuentes citadas.
 4. Usa `Freire_vd.md` como referencia de profundidad y estilo, no como fuente de contenido para esta investigación.
 5. Usa `Peffers_2008.md` para explicar correctamente DSRM y sus seis actividades.
