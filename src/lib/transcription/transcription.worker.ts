@@ -31,6 +31,7 @@ scope.onmessage = async (event) => {
     const frames: number[][] = [];
     const onsets: number[][] = [];
     const contours: number[][] = [];
+    let lastPostedPercent = -1;
     await basicPitch.evaluateModel(
       audio,
       (nextFrames, nextOnsets, nextContours) => {
@@ -38,7 +39,11 @@ scope.onmessage = async (event) => {
         onsets.push(...nextOnsets);
         contours.push(...nextContours);
       },
-      (percent) => scope.postMessage({ id, type: "progress", percent }),
+      (percent) => {
+        if (percent - lastPostedPercent < 0.01 && percent < 1) return;
+        lastPostedPercent = percent;
+        scope.postMessage({ id, type: "progress", percent });
+      },
     );
     const notes: BasicNoteTime[] = noteFramesToTime(
       addPitchBendsToNoteEvents(

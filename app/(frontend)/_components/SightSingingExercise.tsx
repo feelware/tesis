@@ -33,6 +33,8 @@ interface SightSingingExerciseProps {
 
 type ExercisePhase = "idle" | "recording" | "recorded" | "transcribing";
 
+const MAX_RECORDING_MS = 30000;
+
 export const SightSingingExercise = ({
   melody,
   gridBeats,
@@ -48,12 +50,23 @@ export const SightSingingExercise = ({
   const [error, setError] = useState<string | null>(null);
   const recordingRef = useRef<RecordingHandle | null>(null);
   const playbackRef = useRef<PlaybackHandle | null>(null);
+  const autoStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAutoStop = () => {
+    if (autoStopRef.current !== null) {
+      globalThis.clearTimeout(autoStopRef.current);
+      autoStopRef.current = null;
+    }
+  };
 
   const start = async () => {
     setError(null);
     try {
       recordingRef.current = await startRecording();
       setPhase("recording");
+      autoStopRef.current = globalThis.setTimeout(() => {
+        void stop();
+      }, MAX_RECORDING_MS);
     } catch {
       setError(
         "No se pudo acceder al micrófono. Revisa los permisos del navegador e inténtalo de nuevo.",
@@ -62,6 +75,7 @@ export const SightSingingExercise = ({
   };
 
   const stop = async () => {
+    clearAutoStop();
     const handle = recordingRef.current;
     if (!handle) return;
     const recording = await handle.stop();
@@ -112,6 +126,7 @@ export const SightSingingExercise = ({
   };
 
   const retake = () => {
+    clearAutoStop();
     recordingRef.current?.cancel();
     recordingRef.current = null;
     playbackRef.current?.stop();
@@ -138,7 +153,7 @@ export const SightSingingExercise = ({
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-2 text-red-600">
             <span className="h-3 w-3 animate-pulse rounded-full bg-red-600" />
-            Grabando…
+            Grabando… (máximo 30 segundos)
           </span>
           <button
             className="rounded bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700"
@@ -184,7 +199,8 @@ export const SightSingingExercise = ({
           ) : null}
           {phase === "transcribing" ? (
             <span className="text-zinc-600">
-              Transcribiendo la grabación… {Math.round(progress * 100)}%
+              Transcribiendo la grabación… {Math.round(progress * 100)}%. Puede
+              tardar; no cierres la pestaña.
             </span>
           ) : null}
         </div>
