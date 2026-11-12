@@ -6,6 +6,12 @@ export interface NoteEvent {
   durationBeats: number;
 }
 
+export interface Modulation {
+  atNoteIndex: number;
+  key: string;
+  scale: string;
+}
+
 export interface Melody {
   id: string;
   tempoBpm: number;
@@ -13,6 +19,7 @@ export interface Melody {
   key: string;
   scale: string;
   notes: NoteEvent[];
+  modulations: Modulation[];
   difficulty: Difficulty;
   generatorVersion: string;
   seed: string;

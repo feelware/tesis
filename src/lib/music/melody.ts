@@ -59,6 +59,15 @@ export const validateMelody = (melody: Melody): string[] => {
       break;
     }
   }
+  (melody.modulations ?? []).forEach((modulation, index) => {
+    if (
+      !Number.isInteger(modulation.atNoteIndex) ||
+      modulation.atNoteIndex < 0 ||
+      modulation.atNoteIndex >= melody.notes.length
+    ) {
+      errors.push(`modulación ${index}: atNoteIndex fuera de rango`);
+    }
+  });
   return errors;
 };
 
@@ -72,6 +81,9 @@ export const parseMelody = (value: unknown): Melody => {
   }
   if (!Array.isArray(candidate.timeSignature) || candidate.timeSignature.length !== 2) {
     throw new Error("melodía inválida: timeSignature debe ser una tupla [número, número]");
+  }
+  if (candidate.modulations !== undefined && !Array.isArray(candidate.modulations)) {
+    throw new Error("melodía inválida: modulations debe ser una lista");
   }
   if (
     typeof candidate.difficulty !== "string" ||
@@ -100,3 +112,33 @@ export const melodyToEvaluatedNotes = (melody: Melody): EvaluatedNote[] =>
     onsetSeconds: beatsToSeconds(note.onsetBeats, melody.tempoBpm),
     durationSeconds: beatsToSeconds(note.durationBeats, melody.tempoBpm),
   }));
+
+export interface ScaleSegment {
+  fromNoteIndex: number;
+  toNoteIndex: number;
+  key: string;
+  scale: string;
+}
+
+export const melodyScaleSegments = (melody: Melody): ScaleSegment[] => {
+  const boundaries = [
+    { atNoteIndex: 0, key: melody.key, scale: melody.scale },
+    ...(melody.modulations ?? [])
+      .slice()
+      .sort((a, b) => a.atNoteIndex - b.atNoteIndex)
+      .map((modulation) => ({
+        atNoteIndex: modulation.atNoteIndex,
+        key: modulation.key,
+        scale: modulation.scale,
+      })),
+  ];
+  return boundaries.map((boundary, index) => ({
+    fromNoteIndex: boundary.atNoteIndex,
+    toNoteIndex:
+      index + 1 < boundaries.length
+        ? boundaries[index + 1].atNoteIndex - 1
+        : melody.notes.length - 1,
+    key: boundary.key,
+    scale: boundary.scale,
+  }));
+};
