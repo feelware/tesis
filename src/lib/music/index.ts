@@ -17,3 +17,10 @@ export {
 } from "./melody";
 export type { DifficultyRules, GenerateMelodyParams } from "./generator";
 export { DIFFICULTY_RULES, GENERATOR_VERSION, generateMelody } from "./generator";
+export type {
+  EvaluationResult,
+  EvaluationTolerances,
+  MatchingResult,
+  Score,
+} from "./analyzer";
+export { DEFAULT_TOLERANCES, evaluateSimilarity } from "./analyzer";
