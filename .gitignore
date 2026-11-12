@@ -15,3 +15,6 @@ build/
 # Sistema
 .DS_Store
 
+# Modelos copiados desde node_modules
+public/models/
+
