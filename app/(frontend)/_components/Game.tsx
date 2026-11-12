@@ -8,6 +8,7 @@ import {
   type Melody,
   type NoteEvent,
 } from "@/lib/music";
+import { saveGameSession } from "@/lib/persistence";
 import { ConfigForm, type GameConfig } from "./ConfigForm";
 import { DictationExercise } from "./DictationExercise";
 import { EvaluationPanel } from "./EvaluationPanel";
@@ -65,6 +66,9 @@ export const Game = () => {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [currentRound, setCurrentRound] = useState(0);
   const [results, setResults] = useState<Record<number, RoundResult>>({});
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
 
   const round = rounds[currentRound];
 
@@ -95,15 +99,41 @@ export const Game = () => {
     setRounds(buildRounds(nextConfig, seed));
     setCurrentRound(0);
     setResults({});
+    setSaveStatus("idle");
     setPhase("playing");
+  };
+
+  const persistSession = async () => {
+    if (!config) return;
+    setSaveStatus("saving");
+    try {
+      await saveGameSession({
+        sessionSeed,
+        difficulty: config.difficulty,
+        firstActivity: config.firstActivity,
+        tempoBpm: config.tempoBpm,
+        averageScore,
+        rounds: rounds.map((item) => ({
+          roundNumber: item.index + 1,
+          activity: item.activity,
+          melody: item.melody,
+          response: results[item.index]?.response ?? [],
+          evaluation: results[item.index]?.evaluation ?? null,
+        })),
+      });
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("error");
+    }
   };
 
   const advance = () => {
     if (currentRound + 1 < rounds.length) {
       setCurrentRound(currentRound + 1);
-    } else {
-      setPhase("summary");
+      return;
     }
+    setPhase("summary");
+    void persistSession();
   };
 
   const resetGame = () => {
@@ -121,6 +151,17 @@ export const Game = () => {
         <p className="text-sm text-zinc-600">
           Sesión: <code className="rounded bg-zinc-100 px-1">{sessionSeed}</code>
         </p>
+        {saveStatus === "saving" ? (
+          <p className="text-sm text-zinc-500">Guardando partida…</p>
+        ) : null}
+        {saveStatus === "saved" ? (
+          <p className="text-sm text-emerald-600">Partida guardada en el CMS.</p>
+        ) : null}
+        {saveStatus === "error" ? (
+          <p className="text-sm text-red-600">
+            No se pudo guardar la partida.
+          </p>
+        ) : null}
         <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-zinc-300">

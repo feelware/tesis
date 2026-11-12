@@ -68,6 +68,8 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    melodies: Melody;
+    'game-sessions': GameSession;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,6 +78,8 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    melodies: MelodiesSelect<false> | MelodiesSelect<true>;
+    'game-sessions': GameSessionsSelect<false> | GameSessionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -143,6 +147,64 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "melodies".
+ */
+export interface Melody {
+  id: number;
+  symbolicData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  seed: string;
+  difficulty: 'low' | 'medium' | 'high';
+  tempoBpm: number;
+  generatorVersion?: string | null;
+  key?: string | null;
+  scale?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "game-sessions".
+ */
+export interface GameSession {
+  id: number;
+  sessionSeed: string;
+  difficulty: 'low' | 'medium' | 'high';
+  firstActivity: 'dictation' | 'sight_singing';
+  tempoBpm: number;
+  averageScore?: number | null;
+  rounds?:
+    | {
+        roundNumber: number;
+        activity: 'dictation' | 'sight_singing';
+        melody?: (number | null) | Melody;
+        response?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        pitchScore?: number | null;
+        rhythmScore?: number | null;
+        overallScore?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -164,10 +226,19 @@ export interface PayloadKv {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'melodies';
+        value: number | Melody;
+      } | null)
+    | ({
+        relationTo: 'game-sessions';
+        value: number | GameSession;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -232,6 +303,46 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "melodies_select".
+ */
+export interface MelodiesSelect<T extends boolean = true> {
+  symbolicData?: T;
+  seed?: T;
+  difficulty?: T;
+  tempoBpm?: T;
+  generatorVersion?: T;
+  key?: T;
+  scale?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "game-sessions_select".
+ */
+export interface GameSessionsSelect<T extends boolean = true> {
+  sessionSeed?: T;
+  difficulty?: T;
+  firstActivity?: T;
+  tempoBpm?: T;
+  averageScore?: T;
+  rounds?:
+    | T
+    | {
+        roundNumber?: T;
+        activity?: T;
+        melody?: T;
+        response?: T;
+        pitchScore?: T;
+        rhythmScore?: T;
+        overallScore?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
