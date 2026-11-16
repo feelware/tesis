@@ -16,3 +16,4 @@
 - Before starting a large build, the user welcomes a few scoping questions ("Formúlame unas cuantas preguntas antes de continuar de ser necesario") and resolves them as explicit decisions rather than having the agent guess — then the agent should record the decisions (e.g. in context.md). Confidence: 0.75
 - Expects unit tests for core domain logic (asked explicitly for tests on the melody generator and similarity analyzer), written against the specification table rather than the implementation. Confidence: 0.7
 - Prefers explanatory deliverables to be very concise and tightly scoped — explicitly asks for "un guión muy corto" covering functionality first and architecture "muy brevemente", rather than exhaustive documentation. Confidence: 0.6
+- Reports bugs as short factual statements (e.g. "La aplicación se congela al realizar la transcripción de audio a MIDI") without repro steps, expecting the agent to investigate, diagnose and fix autonomously. Confidence: 0.6

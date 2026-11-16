@@ -1,3 +1,4 @@
+import * as tf from "@tensorflow/tfjs";
 import {
   BasicPitch,
   addPitchBendsToNoteEvents,
@@ -19,8 +20,17 @@ const scope = self as unknown as WorkerScope;
 
 let basicPitchPromise: Promise<BasicPitch> | null = null;
 
+const cpuBackendReady = async (): Promise<void> => {
+  if (tf.getBackend() === "cpu") return;
+  await tf.setBackend("cpu");
+  await tf.ready();
+};
+
 const getBasicPitch = (modelUrl: string): Promise<BasicPitch> => {
-  basicPitchPromise ??= Promise.resolve(new BasicPitch(modelUrl));
+  basicPitchPromise ??= (async () => {
+    await cpuBackendReady();
+    return new BasicPitch(modelUrl);
+  })();
   return basicPitchPromise;
 };
 
