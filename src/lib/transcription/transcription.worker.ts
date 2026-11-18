@@ -10,6 +10,7 @@ import type {
   TranscriptionRequest,
   TranscriptionResponse,
 } from "./protocol";
+import { MODEL_PARAMS } from "./params";
 
 type WorkerScope = {
   onmessage: (event: MessageEvent<TranscriptionRequest>) => void;
@@ -25,6 +26,34 @@ const cpuBackendReady = async (): Promise<void> => {
   await tf.setBackend("cpu");
   await tf.ready();
 };
+
+const notesFromFrames = (
+  frames: number[][],
+  onsets: number[][],
+  contours: number[][],
+): BasicNoteTime[] =>
+  noteFramesToTime(
+    addPitchBendsToNoteEvents(
+      contours,
+      outputToNotesPoly(
+        frames,
+        onsets,
+        MODEL_PARAMS.onsetThresh,
+        MODEL_PARAMS.frameThresh,
+        MODEL_PARAMS.minNoteLen,
+        MODEL_PARAMS.inferOnsets,
+        MODEL_PARAMS.maxFreq,
+        MODEL_PARAMS.minFreq,
+        MODEL_PARAMS.melodiaTrick,
+        MODEL_PARAMS.energyTolerance,
+      ),
+    ),
+  ).map((note) => ({
+    startTimeSeconds: note.startTimeSeconds,
+    durationSeconds: note.durationSeconds,
+    pitchMidi: note.pitchMidi,
+    amplitude: note.amplitude,
+  }));
 
 const getBasicPitch = (modelUrl: string): Promise<BasicPitch> => {
   basicPitchPromise ??= (async () => {
@@ -55,17 +84,7 @@ scope.onmessage = async (event) => {
         scope.postMessage({ id, type: "progress", percent });
       },
     );
-    const notes: BasicNoteTime[] = noteFramesToTime(
-      addPitchBendsToNoteEvents(
-        contours,
-        outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
-      ),
-    ).map((note) => ({
-      startTimeSeconds: note.startTimeSeconds,
-      durationSeconds: note.durationSeconds,
-      pitchMidi: note.pitchMidi,
-      amplitude: note.amplitude,
-    }));
+    const notes = notesFromFrames(frames, onsets, contours);
     scope.postMessage({ id, type: "notes", notes });
   } catch (error) {
     scope.postMessage({

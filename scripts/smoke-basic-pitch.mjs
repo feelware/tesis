@@ -58,7 +58,7 @@ await basicPitch.evaluateModel(
 const notes = noteFramesToTime(
   addPitchBendsToNoteEvents(
     contours,
-    outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
+    outputToNotesPoly(frames, onsets, 0.5, 0.3, 12, true, 1500, 75, true, 11),
   ),
 );
 console.log(`inferencia en ${Date.now() - startedAt} ms`);

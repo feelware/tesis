@@ -17,7 +17,8 @@
     "migrate": "payload migrate",
     "migrate:create": "payload migrate:create",
     "migrate:status": "payload migrate:status",
-    "smoke:basic-pitch": "node scripts/smoke-basic-pitch.mjs"
+    "smoke:basic-pitch": "node scripts/smoke-basic-pitch.mjs",
+    "tune:transcription": "node scripts/tune-transcription.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",
