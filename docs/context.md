@@ -2,9 +2,9 @@
 
 **Proyecto:** Tesis – videojuego web multijugador para entrenamiento auditivo  
 **Fecha de consolidación:** 3 de noviembre de 2026  
-**Última actualización:** 11 de noviembre de 2026  
+**Última actualización:** 19 de noviembre de 2026  
 **Idioma principal de trabajo:** español  
-**Estado del desarrollo:** redacción de la tesis pausada temporalmente; existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados
+**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21).
 
 > Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado.
 
@@ -1204,7 +1204,7 @@ Los títulos son provisionales y deben ajustarse al contenido final:
   - pruebas con usuarios piloto;
   - resultados técnicos.
 
-No redactar como si estas secciones ya se hubieran completado. Antes de tener implementación, pueden prepararse especificaciones de diseño, pero el texto final debe usar pasado y reportar resultados solo después de ejecutar y documentar el trabajo.
+La organización anterior fue reemplazada por la estructura de once secciones descrita en la sección 21. El capítulo IV ya no se redacta como un plan previo: distingue entre el prototipo funcional (implementado y verificado) y la especificación de la versión completa (diseño). Las subsecciones de diseño se marcan internamente con comentarios `// PLACEHOLDER` y se detallan en la sección 21.5. El texto de los placeholders se redacta en el mismo registro que una tesis finalizada, sin lenguaje de "en progreso"; la marca de placeholder es interna y sirve para saber qué debe reescribirse con evidencia.
 
 ### 16.2. Evidencias que deben recopilarse durante el desarrollo
 
@@ -1352,3 +1352,123 @@ Estas referencias son documentación técnica para iniciar la implementación, n
 - Ably, presencia en canales: https://ably.com/docs/presence-occupancy/presence
 
 **Nota final:** la arquitectura, las bibliotecas y los algoritmos aquí propuestos son decisiones iniciales sujetas a pruebas de concepto, revisión de licencias y validación con el caso de uso real. El LLM debe conservar esta distinción durante todo el desarrollo y la redacción de la tesis.
+
+---
+
+## 21. Estado de redacción del capítulo IV (19-11-2026)
+
+### 21.1. Fuente de estilo y política de fuentes
+
+El capítulo IV se redactó tomando como referencia el capítulo 4 de Freire (2025): exposición en presente y pasado, tablas y figuras propias, y sin citas externas en el desarrollo. Freire no cita fuentes externas en su capítulo de desarrollo; por esa razón no se realizó una búsqueda bibliográfica nueva para este capítulo. Las únicas citas del capítulo son Peffers et al. (2008), ya utilizado en el capítulo III, y Pesek et al. (2020a), ya presente en el borrador. Se agregó la entrada de Peffers et al. (2008) a la lista de referencias porque faltaba. Se incluyeron dos comentarios de Typst con extractos clave: el de Peffers et al. (2008) sobre la naturaleza no rígida del DSRM y el de Pesek et al. (2020a) sobre el algoritmo de generación de secuencias.
+
+Requisito del tesista para fuentes futuras: si una afirmación del capítulo requiere respaldo externo, usar fuentes confiables, relevantes y de acceso abierto; leer el contenido del paper y no solo el abstract; y dejar como comentario de Typst el extracto clave al que se hace referencia. No agregar citas decorativas ni afirmaciones negativas sin respaldo (por ejemplo, "no existe una biblioteca X") sin documentar la búsqueda realizada.
+
+### 21.2. Figuras y herramientas
+
+Las figuras 3 a 11 se generaron con `@preview/fletcher` 0.5.5, no con `plotst`. La razón es que todas son diagramas estructurales (casos de uso, arquitectura, modelo de dominio, flujos, cadena de datos y flujo de pantallas), no gráficos estadísticos. Si en el futuro se agregan gráficos cuantitativos (distribuciones de puntuaciones, comparaciones de precisión, tiempos), corresponde usar `plotst` y mantener la misma numeración correlativa.
+
+Convenciones de las figuras:
+
+- Los componentes implementados usan trazo continuo y relleno azul o verde.
+- Los componentes de la versión completa usan trazo discontinuo o relleno gris claro. La leyenda se explica en el texto de cada sección y en el párrafo introductorio del capítulo.
+- En fletcher, el eje Y crece hacia abajo. Si se edita una figura, mantener esa convención para no invertir el flujo.
+- Las figuras se compilan dentro de bloques no divisibles. Si una figura no cabe en la página, se desplaza completa a la siguiente; no se parte.
+
+Figuras del capítulo:
+
+- Figura 3: casos de uso del sistema.
+- Figura 4: arquitectura de componentes.
+- Figura 5: modelo de dominio musical.
+- Figura 6: flujo del generador procedural.
+- Figura 7: evaluación por correspondencia bipartita.
+- Figura 8: pipeline de transcripción de audio a notas.
+- Figura 9: flujo de una partida individual.
+- Figura 10: cadena de datos de una partida.
+- Figura 11: flujo de pantallas del videojuego.
+
+### 21.3. Tablas del capítulo
+
+Las tablas 3 a 18 continúan la numeración de los capítulos II y III:
+
+- Tabla 3: decisiones de diseño y alternativas.
+- Tabla 4: trazabilidad entre objetivos específicos y secciones.
+- Tabla 5: stack tecnológico y versiones.
+- Tabla 6: organización del repositorio.
+- Tabla 7: requisitos no funcionales y mecanismos.
+- Tabla 8: invariantes del modelo de dominio.
+- Tabla 9: parámetros de generación por dificultad.
+- Tabla 10: configuración global del generador.
+- Tabla 11: propiedades verificadas del generador.
+- Tabla 12: tolerancias de evaluación.
+- Tabla 13: casos límite del evaluador.
+- Tabla 14: parámetros de inferencia y normalización.
+- Tabla 15: colecciones implementadas en Payload.
+- Tabla 16: estrategia de pruebas.
+- Tabla 17: resultados de pruebas unitarias.
+- Tabla 18: resultados del banco sintético de transcripción.
+
+### 21.4. Redactado con seguridad (verificado contra el código)
+
+Las siguientes secciones se redactaron a partir del código, de `package.json`, de las pruebas y del estado del prototipo documentado en la sección 15.2. No requieren reescritura salvo que cambie la implementación:
+
+- 4.1.1: posición dentro del DSRM y naturaleza iterativa. La cita de Peffers está respaldada por el paper y se agregó la referencia.
+- 4.1.2: estrategia de construcción incremental y prácticas de ingeniería de software.
+- 4.1.3: alcance del prototipo, trazabilidad con los objetivos y casos de uso.
+- 4.2.1: arquitectura de componentes y dependencia unidireccional.
+- 4.2.2: stack y versiones exactas.
+- 4.2.3: organización del repositorio.
+- 4.2.5: requisitos no funcionales y mecanismos (los mecanismos de la versión completa se marcan como diseño).
+- 4.3.1 a 4.3.3: modelo de dominio, invariantes, serialización, validación y reproducibilidad.
+- 4.4.1 a 4.4.4: parámetros, algoritmo, validación y pruebas del generador.
+- 4.5.1 a 4.5.5: métricas, correspondencia bipartita, tolerancias y casos límite del evaluador.
+- 4.6.1 a 4.6.6: selección de Basic Pitch, pipeline, parámetros, integración en el Worker, manejo de errores y validación sintética.
+- 4.7.1 y 4.7.2: configuración y flujo de la partida individual.
+- 4.7.4: fórmula de puntuación y exclusión de respuestas no puntuadas.
+- 4.8.2 y 4.8.3: colecciones implementadas y trazabilidad de la sesión.
+- 4.9.1 a 4.9.6: principios de interfaz, pantallas implementadas, entrada de dictado, grabación y panel de evaluación.
+- 4.10.1 a 4.10.4: estrategia de pruebas, 50 pruebas unitarias, banco sintético y flujo individual verificado.
+- 4.11: síntesis del capítulo (actualizar si se implementa la versión completa).
+
+### 21.5. Placeholders (diseño; requieren implementación y evidencia)
+
+Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentarios `// PLACEHOLDER`. Su texto está redactado en el mismo registro que una tesis finalizada y no dice "en progreso"; la marca es interna. No deben interpretarse como resultados ejecutados. Cada apartado indica qué evidencia falta para reescribirlo:
+
+- 4.2.4, párrafo de comunicación en tiempo real: definir el proveedor definitivo, la autenticación, los canales y la presencia; documentar límites, privacidad y pruebas de integración. Actualmente se describe el diseño y la comparación entre servicio administrado y servidor WebSocket propio.
+- 4.7.3: mecánica multijugador (salas, códigos, asignación, número impar de jugadores, trazabilidad de la cadena). Reescribir con la implementación y las pruebas de asignación.
+- 4.7.5: reglas de recuperación, abandono y reconexión. Reescribir con los resultados de las pruebas de sincronización y reconexión.
+- 4.8.1: modelo conceptual de la versión completa. Reemplazar por el esquema final, sus relaciones y las migraciones.
+- 4.8.4: almacenamiento de audio, consentimiento, retención y eliminación. Reescribir con el proveedor elegido y la política aplicada.
+- 4.8.5: control de acceso por roles. Reescribir con las reglas de Payload, las pruebas de autorización y la validación en servidor.
+- 4.9.7: galería final, acceso, sala de espera y vista docente. Reescribir con capturas y pruebas de usabilidad.
+- 4.10.5: validación con voz cantada real. Reescribir con el conjunto de grabaciones, las métricas y los resultados.
+- 4.10.6: pruebas de la versión multijugador (sincronización, reconexión, latencia). Reescribir con resultados.
+- 4.10.7: limitaciones y amenazas a la validez. Actualizar a medida que se cierren las brechas anteriores.
+- 4.11: síntesis. Actualizar si se implementa la versión completa.
+
+### 21.6. Correcciones factuales aplicadas respecto de la versión anterior del capítulo
+
+- Se eliminó el párrafo que afirmaba que la implementación no había comenzado.
+- Se reemplazó el tiempo futuro por presente y pasado para los componentes construidos.
+- Se ampliaron los parámetros del generador: registro absoluto, duraciones exactas, figuras requeridas, destino y probabilidad de modulación, tonalidades, compás, tempo, silencios, repetición, intentos y versión.
+- Se precisó que el determinismo depende de la tupla completa (semilla, dificultad, tempo y compás), no solo de la semilla.
+- Se corrigió el evaluador: precisión, exhaustividad y $F_1$; escala $[0,1]$; correspondencia bipartita máxima; tolerancias de 50 ms y 150 ms; equivalencia de octava solo en repentización de dificultad baja; casos límite.
+- Se corrigió el dictado: la duración no es editable; se fija en un pulso y la evaluación rítmica se basa solo en los ataques.
+- Se corrigió la transcripción: implementación oficial en TypeScript, ejecución local en Worker, backend CPU, TensorFlow.js 3.21.0, parámetros centralizados, normalización, límite de 30 s, reintentos y manejo de errores.
+- Se corrigió la persistencia: el prototipo guarda melodías y sesiones con rondas embebidas; no guarda audio ni transcripciones; no existen salas, rondas, respuestas ni resultados como colecciones separadas.
+- Se corrigió la mecánica: el prototipo es individual, genera una melodía nueva por ronda y muestra un promedio; no implementa salas, intercambio ni clasificación.
+- Se corrigió el tiempo real: Ably no está implementado ni seleccionado; se describe como alternativa de diseño.
+- Se corrigió el control de acceso: el prototipo usa acceso abierto; los roles son diseño de la versión completa.
+- Se agregó la referencia de Peffers et al. (2008) a la bibliografía.
+
+### 21.7. Riesgos y decisiones de diseño abiertas
+
+- Registro de la dificultad alta (F#2–F#6) frente a la tesitura vocal. La equivalencia de octava solo se aplica a la dificultad baja. Definir si se limita el registro para repentización, se amplía la equivalencia o se transpone la referencia.
+- Piano roll frente a pentagrama en repentización. El piano roll aísla altura y ataque, pero reduce la validez ecológica de la lectura a primera vista. Documentar la decisión y su efecto en la evaluación.
+- Feedback por color y coloreado basado solo en alturas. Añadir formas o etiquetas y distinguir los errores rítmicos.
+- Pistas involuntarias en el dictado: el rango visible del piano roll se deriva del mínimo y máximo de la melodía, y la longitud total revela parte de la estructura. Decidir si se usa un rango fijo por dificultad.
+- Persistencia de audio y consentimiento informado antes de las sesiones con estudiantes.
+- Validación de la transcripción con voz cantada real.
+- Estudio de usabilidad y accesibilidad con usuarios.
+- Implementación y pruebas de la versión multijugador.
+- Precisión de la afirmación "síncopas" en la dificultad alta: el generador no modela ligaduras; produce ataques desplazados por suma de duraciones y garantiza al menos una figura entre 1.5 y 2/3, no ambas.
+- Decidir si la duración de las notas formará parte de la puntuación o si se mantiene la evaluación exclusiva de ataques.
