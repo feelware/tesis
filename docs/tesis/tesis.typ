@@ -142,7 +142,7 @@ Desarrollar un videojuego en línea basado en generación melódica procedural y
 
 #listasin[
   - Diseñar un algoritmo generador de estructuras melódicas simbólicas para la generación automática de ejercicios de dictado y repentización melódica.
-  - Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+  - Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores.
   - Desarrollar un videojuego en línea que implementa mecánicas de dictado y repentización melódica para el desarrollo de habilidades auditivas en estudiantes de música.
   - Validar el videojuego implementado mediante un estudio experimental con estudiantes de música para demostrar la efectividad pedagógica de dicho videojuego.
 ]
@@ -383,6 +383,10 @@ Los datos recopilados serán procesados mediante técnicas de análisis estadís
 // citas externas adicionales. Las secciones marcadas con PLACEHOLDER describen
 // el diseño de la versión completa y deberán reescribirse cuando exista
 // implementación y evidencia empírica. Ver docs/context.md, sección 21.
+//
+// Rama provisional: las secciones de diseño de la versión completa
+// (4.2.4 parcial, 4.7.3, 4.7.5, 4.8.1, 4.8.4, 4.8.5, 4.9.7, 4.10.5 y 4.10.6)
+// están comentadas y no se renderizan en este PDF.
 
 #import "@preview/fletcher:0.5.5" as fletcher: diagram, node, edge
 
@@ -578,15 +582,17 @@ El repositorio se organiza por responsabilidad, no por tipo de archivo. La Tabla
 
 En el prototipo, la aplicación Next.js sirve la interfaz y las rutas de API; Payload expone la API de las colecciones y el panel administrativo; PostgreSQL almacena los datos estructurados. El audio no sale del navegador: se captura con `MediaRecorder`, se decodifica con Web Audio y se procesa en un Web Worker. El modelo de Basic Pitch se sirve como archivo estático desde `/models/basic-pitch/model.json`.
 
+/*
 // PLACEHOLDER (parcial): la comunicación en tiempo real no forma parte del
 // prototipo individual. El párrafo siguiente especifica el diseño de la
 // versión completa y deberá reescribirse cuando se implemente y se pruebe.
 
 La versión multijugador requiere un mecanismo de tiempo real para anunciar el inicio y el cierre de las rondas, notificar la recepción de respuestas y mantener sincronizado el estado de la partida. El diseño prioriza un servicio administrado de publicación y suscripción, con canales por sala y presencia, frente a un servidor WebSocket propio. La primera alternativa evita operar conexiones persistentes y delega la reconexión al proveedor; la segunda ofrece mayor control, pero exige mantener un proceso adicional y coordinarlo con Next.js y Payload. El canal de tiempo real transporta únicamente identificadores, estados y avisos de sincronización; las melodías, las respuestas y el audio se transfieren por la API o por almacenamiento de objetos.
+ */
 
 === 4.2.5. Requisitos no funcionales
 
-Los requisitos no funcionales se tradujeron en decisiones concretas de arquitectura. La Tabla 7 resume los principales. Algunos mecanismos, como el control de acceso por rol o la retención de grabaciones, corresponden al diseño de la versión completa y se detallan en las secciones 4.8.4 y 4.8.5.
+Los requisitos no funcionales se tradujeron en decisiones concretas de arquitectura. La Tabla 7 resume los principales. Algunos mecanismos, como el control de acceso por rol o la retención de grabaciones, corresponden al diseño de la versión completa y se detallan en la especificación de esa versión.
 
 #block(breakable: false)[
 #leyenda([Tabla], 7, [Requisitos no funcionales y mecanismos de diseño])
@@ -952,7 +958,7 @@ El flujo distingue entre errores de captura, de decodificación, de transcripci�
 
 === 4.6.6. Validación técnica
 
-La integración se verificó con una señal sinusoidal de 2 s que contiene un La4; el modelo detecta correctamente la nota. También se ejecutó un banco de 25 casos sintéticos con vibrato, ruido y transitorios de respiración. Los resultados se reportan en la sección 4.10.3. La validación con voz cantada real se especifica en la sección 4.10.5.
+La integración se verificó con una señal sinusoidal de 2 s que contiene un La4; el modelo detecta correctamente la nota. También se ejecutó un banco de 25 casos sintéticos con vibrato, ruido y transitorios de respiración. Los resultados se reportan en la sección 4.10.3. La validación con voz cantada real se especifica en el protocolo de validación de la versión completa.
 
 == 4.7. Mecánicas de juego y flujo de partida
 
@@ -992,12 +998,14 @@ La Figura 9 muestra el flujo. La primera ronda ejecuta la actividad seleccionada
 
 En el dictado, el jugador puede reproducir la melodía tantas veces como desee antes de enviar la respuesta. En la repentización, puede grabar, escuchar la grabación, repetir la toma y enviar cuando esté conforme. La grabación tiene un límite de 30 s y se descarta si el jugador decide repetirla. Estas reglas no introducen penalización por reintentos dentro de la misma ronda.
 
+/*
 === 4.7.3. Mecánica multijugador
 
 // PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
 // evidencia de implementación y pruebas cuando exista el flujo multijugador.
 
 La versión completa organiza la partida en salas creadas manualmente. El creador configura la dificultad, la actividad inicial y el número de rondas; la sala genera un código de acceso y los participantes se incorporan antes de iniciar. Durante la partida, cada respuesta se asigna a otro participante en la ronda siguiente. En una ronda de dictado, el jugador escucha una melodía interpretada por otro participante y la transcribe; en una ronda de repentización, recibe una transcripción realizada por otro participante y la interpreta. El intercambio preserva la trazabilidad: cada respuesta se vincula con su autor, su ronda de origen, su material de referencia y su destinatario. La asignación evita devolver una respuesta a su autor en la misma cadena, salvo que la sala lo permita explícitamente.
+ */
 
 === 4.7.4. Puntuación y cierre
 
@@ -1007,15 +1015,18 @@ $ S_"jugador" = (sum_(i = 1)^n S_i) / n $
 
 donde $n$ es el número de respuestas puntuadas y $S_i$ es la puntuación global de la respuesta $i$. Las respuestas no puntuadas por fallos técnicos se excluyen del promedio y se muestran como ausentes; no se incorporan como ceros. La clasificación se limita a la partida y no se extiende a un ranking global.
 
+/*
 === 4.7.5. Reglas de recuperación y abandono
 
 // PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
 // evidencia de pruebas de reconexión y abandono.
 
 La versión completa define reglas para los casos en que un participante se desconecta, abandona la sala o no envía su respuesta dentro del tiempo de la ronda. Si un jugador se desconecta, la sala conserva su lugar y su respuesta previa; si se reconecta antes del cierre de la ronda, puede continuar. Si no envía una respuesta, la ronda se cierra con las respuestas disponibles y el jugador recibe una ausencia, no una puntuación de cero. Si el anfitrión abandona, la sala elige un nuevo anfitrión o se cierra de forma controlada. El plan de pruebas de la versión completa incluye la verificación de estas reglas mediante pruebas de sincronización y de reconexión antes de la sesión con estudiantes.
+ */
 
 == 4.8. Persistencia y modelo de datos
 
+/*
 === 4.8.1. Modelo conceptual
 
 // PLACEHOLDER: el modelo conceptual corresponde a la versión completa. La
@@ -1049,6 +1060,7 @@ La versión completa organiza los datos en entidades relacionadas. La Figura 10 
 )
 ]
 ]
+ */
 
 === 4.8.2. Implementación en Payload
 
@@ -1071,19 +1083,23 @@ El prototipo implementa tres colecciones: `Users`, `Melodies` y `GameSessions`. 
 
 La sesión se identifica con `sessionSeed`; cada ronda se identifica con `roundNumber`; cada melodía se relaciona con la colección `Melodies`; y cada respuesta se almacena en el campo `response` de la ronda. Las puntuaciones de alturas, ritmo y global se almacenan en la misma ronda. Esta estructura permite reconstruir la partida completa a partir de una sesión y sus rondas, y permite verificar que la melodía evaluada corresponde a la melodía generada.
 
+/*
 === 4.8.4. Archivos de audio y retención
 
 // PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
 // evidencia de almacenamiento, consentimiento y retención implementados.
 
 La versión completa conserva las grabaciones originales y las transcripciones. El audio se almacena en un servicio de objetos y la base de datos guarda la referencia y los metadatos; no se almacenan blobs grandes en las filas de PostgreSQL. La retención se define antes de la sesión con estudiantes e incluye el consentimiento informado, el plazo de conservación, el procedimiento de eliminación y las condiciones de acceso. El audio se trata como dato personal y no se expone públicamente por defecto.
+ */
 
+/*
 === 4.8.5. Control de acceso
 
 // PLACEHOLDER: sección de diseño de la versión completa. Reescribir con la
 // implementación de access control de Payload y las pruebas de autorización.
 
 La versión completa define tres roles: participante, docente y administrador. El participante consulta sus propios datos y las partidas en las que participa; el docente consulta los estudiantes y los resultados de las aulas que administra; el administrador gestiona usuarios y configuración. Las reglas se definen mediante el control de acceso de Payload y se validan en el servidor, no solo mediante la ocultación de elementos en la interfaz. En el prototipo, las colecciones emplean acceso abierto para facilitar la verificación funcional; esta configuración no se traslada a la versión completa.
+ */
 
 == 4.9. Interfaz y retroalimentación
 
@@ -1146,12 +1162,14 @@ El panel de evaluación muestra tres puntuaciones: alturas, ritmo y global. Deba
 
 El uso exclusivo del color para señalar aciertos y errores es una limitación de accesibilidad. La versión completa incorpora formas o etiquetas adicionales para que la información no dependa de la percepción del color. Asimismo, el coloreado por altura puede mostrar en verde una nota con ataque incorrecto; la versión completa distingue ambos tipos de coincidencia.
 
+/*
 === 4.9.7. Vistas de la versión completa
 
 // PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
 // capturas y pruebas de usabilidad de la galería, el acceso y la vista docente.
 
 La versión completa incorpora el acceso y la sala de espera, la galería final y la vista docente. La galería muestra el recorrido de cada melodía a través de las rondas, permite reproducir las grabaciones y compara la referencia con cada respuesta. La vista docente permite organizar aulas y consultar los resultados de los estudiantes. Estas vistas reutilizan el panel de evaluación y la representación en piano roll, de modo que la experiencia de revisión sea consistente con la de juego.
+ */
 
 == 4.10. Integración, pruebas y validación técnica
 
@@ -1212,19 +1230,23 @@ Estos resultados provienen de audio sintético y deben confirmarse con voz canta
 
 La compilación de producción se ejecutó sin errores. En el navegador se verificó el flujo completo: configuración, dictado con piano roll, evaluación con colores, repentización con grabación, transcripción en Worker y resumen con promedio. Se verificó que la transcripción puede ejecutarse dos veces en una misma partida sin bloquear la interfaz. El cliente incorpora un watchdog que cancela una solicitud estancada. La sesión se guarda en Payload al finalizar la partida; si el guardado falla, la interfaz informa del error y conserva los resultados en memoria hasta que el jugador inicia una nueva partida.
 
+/*
 === 4.10.5. Validación con voz cantada
 
 // PLACEHOLDER: protocolo de validación pendiente de ejecución. Reescribir con
 // las grabaciones, métricas y resultados reales.
 
 El protocolo de validación con voz cantada real comprende un conjunto de grabaciones de melodías conocidas, interpretadas por participantes de distintas tesituras y niveles de experiencia. El conjunto incluye grabaciones con y sin ruido moderado, diferentes micrófonos y distintos navegadores. Para cada grabación se compara la transcripción automática con la referencia y se calculan la precisión de altura y la precisión de ataques. Esta validación técnica no sustituye la evaluación pedagógica del capítulo V.
+ */
 
+/*
 === 4.10.6. Pruebas de la versión multijugador
 
 // PLACEHOLDER: pruebas pendientes de la versión completa. Reescribir con
 // resultados de sincronización, reconexión y latencia.
 
 El plan de pruebas de la versión completa comprende pruebas de sincronización, reconexión y latencia. Las pruebas verifican que todos los participantes observan la misma transición de ronda, que una respuesta se asigna a un único destinatario, que una desconexión no bloquea la partida y que una respuesta tardía no se incorpora a una ronda cerrada. También se mide la latencia de los eventos de sala y se comprueba que el canal de tiempo real no transporta audio ni melodías completas.
+ */
 
 === 4.10.7. Limitaciones y amenazas a la validez
 
@@ -1233,6 +1255,300 @@ La validación de la transcripción se realizó con audio sintético; la voz can
 == 4.11. Síntesis del capítulo
 
 El prototipo funcional integra un generador procedural determinista, un evaluador de similitud con emparejamiento bipartito, una transcripción de audio en el navegador, una interfaz de dictado y repentización y persistencia en Payload y PostgreSQL. La versión completa añade salas, intercambio, galería, aulas y vista docente. Las pruebas unitarias y el banco sintético evidencian el funcionamiento de los componentes implementados; la efectividad pedagógica se evalúa en el capítulo V.
+
+// ============ Capítulo V ============
+// Resultados y discusión del primer objetivo específico: generador procedural.
+// Datos: 200 semillas por dificultad, generador 0.1.0, tempo 90, compás 4/4.
+// Fuente de los datos: evaluación ejecutada sobre src/lib/music/generator.ts.
+
+#import "@preview/cetz:0.5.2": canvas, draw
+#import "@preview/cetz-plot:0.1.4": chart
+
+#let colores-intervalos = (rgb("#6366f1"), rgb("#22c55e"), rgb("#f59e0b"))
+
+= Capítulo V: Resultados y discusión
+
+El presente capítulo reporta los resultados de la evaluación del generador procedural de melodías, correspondiente al primer objetivo específico. La evaluación se organizó en dos partes: una verificación estructural sobre un conjunto de 200 melodías por nivel de dificultad y un análisis de la variedad melódica y rítmica de las secuencias producidas. Los resultados se presentan en la sección 5.1 y se discuten en la sección 5.2.
+
+== 5.1. Resultados
+
+=== 5.1.1. Configuración de la evaluación
+
+La evaluación se ejecutó sobre el generador en su versión 0.1.0, con 200 semillas por nivel de dificultad, lo que produjo un total de 600 melodías. Se fijaron un tempo de 90 BPM y un compás de 4/4 para aislar el efecto de la dificultad. Las semillas siguieron el patrón `resultado-{dificultad}-###` y se procesaron con la misma ruta de código que utiliza la aplicación. Para cada melodía se registraron el éxito de generación, el tiempo de cómputo, la distribución de intervalos, el ambitus, las duraciones, la tonalidad, la escala, la modulación y la unicidad de la secuencia. La Tabla 19 resume la configuración.
+
+#block(breakable: false)[
+#leyenda([Tabla], 19, [Configuración de la evaluación del generador])
+#apatable(
+  columns: (4.5cm, 11.4cm),
+  header: ([*Parámetro*], [*Valor*]),
+  rows: (
+    ([Versión del generador], [`0.1.0`]),
+    ([Semillas por dificultad], [200]),
+    ([Total de melodías], [600]),
+    ([Tempo], [90 BPM]),
+    ([Compás], [4/4]),
+    ([Tonalidades], [C, G, D, A, F, Bb y Eb]),
+    ([Modos], [Mayor y menor natural]),
+    ([Patrón de semilla], [`resultado-{dificultad}-###`]),
+  ),
+)]
+
+=== 5.1.2. Cumplimiento de restricciones y reproducibilidad
+
+Las 600 melodías se generaron sin fallos. En los tres niveles, el 100 % de las melodías cumplió la pertenencia a la escala activa y la regla de no repetición triple. La figura rítmica requerida se cumplió en el 100 % de las melodías de dificultad media y alta; en dificultad baja no se exige. El tiempo medio de generación fue de 0.25 ms en baja, 0.59 ms en media y 1.09 ms en alta; el percentil 95 no superó 1.40 ms. La Tabla 20 resume estos resultados.
+
+#block(breakable: false)[
+#leyenda([Tabla], 20, [Cumplimiento de restricciones y tiempo de generación])
+#set text(size: 10.5pt)
+#apatable(
+  columns: (2.4cm, 2.2cm, 1.5cm, 1.8cm, 2.0cm, 1.8cm, 2.2cm, 2.0cm),
+  inset: (x: 4pt, y: 5pt),
+  header: (
+    [*Dificultad*],
+    [*Generadas*],
+    [*Fallos*],
+    [*Escala (%)*],
+    [*Anti-rep. (%)*],
+    [*Figura (%)*],
+    [*Tiempo medio (ms)*],
+    [*Tiempo p95 (ms)*],
+  ),
+  rows: (
+    ([Baja], [200], [0], [100], [100], [—], [0.25], [0.42]),
+    ([Media], [200], [0], [100], [100], [100], [0.59], [0.98]),
+    ([Alta], [200], [0], [100], [100], [100], [1.09], [1.40]),
+    ([Total], [600], [0], [—], [—], [—], [—], [—]),
+  ),
+)]
+
+La reproducibilidad se verificó con la misma tupla de parámetros: dos ejecuciones producen la misma melodía. La sensibilidad a la semilla se verificó con semillas distintas, que producen secuencias distintas. La combinación de ambas propiedades es la base de la auditabilidad del generador: una melodía puede reconstruirse a partir de su semilla, su dificultad, su tempo y su compás.
+
+=== 5.1.3. Perfil de intervalos y ambitus
+
+La Tabla 21 y la Figura 12 muestran la distribución de intervalos. En los tres niveles predominan los intervalos de 0 a 2 semitonos. En baja, el 100 % de los intervalos es menor o igual a 2 semitonos; en media, el 82.3 %; en alta, el 80.0 %. Los intervalos de 0 semitonos, es decir, las notas repetidas, representan el 40.9 %, 36.6 % y 35.3 %, respectivamente. Los saltos de 3 a 7 semitonos aparecen solo en media (17.7 %) y alta (20.0 %); en baja no hay saltos.
+
+#block(breakable: false)[
+#leyenda([Tabla], 21, [Distribución de intervalos por nivel de dificultad])
+#apatable(
+  columns: (3cm, 4.3cm, 4.3cm, 4.3cm),
+  header: ([*Intervalo (semitonos)*], [*Baja (%)*], [*Media (%)*], [*Alta (%)*]),
+  rows: (
+    ([0], [40.9], [36.6], [35.3]),
+    ([1], [27.3], [21.6], [21.7]),
+    ([2], [31.8], [24.2], [22.9]),
+    ([3], [0.0], [8.3], [8.7]),
+    ([4], [0.0], [4.5], [3.4]),
+    ([5], [0.0], [4.9], [4.9]),
+    ([6], [0.0], [0.0], [0.7]),
+    ([7], [0.0], [0.0], [2.3]),
+  ),
+)]
+
+#block(breakable: false)[
+#leyenda([Figura], 12, [Distribución de intervalos por nivel de dificultad])
+#align(center)[
+#set text(size: 9pt)
+#canvas({
+  draw.set-style(legend: (fill: white), barchart: (bar-width: .75, cluster-gap: 0))
+  chart.barchart(
+    (
+      ([0], 40.9, 36.6, 35.3),
+      ([1], 27.3, 21.6, 21.7),
+      ([2], 31.8, 24.2, 22.9),
+      ([3], 0, 8.3, 8.7),
+      ([4], 0, 4.5, 3.4),
+      ([5], 0, 4.9, 4.9),
+      ([6], 0, 0, 0.7),
+      ([7], 0, 0, 2.3),
+    ),
+    mode: "clustered",
+    size: (13, 6),
+    label-key: 0,
+    value-key: (..range(1, 4)),
+    y-tick-step: 10,
+    x-label: [Porcentaje de intervalos (%)],
+    y-label: [Intervalo (semitonos)],
+    labels: ([Baja], [Media], [Alta]),
+    bar-style: (idx => (fill: colores-intervalos.at(idx))),
+    legend: "inner-south-west",
+  )
+})
+]
+]
+
+El ambitus medio fue de 3.49, 8.70 y 13.53 semitonos, muy por debajo del máximo permitido (12, 24 y 36). El uso del ambitus fue del 29.1 %, 36.2 % y 37.6 %. La duración media fue de 9.82, 14.91 y 23.57 pulsos, equivalentes a 6.5, 9.9 y 15.7 s a 90 BPM. La modulación apareció en el 48 % de las melodías de dificultad media y en el 100 % de las de dificultad alta; en baja no se aplica. La Tabla 22 resume estos valores.
+
+#block(breakable: false)[
+#leyenda([Tabla], 22, [Ambitus, duración y modulación por nivel de dificultad])
+#apatable(
+  columns: (2.2cm, 2.2cm, 2.2cm, 2.0cm, 2.4cm, 2.4cm, 2.5cm),
+  header: (
+    [*Dificultad*],
+    [*Ambitus medio (st)*],
+    [*Ambitus máx. (st)*],
+    [*Uso (%)*],
+    [*Duración (pulsos)*],
+    [*Duración (s)*],
+    [*Modulación (%)*],
+  ),
+  rows: (
+    ([Baja], [3.49], [12], [29.1], [9.82], [6.5], [0]),
+    ([Media], [8.70], [24], [36.2], [14.91], [9.9], [48]),
+    ([Alta], [13.53], [36], [37.6], [23.57], [15.7], [100]),
+  ),
+)]
+
+Las tonalidades y los modos se distribuyeron de forma equilibrada: las siete tonalidades aparecieron entre 20 y 40 veces por nivel, y la proporción entre mayor y menor se mantuvo cerca de 50/50. Esto indica que la selección de tonalidad no está sesgada por el generador.
+
+=== 5.1.4. Variedad melódica y rítmica
+
+La Tabla 23 y la Figura 13 muestran la variedad melódica. El número medio de alturas distintas por melodía fue de 3.1 en baja (de 8 notas), 5.6 en media (de 15) y 8.3 en alta (de 24). El 100 % de las melodías contiene al menos un par de notas repetidas; la longitud máxima de una racha de notas iguales fue 2, como exige la regla. Los cambios de dirección del contorno fueron 1.8, 4.4 y 7.4 en promedio. La variedad rítmica, medida como número de duraciones distintas por melodía, fue de 1.9, 2.9 y 4.9. Las secuencias únicas fueron 92.5 %, 100 % y 100 %.
+
+#block(breakable: false)[
+#leyenda([Tabla], 23, [Variedad melódica y rítmica por nivel de dificultad])
+#set text(size: 10.5pt)
+#apatable(
+  columns: (2.2cm, 2.8cm, 2.2cm, 2.2cm, 2.4cm, 2.2cm, 1.9cm),
+  inset: (x: 4pt, y: 5pt),
+  header: (
+    [*Dificultad*],
+    [*Alturas / notas*],
+    [*Repetidos (%)*],
+    [*Saltos ≥3 st*],
+    [*Cambios de dir.*],
+    [*Dur. distintas*],
+    [*Únicas (%)*],
+  ),
+  rows: (
+    ([Baja], [3.1 / 8], [40.9], [0.0], [1.8], [1.9], [92.5]),
+    ([Media], [5.6 / 15], [36.6], [17.7], [4.4], [2.9], [100]),
+    ([Alta], [8.3 / 24], [35.3], [20.0], [7.4], [4.9], [100]),
+  ),
+)]
+
+La Figura 13 presenta una melodía de muestra por nivel. En baja se observan pares de notas repetidas y un contorno descendente con pocas alturas distintas; en media y alta aparecen más grados conjuntos, saltos y cambios de dirección, junto con la modulación marcada por la línea vertical.
+
+#block(breakable: false)[
+#leyenda([Figura], 13, [Melodías generadas por nivel de dificultad])
+#align(center)[
+#set text(size: 9pt)
+#text(weight: "bold")[Baja — Mi bemol menor — 8 notas (MIDI 54–59)]
+#v(0.15em)
+#block(width: 15cm, height: 2.6cm, stroke: 0.5pt + rgb("#d4d4d8"), fill: rgb("#fafafa"), clip: true)[
+  #place(dx: 0.00%, dy: 0.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 10.00%, dy: 0.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 20.00%, dy: 16.67%, rect(width: 20.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 40.00%, dy: 16.67%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 50.00%, dy: 50.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 60.00%, dy: 50.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 70.00%, dy: 83.33%, rect(width: 20.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 90.00%, dy: 83.33%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+]
+#v(0.7em)
+#text(weight: "bold")[Media — Si bemol mayor — 15 notas (MIDI 48–63)]
+#v(0.15em)
+#block(width: 15cm, height: 2.6cm, stroke: 0.5pt + rgb("#d4d4d8"), fill: rgb("#fafafa"), clip: true)[
+  #place(dx: 48.39%, dy: 0%, rect(width: 0.6pt, height: 100%, fill: rgb("#a1a1aa")))
+  #place(dx: 0.00%, dy: 18.75%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 6.45%, dy: 6.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 12.90%, dy: 6.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 19.35%, dy: 0.00%, rect(width: 3.23%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 22.58%, dy: 0.00%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 29.03%, dy: 6.25%, rect(width: 12.90%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 41.94%, dy: 31.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 48.39%, dy: 37.50%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 54.84%, dy: 62.50%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 61.29%, dy: 62.50%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 67.74%, dy: 75.00%, rect(width: 3.23%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 70.97%, dy: 93.75%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 77.42%, dy: 93.75%, rect(width: 3.23%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 80.65%, dy: 81.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 87.10%, dy: 81.25%, rect(width: 12.90%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+]
+#v(0.7em)
+#text(weight: "bold")[Alta — Si bemol menor — 24 notas (MIDI 49–61)]
+#v(0.15em)
+#block(width: 15cm, height: 2.6cm, stroke: 0.5pt + rgb("#d4d4d8"), fill: rgb("#fafafa"), clip: true)[
+  #place(dx: 52.05%, dy: 0%, rect(width: 0.6pt, height: 100%, fill: rgb("#a1a1aa")))
+  #place(dx: 0.00%, dy: 0.00%, rect(width: 2.05%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 2.05%, dy: 0.00%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 8.22%, dy: 23.08%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 10.96%, dy: 0.00%, rect(width: 8.22%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 19.18%, dy: 38.46%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 21.92%, dy: 38.46%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 26.03%, dy: 0.00%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 30.14%, dy: 7.69%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 36.30%, dy: 0.00%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 40.41%, dy: 7.69%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 43.15%, dy: 0.00%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 45.89%, dy: 23.08%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 52.05%, dy: 38.46%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 54.79%, dy: 38.46%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 57.53%, dy: 23.08%, rect(width: 2.05%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 59.59%, dy: 23.08%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 65.75%, dy: 61.54%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 69.86%, dy: 92.31%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 73.97%, dy: 61.54%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 76.71%, dy: 53.85%, rect(width: 8.22%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 84.93%, dy: 38.46%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 91.10%, dy: 38.46%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 95.21%, dy: 53.85%, rect(width: 2.05%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 97.26%, dy: 61.54%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+]
+#v(0.4em)
+#text(size: 8pt)[La línea vertical gris marca la modulación. Cada barra representa una nota; el ancho indica su duración.]
+]
+]
+
+=== 5.1.5. Síntesis de resultados
+
+En síntesis, el generador cumple las restricciones estructurales en el 100 % de los casos, es reproducible y computacionalmente barato. La contrapartida es una variedad melódica limitada: predominan los intervalos de 0 a 2 semitonos, el ambitus utilizado es menor que el permitido y todas las melodías contienen notas repetidas. Esta brecha entre cumplimiento y variedad es el eje de la discusión.
+
+== 5.2. Discusión
+
+=== 5.2.1. Sobre el cumplimiento de las restricciones
+
+El cumplimiento del 100 % es consecuencia directa del diseño de generar y verificar. La función de validación rechaza cualquier melodía que viole las restricciones y el generador reintenta con otra secuencia pseudoaleatoria. La ausencia de fallos en 600 melodías indica que el espacio de soluciones es factible para los tres niveles y que el presupuesto de 50 intentos es suficiente. El tiempo medio de 0.25 a 1.09 ms confirma que el costo de reintentar es despreciable para melodías de 8 a 24 notas.
+
+La reproducibilidad refuerza la utilidad del generador en un contexto educativo y de investigación. Una melodía puede reconstruirse a partir de su semilla, su dificultad, su tempo y su compás, lo que permite auditar una partida, repetir un experimento o generar el mismo ejercicio para distintos jugadores. La sensibilidad a la semilla evita que todas las partidas compartan el mismo material.
+
+=== 5.2.2. Sobre el perfil melódico y la repetitividad
+
+El hallazgo principal es la brecha entre el cumplimiento de las restricciones y la variedad musical. Aunque todas las melodías son válidas, el 35–41 % de los intervalos son de 0 semitonos y el 100 % de las melodías contiene al menos un par de notas repetidas. En dificultad baja, el número medio de alturas distintas es de 3.1 sobre 8 notas y no hay saltos; el contorno cambia de dirección apenas 1.8 veces por melodía. El resultado son secuencias estáticas, con pares de notas repetidas y un ambitus real de solo 3.49 semitonos frente a los 12 permitidos.
+
+La causa es la ponderación de la selección de alturas. El peso $1 / (1 + d^2)$ favorece la nota anterior ($d = 0$, peso 1) sobre el grado conjunto ($d = 1$, peso 0.5) y sobre el salto de dos semitonos ($d = 2$, peso 0.2). La regla de no repetición solo impide tres notas iguales consecutivas, de modo que los pares de notas repetidas son frecuentes. La ponderación produce un perfil muy cercano al grado conjunto, pero también una fuerte gravedad hacia la altura anterior.
+
+La dificultad media y alta mejoran en variedad: más alturas distintas, más saltos, más cambios de dirección y el 100 % de secuencias únicas. Sin embargo, la proporción de intervalos repetidos se mantiene cerca del 35 %. El ambitus real sigue siendo bajo: 8.70 de 24 semitonos en media y 13.53 de 36 en alta. El parámetro de ambitus funciona como un máximo, no como un objetivo; el generador no busca ocupar el registro permitido.
+
+Esta diferencia es relevante para el uso pedagógico. Una melodía estática puede ser adecuada para una primera aproximación al dictado, pero no ejercita la identificación de saltos ni la memoria de contornos amplios. Si la dificultad se define por el intervalo máximo y el ambitus permitido, el generador debería controlar también la distribución de intervalos y la ocupación del registro, no solo el límite superior. La comparación con Troubadour es ilustrativa: allí la dificultad aumenta la presencia de intervalos específicos y de movimientos en direcciones alternadas (Pesek et al., 2020a); en el generador propuesto, el límite aumenta, pero la ponderación sigue favoreciendo la repetición.
+
+=== 5.2.3. Sobre la reproducibilidad y el uso pedagógico
+
+La reproducibilidad y el bajo costo computacional hacen que el generador sea adecuado para la generación de ejercicios en tiempo real y para la investigación replicable. La semilla permite reconstruir una melodía y verificar que la evaluación corresponde al material generado. La distribución equilibrada de tonalidades y modos evita un sesgo sistemático hacia una tonalidad o un modo, y la tasa de modulación coincide con la configuración: 48 % en media frente al 50 % previsto y 100 % en alta.
+
+No obstante, la reproducibilidad no garantiza la equidad entre jugadores. Dos semillas distintas pueden producir melodías con distinto ambitus real, distinta proporción de saltos y distinta variedad rítmica. En los datos, el ambitus real de la dificultad alta varía entre 3 y 26 semitonos, y el de la baja entre 1 y 6. Si dos jugadores reciben semillas distintas, la dificultad nominal es la misma, pero la dificultad efectiva puede diferir. Esta observación sugiere que la asignación de melodías debería estratificarse por el perfil real de la melodía, o que el generador debería aceptar solo melodías dentro de una banda de variedad.
+
+=== 5.2.4. Limitaciones y mejoras
+
+La evaluación es estructural y computacional. No se realizó una valoración perceptual con docentes ni una comparación con ejercicios compuestos por humanos; por tanto, los resultados no establecen que las melodías sean musicalmente idiomáticas o pedagógicamente adecuadas. La muestra de 200 semillas por nivel describe el comportamiento del generador, pero no agota el espacio de semillas posibles.
+
+El generador tampoco modela silencios, ligaduras ni una gramática rítmica explícita. La variedad rítmica se limita a las duraciones permitidas y a los ataques que resultan de su suma; la dificultad alta incluye valores de 1.5 y 2/3, pero las síncopas no se generan como una estructura intencional.
+
+A partir de los resultados se identifican cinco mejoras concretas:
+
+#listasin[
+  + *Penalizar la repetición.* Reducir el peso de `d = 0` o añadir una penalización explícita a la nota anterior, de modo que el grado conjunto y los saltos tengan mayor presencia.
+  + *Controlar el perfil, no solo el máximo.* Definir una distribución objetivo de intervalos y un ambitus objetivo por nivel, y aceptar una melodía solo si su perfil cae dentro de una banda.
+  + *Añadir restricciones de frase.* Incorporar un clímax, una cadencia o un contorno equilibrado para evitar melodías exclusivamente descendentes o estáticas.
+  + *Medir la diversidad en la validación.* Incluir el número de alturas distintas, la proporción de intervalos repetidos y los cambios de dirección como criterios de aceptación.
+  + *Validar con docentes y comparar con ejercicios humanos.* Complementar la verificación estructural con una valoración musical y pedagógica, y contrastar las melodías generadas con ejercicios compuestos por especialistas.
+]
+
+=== 5.2.5. Respuesta al primer objetivo específico
+
+El primer objetivo específico se cumple en el plano del diseño y de la implementación verificada. El algoritmo existe, genera ejercicios para dictado y repentización, satisface las restricciones estructurales en el 100 % de los casos evaluados, es reproducible y su costo computacional es despreciable. La evidencia también muestra una limitación: la variedad melódica es baja, especialmente en dificultad baja, y el ambitus real está por debajo del permitido. Esta limitación no invalida el cumplimiento del objetivo, pero establece una línea de refinamiento del generador y una advertencia para su uso pedagógico: la dificultad nominal no equivale todavía a una dificultad musical efectiva.
+
+La evaluación de la calidad musical con docentes y la comparación con ejercicios humanos son actividades que complementan este resultado y permiten pasar de la verificación estructural a la validación pedagógica.
 
 = Referencias
 
