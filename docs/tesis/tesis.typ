@@ -377,226 +377,862 @@ Para la recolección de datos se empleará la técnica de evaluación mediante p
 
 Los datos recopilados serán procesados mediante técnicas de análisis estadístico descriptivo e inferencial. Inicialmente se emplearán medidas descriptivas, tales como promedios, frecuencias y desviaciones estándar, con el fin de caracterizar el desempeño de los participantes y resumir los resultados obtenidos durante las evaluaciones. Posteriormente, se compararán los resultados obtenidos por el grupo experimental y el grupo de control en las evaluaciones realizadas antes y después de la intervención, con el propósito de determinar el grado de cumplimiento de los objetivos definidos para la solución propuesta. Para ello se utilizarán pruebas estadísticas apropiadas según la naturaleza y distribución de los datos recolectados
 
-= Capítulo IV: Desarrollo
+// ============ Capítulo IV ============
+// Estilo: el capítulo sigue el registro del capítulo de desarrollo de Freire
+// (2025): exposición en presente y pasado, tablas y figuras propias, sin
+// citas externas adicionales. Las secciones marcadas con PLACEHOLDER describen
+// el diseño de la versión completa y deberán reescribirse cuando exista
+// implementación y evidencia empírica. Ver docs/context.md, sección 21.
 
-== 4.1. Diseño del generador de estructuras melódicas
+#import "@preview/fletcher:0.5.5" as fletcher: diagram, node, edge
 
-El generador de estructuras melódicas será responsable de crear los ejercicios utilizados en las rondas de dictado y repentización. Se optó por un enfoque algorítmico, en lugar de entrenar un nuevo modelo de generación musical, debido a que los ejercicios requieren restricciones explícitas sobre el intervalo entre notas, la tonalidad, el rango melódico, la complejidad rítmica y la longitud de la secuencia.
+#let caja-c4(x, y, body, fill: rgb("#eef2ff")) = node((x, y), body, shape: fletcher.shapes.rect, fill: fill)
+#let pastilla-c4(x, y, body, fill: rgb("#eef2ff")) = node((x, y), body, shape: fletcher.shapes.pill, fill: fill)
+#let diam-c4(x, y, body, fill: rgb("#fff7ed")) = node((x, y), body, shape: fletcher.shapes.diamond, fill: fill)
 
-Esta decisión sigue un principio similar al aplicado en Troubadour, donde las secuencias melódicas se generan mediante un algoritmo que considera la longitud de la secuencia y la distribución de los intervalos para producir ejercicios con distintos niveles de dificultad (Pesek et al., 2020). Para la implementación se utilizará Tonal, una biblioteca de JavaScript que proporciona operaciones sobre notas, intervalos, escalas y tonalidades. Sin embargo, Tonal no genera por sí sola melodías completas; se implementará un algoritmo propio que utilizará sus funciones para aplicar las restricciones musicales definidas.
+= Capítulo IV: Desarrollo de la propuesta
 
-Se definieron tres niveles de dificultad, cuyos parámetros se muestran en la Tabla 3.
+El presente capítulo documenta el diseño y la construcción del artefacto propuesto, correspondiente a la tercera actividad del Design Science Research Methodology (DSRM): diseño y desarrollo (Peffers et al., 2008). La exposición se organiza en once secciones que recorren el enfoque de desarrollo, la arquitectura, el modelo de dominio musical, el generador procedural, el evaluador de similitud, la transcripción automática, las mecánicas de juego, la persistencia, la interfaz, las pruebas técnicas y la síntesis del capítulo.
+
+El capítulo distingue entre el prototipo funcional, que implementa el núcleo individual del videojuego, y la especificación de la versión multijugador completa. Esta distinción responde a la naturaleza iterativa del DSRM: el núcleo musical y de interacción se construyó y verificó primero, y sobre esa base se definió la mecánica multijugador. En las figuras de arquitectura y de flujo, los componentes de la versión completa se representan con trazo discontinuo o con relleno diferenciado; en el texto, se emplea el verbo *implementar* únicamente para los componentes construidos y verificados, y el verbo *definir* o *especificar* para los que forman parte del diseño de la versión completa.
+
+== 4.1. Enfoque de desarrollo y alcance del artefacto
+
+=== 4.1.1. Posición dentro del DSRM
+
+El DSRM organiza la investigación en seis actividades: identificación del problema y motivación, definición de objetivos para la solución, diseño y desarrollo, demostración, evaluación y comunicación (Peffers et al., 2008). El presente capítulo se ubica en la tercera actividad. Las actividades de demostración y evaluación se abordan en el capítulo III, en la medida en que definen el protocolo experimental, y en el capítulo V, donde se reportan los resultados.
+
+La construcción del artefacto no siguió una secuencia lineal. Durante la implementación surgieron hallazgos que obligaron a revisar decisiones de diseño: el backend `webgl` de TensorFlow.js dejó de avanzar dentro de un Web Worker, lo que obligó a forzar el backend `cpu`; el ruido tonal por debajo del registro cantado produjo notas espurias, lo que llevó a acotar el rango de frecuencia del modelo; y la diferencia entre los ataques introducidos sobre una rejilla y los ataques producidos por el transcriptor obligó a separar las tolerancias de dictado y de canto. Estos retornos a la actividad de diseño son consistentes con el DSRM, que se concibe como un modelo nominal y no como una secuencia rígida.
+
+// Extracto clave de Peffers et al. (2008), manuscrito, p. 1117:
+// «we are suggesting that the DSRM should not be used as a rigid orthodoxy
+// to criticize work that does not follow it explicitly».
+
+=== 4.1.2. Estrategia de construcción
+
+La construcción se organizó en incrementos verticales. Cada incremento incorporó una capacidad completa —dominio, persistencia, interfaz y pruebas— y mantuvo la aplicación ejecutable. El orden fue el siguiente: primero el dominio musical, después la persistencia, luego la interfaz de dictado, a continuación la transcripción y la interfaz de repentización, y finalmente la integración y el resumen de la partida. Esta secuencia redujo el riesgo de mezclar errores musicales con errores de red, de persistencia o de interfaz.
+
+Desde el punto de vista de la ingeniería de software, el desarrollo adoptó las siguientes prácticas:
+
+#listasin[
+  + *Separación de capas.* El dominio musical (`src/lib/music`) no depende de React, de Next.js ni de Payload. Recibe y devuelve estructuras tipadas, lo que permite probarlo sin navegador y sin base de datos.
+  + *Tipado estricto.* La aplicación se implementó en TypeScript con comprobación estricta, incluyendo los tipos canónicos de melodía, los resultados de evaluación y los mensajes del Web Worker.
+  + *Pruebas automatizadas.* El generador, el evaluador y los parámetros de transcripción se cubrieron con pruebas unitarias de Vitest. Las pruebas de humo y el barrido de parámetros se ejecutaron con scripts independientes.
+  + *Reproducibilidad.* El generador es determinista a partir de una semilla y un conjunto de parámetros; la versión del generador y los parámetros de inferencia se registran junto con los datos que producen.
+  + *Entorno reproducible.* PostgreSQL y la aplicación se levantan con Docker Compose, de modo que la configuración local no depende de instalaciones manuales.
+  + *Decisiones registradas.* Las decisiones de diseño con impacto estructural se documentaron antes de implementarlas. La Tabla 3 resume las principales.
+]
 
 #block(breakable: false)[
-#leyenda([Tabla], 3, [Parámetros de generación melódica por nivel de dificultad])
+#leyenda([Tabla], 3, [Decisiones de diseño y alternativas consideradas])
 #apatable(
-  columns: (5.5cm, 3.4cm, 3.5cm, 3.5cm),
-  header: (
-    [*Parámetro*],
-    [*Dificultad baja*],
-    [*Dificultad media*],
-    [*Dificultad alta*],
-  ),
+  columns: (3.4cm, 5.5cm, 7cm),
+  header: ([*Decisión*], [*Alternativa considerada*], [*Criterio de selección*]),
   rows: (
-    ([Intervalo máximo entre notas consecutivas], [2 semitonos], [5 semitonos], [7 semitonos]),
-    ([Congruencia tonal], [Una sola escala], [Posible modulación], [Modulación]),
-    ([Ambitus o rango total], [1 octava], [2 octavas], [3 octavas]),
-    ([Complejidad rítmica], [Negras y blancas en compás simple], [Inclusión de corcheas], [Síncopas y tresillos]),
-    ([Longitud], [8 notas], [15 notas], [24 notas]),
+    ([Generación procedural por reglas], [Modelo generativo entrenado], [Control explícito de intervalo, ambitus, ritmo, tonalidad y longitud; determinismo y bajo costo computacional.]),
+    ([Comparador propio], [Dependencia de `mir_eval`], [No existe una implementación JavaScript equivalente; el comparador propio permite fijar tolerancias y devolver los pares emparejados.]),
+    ([Transcripción con Basic Pitch], [Servicio externo de transcripción], [Inferencia local en el navegador; no se transfiere audio ni se requiere GPU del servidor.]),
+    ([Piano roll], [Pentagrama], [Permite aislar altura y ataque; reduce la influencia de la lectoescritura en la medición de habilidades auditivas.]),
+    ([Payload CMS], [Backend propio], [Autenticación, colecciones, administración y API disponibles sin desarrollar un backend desde cero.]),
+    ([Modelo monofónico], [Modelo polifónico], [Los ejercicios son melódicos; el emparejamiento uno a uno es suficiente y verificable.]),
+    ([Inferencia en cliente], [Inferencia en servidor], [Menor transferencia de datos personales y menor carga para la aplicación Next.js.]),
   ),
 )]
 
-El algoritmo seleccionará una tonalidad y construirá una secuencia de notas que respete los límites correspondientes al nivel elegido. En dificultad baja, todas las notas pertenecerán a una sola escala y los intervalos consecutivos no superarán los dos semitonos. En dificultad media se permitirá ampliar los saltos hasta cinco semitonos y se contemplará la posibilidad de cambiar de centro tonal. En dificultad alta, los saltos podrán alcanzar siete semitonos y se incorporarán modulaciones.
+=== 4.1.3. Alcance y trazabilidad
 
-La selección de cada nota estará condicionada por las notas válidas que puedan seguir a la nota anterior. De esta forma, la generación no dependerá únicamente de una selección aleatoria independiente, sino de un conjunto de restricciones que limitará las secuencias posibles. También se establecerán reglas para evitar que las melodías resultantes sean excesivamente repetitivas o carezcan de una dirección musical reconocible. Estas reglas se ajustarán durante las pruebas del generador.
+El prototipo funcional implementa el flujo individual completo: configuración de la partida, generación de melodías, dictado, repentización con transcripción, evaluación por ronda, persistencia de la sesión y resumen. La versión completa añade salas multijugador, intercambio de producciones entre jugadores, galería final, aulas y vista docente. La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
 
-Para representar las melodías se utilizará una estructura simbólica que almacene, como mínimo, la altura MIDI de cada nota, su posición temporal y su duración. Esta representación permitirá generar una partitura, reproducir la secuencia como audio, compararla con las respuestas de los jugadores y almacenarla en la base de datos.
+#block(breakable: false)[
+#leyenda([Tabla], 4, [Trazabilidad entre objetivos específicos y secciones del capítulo])
+#apatable(
+  columns: (2cm, 4cm, 9.9cm),
+  header: ([*Objetivo*], [*Sección*], [*Componente*]),
+  rows: (
+    ([OE1], [4.3 y 4.4], [Modelo de dominio musical y generador procedural de melodías.]),
+    ([OE2], [4.5], [Evaluador de similitud melódica.]),
+    ([OE3], [4.2 y 4.6 a 4.9], [Arquitectura, transcripción, mecánicas de juego, persistencia e interfaz.]),
+    ([OE4], [Capítulos III y V], [Diseño experimental y validación pedagógica.]),
+  ),
+)]
 
-La generación se ejecutará antes de iniciar la partida, a partir del nivel de dificultad seleccionado por quien cree la sala. Por tanto, la dificultad permanecerá fija durante toda la partida; no se incrementará automáticamente entre rondas. Cada jugador recibirá una melodía inicial diferente, generada con los parámetros comunes de la partida.
+La Figura 3 presenta los casos de uso del sistema. Las relaciones discontinuas representan inclusiones entre casos de uso; la distinción entre lo implementado y lo especificado se desarrolla en las secciones siguientes. La figura permite observar que el núcleo del sistema es la tríada formada por la generación de melodías, la evaluación de similitud y la transcripción de audio, y que las actividades de juego se apoyan en ella.
 
-== 4.2. Diseño del análisis de similitud melódica
-
-El análisis de similitud melódica permitirá evaluar las transcripciones de los ejercicios de dictado y las interpretaciones de los ejercicios de repentización. En ambos casos, la respuesta del jugador se comparará con la melodía de referencia correspondiente.
-
-Se decidió que la evaluación se centrará en dos dimensiones: precisión de alturas y precisión rítmica. No se evaluará el timbre de la voz ni se intentará determinar si la interpretación es expresiva. Esta delimitación permitirá concentrar el análisis en los elementos musicales directamente relacionados con los objetivos del videojuego.
-
-No se ha identificado, entre las bibliotecas consideradas, una alternativa para JavaScript que reproduzca de forma directa todas las métricas de mir_eval requeridas por este proyecto. Por ello, se implementará un comparador propio en JavaScript, inspirado en los criterios de correspondencia entre notas y tiempos empleados en herramientas de evaluación musical como mir_eval. El uso de una implementación propia permitirá controlar los parámetros de comparación y presentar resultados interpretables para cada ejercicio.
-
-El comparador trabajará con dos puntuaciones:
-
-#listasin[
-  - *Precisión de alturas:* medirá la proporción de notas que coinciden en altura con las notas de referencia. Para ello, se establecerá una correspondencia entre las notas de ambas secuencias y se considerará correcta una nota cuando su número MIDI coincida con el de la nota de referencia.
-  - *Precisión rítmica:* medirá la correspondencia entre los inicios de las notas de la respuesta y los de la melodía de referencia. Para determinar si dos inicios corresponden a la misma nota, se empleará una tolerancia temporal definida durante la implementación y las pruebas del comparador.
+#block(breakable: false)[
+#leyenda([Figura], 3, [Casos de uso del sistema de entrenamiento auditivo])
+#align(center)[
+#set text(size: 8.5pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.3cm, 0.75cm),
+  caja-c4(0, 0, [Estudiante], fill: rgb("#f1f5f9")),
+  caja-c4(0, 1.6, [Docente], fill: rgb("#f1f5f9")),
+  caja-c4(0, 3.2, [Administrador], fill: rgb("#f1f5f9")),
+  pastilla-c4(2.8, 0, [Configurar partida]),
+  pastilla-c4(2.8, 0.8, [Realizar dictado]),
+  pastilla-c4(2.8, 1.6, [Realizar repentización]),
+  pastilla-c4(2.8, 2.4, [Consultar resultados]),
+  pastilla-c4(2.8, 3.2, [Gestionar aula]),
+  pastilla-c4(5.6, 0.4, [Generar melodía], fill: rgb("#f0fdf4")),
+  pastilla-c4(5.6, 1.2, [Evaluar similitud], fill: rgb("#f0fdf4")),
+  pastilla-c4(5.6, 2.0, [Transcribir audio], fill: rgb("#f0fdf4")),
+  edge((0,0), (2.8,0), "->"),
+  edge((0,0), (2.8,0.8), "->"),
+  edge((0,0), (2.8,1.6), "->"),
+  edge((0,0), (2.8,2.4), "->"),
+  edge((0,1.6), (2.8,2.4), "->"),
+  edge((0,1.6), (2.8,3.2), "->"),
+  edge((0,3.2), (2.8,3.2), "->"),
+  edge((2.8,0), (5.6,0.4), "->", stroke: (dash: "dashed")),
+  edge((2.8,0.8), (5.6,0.4), "->", stroke: (dash: "dashed")),
+  edge((2.8,0.8), (5.6,1.2), "->", stroke: (dash: "dashed")),
+  edge((2.8,1.6), (5.6,1.2), "->", stroke: (dash: "dashed")),
+  edge((2.8,1.6), (5.6,2.0), "->", stroke: (dash: "dashed")),
+)
+]
 ]
 
-La comparación tendrá que contemplar respuestas con notas omitidas, añadidas o desplazadas en el tiempo. Por este motivo, no se compararán únicamente posiciones de listas de forma directa: se establecerá primero una correspondencia entre los eventos musicales de ambas secuencias, de modo que una nota incorrecta no desplace necesariamente todas las comparaciones posteriores.
+== 4.2. Arquitectura del sistema
 
-La puntuación global de cada respuesta será el promedio de las dos dimensiones:
+=== 4.2.1. Vista de componentes
 
-$ S_"global" = (S_"alturas" + S_"ritmo") / 2 $
+La arquitectura se organiza en tres capas. La primera es la interfaz web, construida con Next.js y React, que contiene el piano roll, los controles de reproducción y grabación y el Web Worker de transcripción. La segunda es el dominio musical, implementado en TypeScript con apoyo de Tonal, que contiene el modelo canónico de melodía, el generador procedural y el evaluador de similitud. La tercera es la capa de persistencia, formada por la API de Payload y PostgreSQL.
 
-Las tres puntuaciones se expresarán en una escala de 0 a 100. Se optó por asignar el mismo peso a alturas y ritmo porque ambas dimensiones constituyen objetivos explícitos de los ejercicios. Esta decisión podrá revisarse si las pruebas técnicas revelan que alguna de las métricas no ofrece resultados suficientemente estables.
+La dependencia entre capas es unidireccional: la interfaz depende del dominio y de la API; el dominio no depende de la interfaz ni de la base de datos. Esta separación permite que el generador y el evaluador se ejecuten en pruebas unitarias sin navegador y sin conexión a PostgreSQL, y permite reemplazar la interfaz sin modificar la lógica musical. La Figura 4 muestra los componentes y sus relaciones.
 
-El sistema presentará la puntuación global junto con las puntuaciones parciales. Así, un jugador podrá distinguir si sus errores se concentran en la identificación de las notas o en su ubicación rítmica. El mismo procedimiento se aplicará a las respuestas de dictado y a las interpretaciones transcritas desde audio.
-
-== 4.3. Integración de un modelo de transcripción musical automática
-
-La evaluación de repentización requiere transformar la interpretación vocal del jugador en una secuencia de notas que pueda compararse con la partitura original. Para realizar esta tarea se integrará un modelo de transcripción de audio a MIDI existente, evitando desarrollar y entrenar un modelo propio.
-
-La alternativa seleccionada inicialmente será Spotify Basic Pitch, mediante su implementación para JavaScript y TensorFlow.js, publicada como \@spotify/basic-pitch. Esta biblioteca permite procesar audio y generar una transcripción simbólica; su repositorio documenta su disponibilidad en Python y en una implementación complementaria para JavaScript.
-
-El flujo de procesamiento previsto será el siguiente:
-
-#listasin[
-  + El jugador accederá a la partitura asignada y grabará su interpretación utilizando el micrófono.
-  + El navegador solicitará los permisos necesarios para acceder al micrófono y capturará la interpretación.
-  + El audio se enviará al componente de transcripción, que producirá eventos musicales a partir de la señal recibida.
-  + El sistema normalizará la salida a una representación común de notas, posiciones temporales y duraciones.
-  + La secuencia obtenida se comparará con la melodía de referencia mediante el componente descrito en la sección 4.2.
-  + Se almacenarán la interpretación, su transcripción y las puntuaciones resultantes para mostrarlas en el resumen de la partida.
+#block(breakable: false)[
+#leyenda([Figura], 4, [Arquitectura de componentes del sistema])
+#align(center)[
+#set text(size: 8.5pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.5cm, 0.8cm),
+  caja-c4(0, 0, [Interfaz web #linebreak() Next.js]),
+  caja-c4(0, 1.0, [Piano roll]),
+  caja-c4(0, 2.0, [Reproducción #linebreak() y grabación]),
+  caja-c4(0, 3.0, [Web Worker #linebreak() transcripción]),
+  caja-c4(3.0, 1.0, [Dominio musical #linebreak() Tonal], fill: rgb("#f0fdf4")),
+  caja-c4(3.0, 2.6, [Transcripción #linebreak() Basic Pitch], fill: rgb("#f0fdf4")),
+  caja-c4(6.0, 0, [API de Payload]),
+  caja-c4(6.0, 1.2, [PostgreSQL]),
+  caja-c4(6.0, 2.4, [Almacenamiento #linebreak() de audio], fill: rgb("#fafafa")),
+  caja-c4(6.0, 3.6, [Tiempo real #linebreak() (diseño)], fill: rgb("#fafafa")),
+  edge((0,0), (3.0,1.0), "->", label: [invoca]),
+  edge((0,1.0), (3.0,1.0), "->"),
+  edge((0,2.0), (3.0,1.0), "->"),
+  edge((0,0), (6.0,0), "->", label: [consulta]),
+  edge((0,3.0), (3.0,2.6), "->", label: [transcribe]),
+  edge((3.0,2.6), (3.0,1.0), "->", label: [devuelve #linebreak() notas]),
+  edge((6.0,0), (6.0,1.2), "->"),
+  edge((6.0,0), (6.0,2.4), "->", stroke: (dash: "dashed")),
+  edge((6.0,0), (6.0,3.6), "->", stroke: (dash: "dashed")),
+)
+]
 ]
 
-La grabación original se conservará para que el jugador pueda escuchar nuevamente su interpretación durante la revisión posterior. El sistema también almacenará la transcripción simbólica, ya que esta permitirá visualizar las notas detectadas y analizar los errores sin tener que ejecutar de nuevo el modelo.
+=== 4.2.2. Stack tecnológico
 
-La integración deberá contemplar fallos de transcripción, grabaciones vacías y problemas de acceso al micrófono. En esos casos, el sistema informará al jugador de que la respuesta no pudo procesarse correctamente, en lugar de asignarle automáticamente una puntuación de cero. Las reglas concretas para repetir una grabación o resolver una transcripción fallida se establecerán durante el desarrollo.
+La Tabla 5 resume las tecnologías empleadas y su función. Las versiones se consignan porque afectan la reproducibilidad de los resultados: una actualización mayor de TensorFlow.js o de Basic Pitch puede modificar la salida de la transcripción, y una actualización de Tonal puede alterar la construcción de escalas.
 
-== 4.4. Arquitectura del sistema
+#block(breakable: false)[
+#leyenda([Tabla], 5, [Stack tecnológico y versiones])
+#apatable(
+  columns: (3.8cm, 2.2cm, 4.6cm, 5.3cm),
+  header: ([*Tecnología*], [*Versión*], [*Función*], [*Criterio de selección*]),
+  rows: (
+    ([Next.js], [16.3.4], [Aplicación web y rutas de API], [Integración con React y despliegue unificado.]),
+    ([React], [19.2.0], [Interfaz de usuario], [Ecosistema y componentes reutilizables.]),
+    ([TypeScript], [5.9.2], [Tipado del dominio y de la interfaz], [Detección temprana de errores.]),
+    ([Payload CMS], [3.88.0], [Colecciones, autenticación y API], [Administración y persistencia sin backend propio.]),
+    ([PostgreSQL], [Contenedor Docker], [Base de datos relacional], [Integridad y consultas estructuradas.]),
+    ([Tonal], [6.5.1], [Teoría musical: notas, escalas e intervalos], [Cobertura de operaciones tonales en JavaScript.]),
+    ([Basic Pitch], [1.0.1], [Transcripción de audio a notas], [Implementación oficial en TypeScript ejecutable en navegador.]),
+    ([TensorFlow.js], [3.21.0], [Ejecución del modelo en el navegador], [Dependencia compartida con Basic Pitch.]),
+    ([Vitest], [5.1.0], [Pruebas unitarias], [Integración con el ecosistema Vite y TypeScript.]),
+    ([Docker Compose], [—], [Entorno local reproducible], [Aislamiento de PostgreSQL y de la aplicación.]),
+  ),
+)]
 
-El videojuego se desarrollará como una aplicación web utilizando Next.js para la interfaz y la lógica de la aplicación, Payload CMS para la gestión de usuarios y contenidos, y PostgreSQL como sistema gestor de base de datos. PostgreSQL se ejecutará mediante Docker Compose durante el desarrollo, lo que permitirá mantener una configuración reproducible del entorno.
+=== 4.2.3. Organización del repositorio
 
-La arquitectura se organizará en cuatro componentes principales:
+El repositorio se organiza por responsabilidad, no por tipo de archivo. La Tabla 6 describe los directorios principales. Esta organización facilita la localización de los componentes y refuerza la separación entre dominio, interfaz y persistencia.
 
-#listasin[
-  + *Interfaz del videojuego:* mostrará las salas disponibles mediante códigos de acceso, las instrucciones de cada ronda, las herramientas para responder los ejercicios, las puntuaciones y el resumen final.
-  + *Lógica de juego:* gestionará la creación de partidas, el orden de las rondas, la asignación de melodías, la recepción de respuestas y el cálculo de puntuaciones.
-  + *Componentes musicales:* incluirán el generador de melodías, el comparador de respuestas y el modelo de transcripción de audio a MIDI.
-  + *Persistencia de datos:* almacenará las cuentas de usuario, las salas, las partidas, las melodías generadas, las respuestas, las grabaciones y las puntuaciones.
+#block(breakable: false)[
+#leyenda([Tabla], 6, [Organización del repositorio y responsabilidades])
+#apatable(
+  columns: (4.2cm, 11.7cm),
+  header: ([*Directorio*], [*Responsabilidad*]),
+  rows: (
+    ([`app/(frontend)`], [Interfaz de partida, componentes de ejercicio, evaluación y resumen.]),
+    ([`app/(payload)`], [Panel administrativo y rutas de Payload.]),
+    ([`src/lib/music`], [Dominio musical: tipos canónicos, validación, generador y evaluador.]),
+    ([`src/lib/transcription`], [Captura, normalización, protocolo y Web Worker de Basic Pitch.]),
+    ([`src/lib/audio`], [Grabación con `MediaRecorder` y reproducción con Web Audio.]),
+    ([`src/lib/persistence.ts`], [Guardado de melodías y sesiones en Payload.]),
+    ([`src/collections`], [Definición de las colecciones `Users`, `Melodies` y `GameSessions`.]),
+    ([`scripts`], [Pruebas de humo y barrido de parámetros de transcripción.]),
+  ),
+)]
+
+=== 4.2.4. Comunicación y despliegue
+
+En el prototipo, la aplicación Next.js sirve la interfaz y las rutas de API; Payload expone la API de las colecciones y el panel administrativo; PostgreSQL almacena los datos estructurados. El audio no sale del navegador: se captura con `MediaRecorder`, se decodifica con Web Audio y se procesa en un Web Worker. El modelo de Basic Pitch se sirve como archivo estático desde `/models/basic-pitch/model.json`.
+
+// PLACEHOLDER (parcial): la comunicación en tiempo real no forma parte del
+// prototipo individual. El párrafo siguiente especifica el diseño de la
+// versión completa y deberá reescribirse cuando se implemente y se pruebe.
+
+La versión multijugador requiere un mecanismo de tiempo real para anunciar el inicio y el cierre de las rondas, notificar la recepción de respuestas y mantener sincronizado el estado de la partida. El diseño prioriza un servicio administrado de publicación y suscripción, con canales por sala y presencia, frente a un servidor WebSocket propio. La primera alternativa evita operar conexiones persistentes y delega la reconexión al proveedor; la segunda ofrece mayor control, pero exige mantener un proceso adicional y coordinarlo con Next.js y Payload. El canal de tiempo real transporta únicamente identificadores, estados y avisos de sincronización; las melodías, las respuestas y el audio se transfieren por la API o por almacenamiento de objetos.
+
+=== 4.2.5. Requisitos no funcionales
+
+Los requisitos no funcionales se tradujeron en decisiones concretas de arquitectura. La Tabla 7 resume los principales. Algunos mecanismos, como el control de acceso por rol o la retención de grabaciones, corresponden al diseño de la versión completa y se detallan en las secciones 4.8.4 y 4.8.5.
+
+#block(breakable: false)[
+#leyenda([Tabla], 7, [Requisitos no funcionales y mecanismos de diseño])
+#apatable(
+  columns: (3cm, 6.2cm, 6.7cm),
+  header: ([*Requisito*], [*Mecanismo*], [*Efecto esperado*]),
+  rows: (
+    ([Usabilidad], [Piano roll, instrucciones por ronda y feedback inmediato], [Comprensión de la tarea sin conocimientos de notación.]),
+    ([Rendimiento], [Inferencia en Web Worker y watchdog de 30 s], [La interfaz no se bloquea durante la transcripción.]),
+    ([Seguridad], [Validación en servidor y control de acceso por rol (diseño)], [Evitar que el cliente altere resultados o consulte datos ajenos.]),
+    ([Privacidad], [Procesamiento local del audio y retención definida (diseño)], [Protección de las grabaciones de voz.]),
+    ([Trazabilidad], [`sessionSeed`, `roundNumber` y relación melodía-respuesta], [Reconstruir la cadena de una partida.]),
+    ([Reproducibilidad], [Semilla, `generatorVersion` y parámetros del modelo], [Repetir una melodía o una inferencia.]),
+    ([Mantenibilidad], [Dominio separado de React y de Payload], [Probar sin navegador ni base de datos.]),
+    ([Compatibilidad], [Navegadores de escritorio con Web Audio y micrófono], [Verificación en Chrome durante el prototipo.]),
+    ([Accesibilidad], [Controles visibles y estados textuales], [Revisión de contraste y alternativas al color (diseño).]),
+  ),
+)]
+
+== 4.3. Modelo de dominio musical
+
+=== 4.3.1. Representación canónica
+
+El dominio musical se representa mediante estructuras independientes del formato MIDI y del audio. La estructura `NoteEvent` almacena la altura como número MIDI, el inicio y la duración en pulsos musicales. La estructura `Melody` añade el tempo, el compás, la tonalidad, la escala, las modulaciones, la dificultad, la versión del generador y la semilla. La Figura 5 muestra las relaciones entre estas estructuras y las que se emplean en la evaluación.
+
+#block(breakable: false)[
+#leyenda([Figura], 5, [Modelo de dominio musical])
+#align(center)[
+#set text(size: 8pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.3cm, 0.9cm),
+  caja-c4(0, 1.4, [Melody #linebreak() id · tempoBpm #linebreak() timeSignature · key #linebreak() scale · difficulty #linebreak() seed]),
+  caja-c4(3.2, 0, [NoteEvent #linebreak() midiPitch #linebreak() onsetBeats #linebreak() durationBeats]),
+  caja-c4(3.2, 2.8, [Modulation #linebreak() atNoteIndex #linebreak() key · scale]),
+  caja-c4(6.4, 0, [EvaluatedNote #linebreak() midiPitch #linebreak() onsetSeconds #linebreak() durationSeconds]),
+  caja-c4(6.4, 2.8, [EvaluationResult #linebreak() pitch: F1 #linebreak() rhythm: F1 #linebreak() overall]),
+  edge((0,1.4), (3.2,0), "->", label: [1..\*]),
+  edge((0,1.4), (3.2,2.8), "->", label: [0..\*]),
+  edge((3.2,0), (6.4,0), "->", label: [convierte]),
+  edge((3.2,0), (6.4,2.8), "->", label: [evalúa], bend: 20deg),
+)
+]
 ]
 
-La comunicación entre los jugadores requerirá un mecanismo de tiempo real para anunciar el inicio de las rondas, notificar la recepción de respuestas y mantener sincronizado el estado de la partida. Para simplificar la implementación se priorizará un servicio administrado de comunicación en tiempo real, como Ably, en lugar de desarrollar desde cero un servidor WebSocket. Esta decisión evitará que la gestión de conexiones persistentes se convierta en una responsabilidad adicional del servidor de Next.js. La solución definitiva se confirmará durante la implementación, atendiendo a su integración con la aplicación y a sus condiciones de uso.
+La decisión de almacenar los tiempos en pulsos y no en segundos responde a dos razones. Primero, los pulsos permiten representar subdivisiones como corcheas, tresillos y valores con puntillo sin acumular errores de redondeo. Segundo, la comparación rítmica se realiza sobre una rejilla musical, no sobre marcas de tiempo absolutas. La conversión a segundos se deriva del tempo cuando se reproduce una melodía o se compara con una transcripción de audio.
 
-Payload CMS se utilizará para administrar las colecciones de datos y las cuentas de usuario, mientras que la lógica de juego controlará qué información puede consultar cada participante. En particular, las respuestas de otros jugadores no se mostrarán antes de que termine la ronda correspondiente, pues hacerlo alteraría la dinámica de intercambio prevista.
+=== 4.3.2. Invariantes y validación
 
-El cliente web se comunicará con la aplicación y el servicio de tiempo real; la aplicación consultará y actualizará los datos mediante Payload CMS y PostgreSQL; y los componentes musicales procesarán las melodías y respuestas. El servicio de tiempo real notificará los cambios relevantes a los clientes conectados, mientras que la base de datos conservará el historial de la partida.
+El modelo se protege mediante validaciones explícitas. La Tabla 8 resume los invariantes. La validación se aplica tanto a las melodías generadas como a las melodías recibidas desde la API o desde un archivo JSON, de modo que una estructura inválida no llega al generador ni al evaluador.
 
-== 4.5. Diseño de las mecánicas de juego
+#block(breakable: false)[
+#leyenda([Tabla], 8, [Invariantes del modelo de dominio musical])
+#apatable(
+  columns: (3.6cm, 7.5cm, 4.8cm),
+  header: ([*Campo*], [*Invariante*], [*Verificación*]),
+  rows: (
+    ([`midiPitch`], [Entero entre 0 y 127], [`validateNote`]),
+    ([`onsetBeats`], [Mayor o igual a 0], [`validateNote`]),
+    ([`durationBeats`], [Mayor que 0], [`validateNote`]),
+    ([Orden], [`onsetBeats` no decreciente entre notas], [`validateMelody`]),
+    ([`modulations`], [`atNoteIndex` dentro del rango de notas], [`validateMelody`]),
+    ([Notas], [Al menos una nota], [`validateMelody`]),
+    ([Tempo y compás], [Tempo mayor que 0; compás de enteros positivos], [`validateMelody`]),
+  ),
+)]
 
-La mecánica central consistirá en intercambiar transcripciones e interpretaciones musicales entre los participantes. El diseño toma como referencia la dinámica de juegos como Gartic Phone, en los que una creación pasa de un jugador a otro y se transforma a lo largo de varias rondas. En esta propuesta, el contenido que se transmite será una melodía representada mediante notas musicales.
+=== 4.3.3. Reproducibilidad y versionado
 
-Se decidió que cada partida tendrá una sala creada manualmente por un usuario. La sala dispondrá de un código que permitirá a otros jugadores incorporarse antes de iniciar la sesión. El creador configurará el nivel de dificultad y elegirá cuál será la primera actividad: dictado o repentización. No se implementará emparejamiento automático ni un chat integrado; se asumirá que los participantes podrán comunicarse mediante servicios externos, como Discord.
+El generador es determinista a partir de una semilla y de un conjunto de parámetros. La melodía depende de la tupla formada por la semilla, la dificultad, el tempo y el compás; no depende únicamente de la semilla. Esta precisión es relevante para la reproducibilidad: dos ejecuciones con la misma tupla producen la misma melodía, pero cambiar el tempo altera la secuencia aunque la semilla se conserve. El identificador de la melodía se deriva de un hash de la misma tupla, y la versión del generador se almacena junto con la melodía para distinguir resultados producidos por versiones distintas.
 
-La partida estará compuesta por rondas alternadas de dictado y repentización. El flujo será el siguiente:
+== 4.4. Generador procedural de melodías
 
-#listasin[
-  + *Preparación de la partida.* El creador establecerá la dificultad y seleccionará la actividad inicial. Cuando la sala esté lista, el sistema generará una melodía inicial diferente para cada jugador. Todas las melodías se generarán con los mismos parámetros de dificultad, aunque sus notas y ritmos podrán ser distintos.
-  + *Ronda de dictado.* Cada jugador escuchará la melodía asignada y deberá transcribirla utilizando la interfaz musical del videojuego. Al terminar, el sistema comparará la respuesta con la melodía original y calculará las puntuaciones de alturas y ritmo. La transcripción producida por el jugador quedará almacenada como parte del historial de la partida.
-  + *Ronda de repentización.* El sistema asignará a cada jugador una transcripción realizada por otro participante en la ronda de dictado anterior. El jugador deberá leer la melodía recibida e interpretarla mediante el micrófono. El sistema transcribirá el audio a una secuencia simbólica y la comparará con la melodía que debía interpretarse. La interpretación y la transcripción resultante se guardarán para la revisión posterior.
-  + *Intercambio de respuestas.* En cada nueva ronda, las respuestas de la actividad anterior servirán como material de trabajo para otros participantes. De este modo, la secuencia musical que se originó en el sistema podrá experimentar modificaciones a medida que los jugadores la transcriban e interpreten. El intercambio será el principal elemento de gamificación, ya que permitirá observar cómo evoluciona una melodía y qué errores aparecen durante el proceso.
-  + *Finalización y clasificación.* La partida terminará cuando se complete el número de rondas establecido para la sesión. El sistema calculará la puntuación final de cada jugador y mostrará una clasificación correspondiente exclusivamente a esa partida. El ganador será quien obtenga el mayor promedio de precisión general considerando todas sus rondas de dictado y repentización.
+=== 4.4.1. Requisitos y parámetros de dificultad
+
+// Extracto clave de Pesek et al. (2020a), sección «Automatic generation of exercises»:
+// «We developed a sequence generation algorithm, which considers several aspects
+// of sequence complexity: the length of sequence, the size of intervals,
+// and the frequency of interval occurrences.»
+
+El generador produce ejercicios de dictado y repentización con restricciones musicales explícitas. Se optó por un enfoque algorítmico, en lugar de entrenar un modelo de generación, porque los ejercicios requieren control directo sobre el intervalo entre notas, la tonalidad, el registro, el ritmo y la longitud, y porque el mismo conjunto de parámetros debe producir melodías reproducibles. La decisión sigue un principio similar al de Troubadour, donde las secuencias se generan a partir de la longitud y de la distribución de intervalos para producir ejercicios con distintos niveles de dificultad (Pesek et al., 2020a).
+
+La Tabla 9 define los tres niveles de dificultad. La Tabla 10 completa la configuración global del generador. Los valores de registro se expresan como números MIDI y corresponden a una ventana centrada en C4 (MIDI 60); el ambitus indica la extensión total de la ventana.
+
+#block(breakable: false)[
+#leyenda([Tabla], 9, [Parámetros de generación melódica por nivel de dificultad])
+#apatable(
+  columns: (4.4cm, 3.3cm, 3.8cm, 4.4cm),
+  header: ([*Parámetro*], [*Dificultad baja*], [*Dificultad media*], [*Dificultad alta*]),
+  rows: (
+    ([Longitud (notas)], [8], [15], [24]),
+    ([Intervalo máximo consecutivo], [2 semitonos], [5 semitonos], [7 semitonos]),
+    ([Ambitus], [12 semitonos (1 octava)], [24 semitonos (2 octavas)], [36 semitonos (3 octavas)]),
+    ([Registro MIDI], [54–66], [48–72], [42–78]),
+    ([Duraciones (pulsos)], [1 y 2], [0.5, 1 y 2], [0.5, 1, 1.5, 2 y 2/3]),
+    ([Figura rítmica requerida], [—], [Al menos una corchea], [Al menos una figura de 1.5 o 2/3]),
+    ([Modulación], [Ninguna], [Opcional (50 %), a la tonalidad relativa], [Obligatoria, a dominante o subdominante]),
+    ([Congruencia tonal], [Una escala], [Hasta dos escalas], [Dos escalas]),
+    ([Complejidad rítmica], [Negras y blancas], [Corcheas], [Valores de 1.5 y 2/3; ataques desplazados por suma de duraciones]),
+  ),
+)]
+
+#block(breakable: false)[
+#leyenda([Tabla], 10, [Configuración global del generador])
+#apatable(
+  columns: (4.6cm, 11.3cm),
+  header: ([*Parámetro*], [*Valor*]),
+  rows: (
+    ([Tonalidades], [C, G, D, A, F, Bb y Eb]),
+    ([Modos], [Mayor y menor natural]),
+    ([Compás], [4/4]),
+    ([Tempo], [Entre 60 y 120 BPM; 90 BPM por defecto]),
+    ([Silencios], [No se generan]),
+    ([Notas repetidas], [Permitidas; no se admiten tres notas iguales consecutivas]),
+    ([Intervalos repetidos], [No se admiten tres intervalos iguales consecutivos]),
+    ([Intentos de generación], [Hasta 50; si ninguno cumple, se lanza un error]),
+    ([Versión del generador], [`0.1.0`]),
+  ),
+)]
+
+=== 4.4.2. Algoritmo de generación
+
+La Figura 6 resume el algoritmo. A partir de la semilla y de la dificultad se construye un generador pseudoaleatorio determinista. El generador selecciona una tonalidad y un modo, planifica las modulaciones, divide la melodía en segmentos con una escala activa, genera las alturas, genera las duraciones, construye los eventos de nota y valida el resultado. Si la validación falla, se reinicia el proceso con otra secuencia pseudoaleatoria, hasta un máximo de 50 intentos.
+
+#block(breakable: false)[
+#leyenda([Figura], 6, [Flujo del generador procedural de melodías])
+#align(center)[
+#set text(size: 8.5pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.3cm, 0.75cm),
+  caja-c4(0, 0, [Semilla + #linebreak() dificultad]),
+  caja-c4(0, 1.0, [Hash y PRNG]),
+  caja-c4(0, 2.0, [Tonalidad #linebreak() y escala]),
+  caja-c4(0, 3.0, [Plan de #linebreak() modulación]),
+  caja-c4(0, 4.0, [Segmentos #linebreak() por escala]),
+  caja-c4(0, 5.0, [Selección #linebreak() de alturas]),
+  caja-c4(0, 6.0, [Generación #linebreak() rítmica]),
+  caja-c4(0, 7.0, [Construcción #linebreak() de notas]),
+  diam-c4(0, 8.0, [Validación]),
+  caja-c4(2.4, 8.0, [Melodía], fill: rgb("#f0fdf4")),
+  edge((0,0), (0,1.0), "->"),
+  edge((0,1.0), (0,2.0), "->"),
+  edge((0,2.0), (0,3.0), "->"),
+  edge((0,3.0), (0,4.0), "->"),
+  edge((0,4.0), (0,5.0), "->"),
+  edge((0,5.0), (0,6.0), "->"),
+  edge((0,6.0), (0,7.0), "->"),
+  edge((0,7.0), (0,8.0), "->"),
+  edge((0,8.0), (2.4,8.0), "->", label: [válida]),
+)
+]
 ]
 
-Para el cálculo del resultado final se utilizará el promedio aritmético de las puntuaciones globales de las respuestas válidas del jugador:
+La selección de alturas es restringida. En cada paso, el algoritmo construye el conjunto de alturas pertenecientes a la escala activa dentro del registro permitido y descarta las que superan el intervalo máximo respecto de la nota anterior. Dentro de ese conjunto, pondera cada candidata por el inverso del cuadrado de la distancia a la nota anterior, de modo que los movimientos conjuntos son más probables que los saltos, y multiplica por 1.5 el peso de la tónica. Además, evita tres notas iguales consecutivas y tres intervalos iguales consecutivos. La primera nota se elige a no más de tres semitonos de C4.
+
+La generación rítmica selecciona duraciones de un conjunto permitido con pesos definidos por nivel. Si el nivel exige una figura que no apareció, el algoritmo reemplaza una duración por la figura requerida. Las notas se construyen de forma monofónica: cada ataque comienza al finalizar la duración de la nota anterior, de modo que no hay superposición.
+
+=== 4.4.3. Validación de restricciones
+
+La validación comprueba la cantidad de notas, el ambitus, el registro, el intervalo máximo, la pertenencia a la escala de cada segmento, los valores rítmicos permitidos, la presencia de la figura requerida, la ausencia de superposición y la validez estructural del modelo. Si alguna comprobación falla, la melodía se descarta y se genera otra. Esta estrategia de *generar y verificar* es adecuada para melodías de 8 a 24 notas: el espacio de soluciones es suficientemente grande y el costo de reintentar es bajo.
+
+=== 4.4.4. Pruebas y resultados
+
+El generador se cubrió con 26 pruebas unitarias. Cada propiedad estructural se verificó sobre 25 semillas por nivel de dificultad, lo que permitió detectar casos límite en la modulación, en el ritmo y en el ambitus. La Tabla 11 resume las propiedades verificadas.
+
+#block(breakable: false)[
+#leyenda([Tabla], 11, [Propiedades verificadas del generador])
+#apatable(
+  columns: (4.3cm, 7.4cm, 4.2cm),
+  header: ([*Propiedad*], [*Criterio*], [*Cobertura*]),
+  rows: (
+    ([Longitud], [8, 15 o 24 notas según el nivel], [25 semillas por nivel]),
+    ([Intervalo máximo], [≤ 2, 5 o 7 semitonos], [25 semillas por nivel]),
+    ([Ambitus], [≤ 12, 24 o 36 semitonos], [25 semillas por nivel]),
+    ([Pertenencia a la escala], [Cada segmento usa su escala activa], [25 semillas por nivel]),
+    ([Valores rítmicos], [Solo duraciones permitidas], [25 semillas por nivel]),
+    ([Figura requerida], [Al menos una figura del nivel], [25 semillas por nivel]),
+    ([Superposición], [Sin notas superpuestas], [25 semillas por nivel]),
+    ([Modulación], [Regla de modulación del nivel], [25 semillas por nivel]),
+    ([Reproducibilidad], [Misma tupla de parámetros, misma melodía], [2 casos]),
+    ([Sensibilidad], [Semillas distintas, melodías distintas], [2 casos]),
+  ),
+)]
+
+=== 4.4.5. Discusión de decisiones
+
+El enfoque procedural ofrece tres ventajas frente a un modelo generativo. Primero, permite imponer restricciones pedagógicas verificables, como el intervalo máximo o la longitud. Segundo, produce melodías reproducibles y auditables. Tercero, no requiere entrenamiento ni infraestructura de inferencia. La desventaja es que la corrección estructural no garantiza calidad musical: una melodía puede cumplir todas las restricciones y resultar poco idiomática. Por esta razón, la validación automática se complementa con la revisión de docentes, que se aborda en el diseño experimental.
+
+Una limitación del diseño actual es la relación entre el registro y la tesitura vocal. La dificultad alta abarca tres octavas (F#2–F#6), lo que excede la extensión cómoda de muchas voces. Para atenuar este efecto, la evaluación de repentización en dificultad baja admite equivalencia de octava; en dificultades media y alta se exige correspondencia estricta. La selección de melodías para repentización debe considerar esta restricción, y la posibilidad de transponer la referencia a la tesitura cómoda del jugador queda como una línea de mejora del generador.
+
+== 4.5. Evaluación de similitud melódica
+
+=== 4.5.1. Definición del problema
+
+La evaluación compara dos secuencias monofónicas: la melodía de referencia y la respuesta del jugador. La respuesta puede tener notas omitidas, notas añadidas, alturas incorrectas o ataques desplazados. Por este motivo, la comparación no puede reducirse a contrastar posiciones de dos listas: es necesario establecer primero una correspondencia entre eventos y luego calcular las métricas sobre esa correspondencia.
+
+La evaluación se limita a dos dimensiones: precisión de alturas y precisión rítmica. No se evalúa el timbre, la expresividad, la calidad vocal ni la duración de las notas. La duración se conserva para la visualización y la reproducción, pero no forma parte de la puntuación. Esta delimitación concentra la medición en los objetivos del videojuego y evita introducir juicios subjetivos.
+
+=== 4.5.2. Métricas
+
+Para cada dimensión se calculan precisión, exhaustividad y medida $F_1$. La precisión mide la proporción de notas de la respuesta que encontraron correspondencia; la exhaustividad, la proporción de notas de referencia que fueron encontradas. La medida $F_1$ combina ambas y penaliza tanto las notas de más como las notas omitidas.
+
+$ "precisión" = P = n_"aciertos" / n_"estimadas" $
+
+$ "exhaustividad" = R = n_"aciertos" / n_"referencia" $
+
+$ F_1 = (2 P R) / (P + R) $
+
+Las puntuaciones se normalizan en el intervalo $[0, 1]$ y se presentan al jugador como porcentajes. La puntuación de cada dimensión es su $F_1$. La puntuación global de una respuesta es el promedio aritmético de las dos dimensiones:
+
+$ S_"global" = (F_1^"alturas" + F_1^"ritmo") / 2 $
+
+Se asignó el mismo peso a ambas dimensiones porque las dos constituyen objetivos explícitos de los ejercicios. Una media ponderada requeriría una justificación empírica que todavía no se ha reunido.
+
+=== 4.5.3. Correspondencia entre eventos
+
+La correspondencia se modela como un problema de emparejamiento bipartito máximo. Para cada dimensión se construye una matriz de compatibilidad entre las notas de referencia y las notas estimadas; una celda es compatible si la diferencia de altura o de ataque está dentro de la tolerancia. Sobre esa matriz se calcula un emparejamiento uno a uno, de modo que ninguna nota se usa más de una vez. La Figura 7 muestra el proceso.
+
+#block(breakable: false)[
+#leyenda([Figura], 7, [Evaluación por correspondencia bipartita])
+#align(center)[
+#set text(size: 8pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.5cm, 0.9cm),
+  caja-c4(0, 0, [Notas de #linebreak() referencia]),
+  caja-c4(3.0, 0, [Notas #linebreak() estimadas]),
+  caja-c4(1.5, 1.4, [Matriz de #linebreak() compatibilidad]),
+  caja-c4(0, 2.8, [Matching de #linebreak() alturas], fill: rgb("#f0fdf4")),
+  caja-c4(3.0, 2.8, [Matching de #linebreak() ritmo], fill: rgb("#f0fdf4")),
+  caja-c4(0, 4.2, [$F_1$ alturas]),
+  caja-c4(3.0, 4.2, [$F_1$ ritmo]),
+  caja-c4(1.5, 5.6, [Puntuación #linebreak() global], fill: rgb("#eef2ff")),
+  edge((0,0), (1.5,1.4), "->"),
+  edge((3.0,0), (1.5,1.4), "->"),
+  edge((1.5,1.4), (0,2.8), "->"),
+  edge((1.5,1.4), (3.0,2.8), "->"),
+  edge((0,2.8), (0,4.2), "->"),
+  edge((3.0,2.8), (3.0,4.2), "->"),
+  edge((0,4.2), (1.5,5.6), "->"),
+  edge((3.0,4.2), (1.5,5.6), "->"),
+)
+]
+]
+
+Las dos dimensiones se emparejan de forma independiente. Una nota puede tener la altura correcta pero el ataque desplazado, o el ataque correcto pero la altura incorrecta. Forzar un único emparejamiento para ambas dimensiones mezclaría los dos tipos de error y dificultaría la interpretación del resultado pedagógico. Por esta razón, el evaluador devuelve dos conjuntos de pares emparejados y dos puntuaciones separadas.
+
+=== 4.5.4. Tolerancias
+
+Las tolerancias dependen del tipo de ejercicio. En el dictado, la respuesta se introduce sobre una rejilla y los ataques son exactos; en la repentización, la respuesta proviene de un transcriptor y los ataques presentan un desplazamiento mayor. La Tabla 12 resume los valores adoptados.
+
+#block(breakable: false)[
+#leyenda([Tabla], 12, [Tolerancias de evaluación por tipo de ejercicio])
+#apatable(
+  columns: (4cm, 3.4cm, 3.6cm, 4.9cm),
+  header: ([*Ejercicio*], [*Tolerancia de altura*], [*Tolerancia de ataque*], [*Equivalencia de octava*]),
+  rows: (
+    ([Dictado], [±0.5 semitonos], [±50 ms], [No]),
+    ([Repentización], [±0.5 semitonos], [±150 ms], [Solo en dificultad baja]),
+  ),
+)]
+
+La tolerancia de altura de ±0.5 semitonos equivale, en la práctica, a exigir la misma altura MIDI, porque las alturas se redondean a enteros antes de comparar. La tolerancia de 50 ms en dictado corresponde al espaciado de la rejilla; la de 150 ms en repentización absorbe la variabilidad de los ataques detectados por el transcriptor. La equivalencia de octava en dificultad baja permite que el jugador cante en un registro distinto del escrito sin ser penalizado; en las demás dificultades se exige correspondencia estricta.
+
+=== 4.5.5. Casos límite y pruebas
+
+El evaluador se cubrió con 20 pruebas unitarias. La Tabla 13 resume los casos límite y el comportamiento esperado. Además de los casos de la tabla, se verificó que el resultado no dependa del orden de las notas y que los empates se resuelvan de forma uno a uno.
+
+#block(breakable: false)[
+#leyenda([Tabla], 13, [Casos límite del evaluador de similitud])
+#apatable(
+  columns: (5cm, 5.2cm, 5.7cm),
+  header: ([*Caso*], [*Dimensión de alturas*], [*Dimensión de ritmo*]),
+  rows: (
+    ([Secuencias idénticas], [$F_1 = 1$], [$F_1 = 1$]),
+    ([Nota omitida], [Exhaustividad < 1], [Exhaustividad < 1]),
+    ([Nota adicional], [Precisión < 1], [Precisión < 1]),
+    ([Altura incorrecta], [$F_1$ de altura < 1], [$F_1$ de ritmo = 1]),
+    ([Ataque dentro de la tolerancia], [Sin cambio], [$F_1 = 1$]),
+    ([Ataque fuera de la tolerancia], [$F_1$ de altura = 1], [$F_1$ de ritmo < 1]),
+    ([Notas duplicadas], [Un solo emparejamiento], [Un solo emparejamiento]),
+    ([Orden alterado], [Sin cambio], [Sin cambio]),
+    ([Respuesta vacía], [0], [0]),
+    ([Ambas secuencias vacías], [1], [1]),
+  ),
+)]
+
+=== 4.5.6. Discusión de decisiones
+
+La medida $F_1$ se adoptó porque penaliza simétricamente las omisiones y las notas de más, a diferencia de una precisión simple. El promedio aritmético de las dos dimensiones es transparente para el jugador y fácil de explicar, aunque no distingue si un error de altura es más grave que un error rítmico. La separación de dimensiones permite que el jugador identifique el tipo de error, y el panel de evaluación muestra ambas puntuaciones además de la global. La decisión de no puntuar la duración de las notas reduce la complejidad del dictado, pero limita la evaluación del ritmo a la ubicación de los ataques.
+
+== 4.6. Transcripción automática de audio a MIDI
+
+=== 4.6.1. Selección del modelo
+
+La evaluación de la repentización requiere transformar la interpretación vocal en una secuencia de notas. Se seleccionó Spotify Basic Pitch en su implementación oficial para TypeScript, publicada como `@spotify/basic-pitch`. La selección se basó en cuatro criterios: disponibilidad de una implementación mantenida en npm, ejecución en el navegador mediante TensorFlow.js, capacidad de procesar audio monofónico y posibilidad de operar sin enviar el audio a un servicio externo. La implementación se apoya en un modelo preentrenado y no requiere entrenamiento propio.
+
+=== 4.6.2. Pipeline de procesamiento
+
+La Figura 8 muestra el pipeline. El jugador graba su interpretación con `MediaRecorder`; el audio se decodifica con Web Audio, se remuestrea a 22 050 Hz mono y se recorta el silencio inicial. La señal resultante se transfiere a un Web Worker, donde Basic Pitch infiere las notas. La salida se normaliza y se convierte en una secuencia de `EvaluatedNote`, que se compara con la melodía de referencia mediante el evaluador descrito en la sección 4.5.
+
+#block(breakable: false)[
+#leyenda([Figura], 8, [Pipeline de transcripción de audio a notas])
+#align(center)[
+#set text(size: 8pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.2cm, 0.9cm),
+  caja-c4(0, 0, [Micrófono]),
+  caja-c4(2.0, 0, [MediaRecorder #linebreak() máx. 30 s]),
+  caja-c4(4.0, 0, [Decodificación]),
+  caja-c4(6.0, 0, [Remuestreo #linebreak() 22 050 Hz mono]),
+  caja-c4(6.0, 1.4, [Recorte de #linebreak() silencio]),
+  caja-c4(4.0, 1.4, [Web Worker #linebreak() backend CPU]),
+  caja-c4(2.0, 1.4, [Basic Pitch]),
+  caja-c4(0, 1.4, [Normalización]),
+  caja-c4(0, 2.8, [EvaluatedNote]),
+  caja-c4(2.0, 2.8, [Evaluador]),
+  edge((0,0), (2.0,0), "->"),
+  edge((2.0,0), (4.0,0), "->"),
+  edge((4.0,0), (6.0,0), "->"),
+  edge((6.0,0), (6.0,1.4), "->"),
+  edge((6.0,1.4), (4.0,1.4), "->"),
+  edge((4.0,1.4), (2.0,1.4), "->"),
+  edge((2.0,1.4), (0,1.4), "->"),
+  edge((0,1.4), (0,2.8), "->"),
+  edge((0,2.8), (2.0,2.8), "->"),
+)
+]
+]
+
+=== 4.6.3. Parámetros y normalización
+
+Los parámetros de inferencia se centralizaron en un único módulo para que el ajuste sea reproducible y para que las pruebas verifiquen sus rangos. La Tabla 14 resume los valores. La normalización redondea la altura al semitono más cercano, ordena las notas por ataque, fusiona segmentos contiguos de la misma altura separados por menos de 80 ms y asigna una duración mínima de 0.05 s.
+
+#block(breakable: false)[
+#leyenda([Tabla], 14, [Parámetros de inferencia y normalización])
+#apatable(
+  columns: (4cm, 3.4cm, 8.5cm),
+  header: ([*Parámetro*], [*Valor*], [*Función*]),
+  rows: (
+    ([`onsetThresh`], [0.5], [Umbral de detección de ataques.]),
+    ([`frameThresh`], [0.3], [Umbral de activación por fotograma.]),
+    ([`minNoteLen`], [12 fotogramas], [Descarta transitorios de consonante; equivale a unos 0.14 s.]),
+    ([`minFreq`–`maxFreq`], [75–1500 Hz], [Acota el rango de inferencia y elimina ruido tonal grave.]),
+    ([`melodiaTrick`], [`true`], [Favorece la melodía dominante.]),
+    ([`energyTolerance`], [11], [Tolerancia de energía del modelo.]),
+    ([Frecuencia de muestreo], [22 050 Hz], [Requisito de entrada del modelo.]),
+    ([Fusión de segmentos], [< 80 ms], [Une notas contiguas de igual altura.]),
+  ),
+)]
+
+=== 4.6.4. Integración en el navegador
+
+La inferencia se ejecuta en un Web Worker para no bloquear la interfaz. Durante el desarrollo se comprobó que, dentro del Worker, el backend `webgl` de TensorFlow.js deja de avanzar en la ejecución del modelo; por esta razón se fuerza el backend `cpu` antes de inferir. También se fijó TensorFlow.js en la versión 3.21.0 como dependencia directa para compartir una única instancia con Basic Pitch. El modelo se sirve localmente, de modo que la transcripción no depende de una conexión externa ni expone el audio del jugador a un tercero.
+
+El cliente mantiene un watchdog de 30 s: si la transcripción deja de reportar progreso, la solicitud se cancela y se informa al jugador. Esta decisión evita que la interfaz quede bloqueada esperando un mensaje que no llegará.
+
+=== 4.6.5. Manejo de errores
+
+El flujo distingue entre errores de captura, de decodificación, de transcripción y de resultado vacío. Si el permiso del micrófono se deniega, se informa al jugador y se le permite reintentar. Si la grabación no puede decodificarse, se descarta y se solicita una nueva toma. Si la transcripción no detecta notas, se informa que no se detectaron eventos y se permite repetir la grabación. Si la transcripción falla o se estanca, se cancela y se muestra el error. En ninguno de estos casos se asigna automáticamente una puntuación de cero: la respuesta no puntuada se excluye del promedio y se muestra como ausente en el resumen.
+
+=== 4.6.6. Validación técnica
+
+La integración se verificó con una señal sinusoidal de 2 s que contiene un La4; el modelo detecta correctamente la nota. También se ejecutó un banco de 25 casos sintéticos con vibrato, ruido y transitorios de respiración. Los resultados se reportan en la sección 4.10.3. La validación con voz cantada real se especifica en la sección 4.10.5.
+
+== 4.7. Mecánicas de juego y flujo de partida
+
+=== 4.7.1. Configuración de la partida
+
+La partida se configura antes de comenzar. El jugador selecciona la dificultad, la actividad inicial (dictado o repentización), el número de rondas (entre 2 y 8) y el tempo (entre 60 y 120 BPM). La dificultad permanece fija durante toda la partida y no se incrementa automáticamente entre rondas. Cada ronda recibe una melodía nueva generada con la semilla de la sesión y el número de ronda, de modo que la partida es reproducible.
+
+=== 4.7.2. Flujo de la partida individual
+
+La Figura 9 muestra el flujo. La primera ronda ejecuta la actividad seleccionada; las rondas siguientes alternan dictado y repentización. Al finalizar cada ronda, el sistema evalúa la respuesta y muestra las puntuaciones de alturas, ritmo y global. Cuando se completa el número de rondas, se muestra un resumen con la puntuación de cada ronda y el promedio de precisión general.
+
+#block(breakable: false)[
+#leyenda([Figura], 9, [Flujo de una partida individual])
+#align(center)[
+#set text(size: 8pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.0cm, 0.85cm),
+  caja-c4(0, 0.8, [Configuración]),
+  caja-c4(1.8, 0.8, [Ronda $n$]),
+  caja-c4(3.6, 0, [Dictado]),
+  caja-c4(3.6, 1.6, [Repentización]),
+  caja-c4(5.4, 0.8, [Evaluación]),
+  diam-c4(7.2, 0.8, [¿Quedan #linebreak() rondas?]),
+  caja-c4(7.2, 2.4, [Resumen], fill: rgb("#f0fdf4")),
+  edge((0,0.8), (1.8,0.8), "->", label: [melodía #linebreak() nueva]),
+  edge((1.8,0.8), (3.6,0), "->"),
+  edge((1.8,0.8), (3.6,1.6), "->"),
+  edge((3.6,0), (5.4,0.8), "->"),
+  edge((3.6,1.6), (5.4,0.8), "->"),
+  edge((5.4,0.8), (7.2,0.8), "->"),
+  edge((7.2,0.8), (1.8,0.8), "->", bend: 35deg, label: [sí]),
+  edge((7.2,0.8), (7.2,2.4), "->", label: [no]),
+)
+]
+]
+
+En el dictado, el jugador puede reproducir la melodía tantas veces como desee antes de enviar la respuesta. En la repentización, puede grabar, escuchar la grabación, repetir la toma y enviar cuando esté conforme. La grabación tiene un límite de 30 s y se descarta si el jugador decide repetirla. Estas reglas no introducen penalización por reintentos dentro de la misma ronda.
+
+=== 4.7.3. Mecánica multijugador
+
+// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
+// evidencia de implementación y pruebas cuando exista el flujo multijugador.
+
+La versión completa organiza la partida en salas creadas manualmente. El creador configura la dificultad, la actividad inicial y el número de rondas; la sala genera un código de acceso y los participantes se incorporan antes de iniciar. Durante la partida, cada respuesta se asigna a otro participante en la ronda siguiente. En una ronda de dictado, el jugador escucha una melodía interpretada por otro participante y la transcribe; en una ronda de repentización, recibe una transcripción realizada por otro participante y la interpreta. El intercambio preserva la trazabilidad: cada respuesta se vincula con su autor, su ronda de origen, su material de referencia y su destinatario. La asignación evita devolver una respuesta a su autor en la misma cadena, salvo que la sala lo permita explícitamente.
+
+=== 4.7.4. Puntuación y cierre
+
+La puntuación de cada respuesta es el promedio de las medidas $F_1$ de alturas y ritmo. La puntuación final del jugador es el promedio aritmético de las puntuaciones de sus respuestas puntuadas:
 
 $ S_"jugador" = (sum_(i = 1)^n S_i) / n $
 
-donde $n$ representa el número de respuestas puntuadas del jugador y $S_i$ corresponde a la puntuación global obtenida en cada respuesta. Esta fórmula dará el mismo peso a cada ronda puntuada. Las respuestas que no puedan procesarse por fallos técnicos deberán tratarse mediante una regla explícita de recuperación, en lugar de incorporarse como ceros sin distinguir entre un error musical y un fallo del sistema.
+donde $n$ es el número de respuestas puntuadas y $S_i$ es la puntuación global de la respuesta $i$. Las respuestas no puntuadas por fallos técnicos se excluyen del promedio y se muestran como ausentes; no se incorporan como ceros. La clasificación se limita a la partida y no se extiende a un ranking global.
 
-La dificultad no aumentará automáticamente durante la partida. Se mantendrá el nivel elegido al crear la sala, puesto que la complejidad de la sesión dependerá de las melodías iniciales generadas con esos parámetros. La clasificación tampoco se extenderá a un ranking global: se mostrará únicamente la posición relativa de los participantes de cada partida.
+=== 4.7.5. Reglas de recuperación y abandono
 
-La hipótesis de diseño es que el intercambio de melodías y la visualización de sus transformaciones generarán un nivel de participación significativo. Esta expectativa se fundamenta en la dinámica de juegos de intercambio creativo como Gartic Phone, pero no se considerará un resultado demostrado hasta que se recojan y analicen datos de uso del prototipo.
+// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
+// evidencia de pruebas de reconexión y abandono.
 
-== 4.6. Gestión de usuarios, partidas y resultados
+La versión completa define reglas para los casos en que un participante se desconecta, abandona la sala o no envía su respuesta dentro del tiempo de la ronda. Si un jugador se desconecta, la sala conserva su lugar y su respuesta previa; si se reconecta antes del cierre de la ronda, puede continuar. Si no envía una respuesta, la ronda se cierra con las respuestas disponibles y el jugador recibe una ausencia, no una puntuación de cero. Si el anfitrión abandona, la sala elige un nuevo anfitrión o se cierra de forma controlada. El plan de pruebas de la versión completa incluye la verificación de estas reglas mediante pruebas de sincronización y de reconexión antes de la sesión con estudiantes.
 
-La persistencia de los datos será necesaria tanto para el funcionamiento del videojuego como para su posterior evaluación. Se utilizará PostgreSQL para almacenar la información estructurada, administrada mediante Payload CMS y las operaciones de la aplicación.
+== 4.8. Persistencia y modelo de datos
 
-El modelo de datos incluirá las siguientes entidades principales:
+=== 4.8.1. Modelo conceptual
+
+// PLACEHOLDER: el modelo conceptual corresponde a la versión completa. La
+// implementación actual se describe en 4.8.2.
+
+La versión completa organiza los datos en entidades relacionadas. La Figura 10 muestra la cadena principal de una partida: una sala contiene partidas, una partida contiene rondas, una ronda se asocia con una melodía y con las respuestas de los jugadores, y cada respuesta puede tener una transcripción, un resultado de evaluación y un archivo de audio. Las entidades de usuario, aula y pertenencia se mantienen separadas de la cadena de juego para permitir que un docente consulte los resultados de sus estudiantes sin mezclar los datos de las partidas.
 
 #block(breakable: false)[
-#leyenda([Tabla], 4, [Entidades a incluir en el modelo de datos])
+#leyenda([Figura], 10, [Cadena de datos de una partida])
+#align(center)[
+#set text(size: 7.5pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (1.1cm, 0.8cm),
+  caja-c4(0, 0, [GameRoom #linebreak() id · code · hostId]),
+  caja-c4(0, 1.1, [Game #linebreak() id · roomId · status]),
+  caja-c4(0, 2.2, [Round #linebreak() id · gameId #linebreak() number · type]),
+  caja-c4(2.6, 2.2, [Melody #linebreak() id · seed #linebreak() difficulty]),
+  caja-c4(0, 3.5, [Submission #linebreak() id · roundId #linebreak() playerId · type]),
+  caja-c4(2.6, 3.5, [Transcription #linebreak() id · submissionId #linebreak() modelVersion]),
+  caja-c4(5.0, 3.5, [EvaluationResult #linebreak() submissionId #linebreak() pitch · rhythm · overall]),
+  caja-c4(-2.2, 3.5, [AudioAsset #linebreak() id · submissionId #linebreak() uri]),
+  edge((0,0), (0,1.1), "->"),
+  edge((0,1.1), (0,2.2), "->"),
+  edge((0,2.2), (2.6,2.2), "->", label: [referencia]),
+  edge((0,2.2), (0,3.5), "->"),
+  edge((0,3.5), (2.6,3.5), "->"),
+  edge((0,3.5), (5.0,3.5), "->", bend: -20deg),
+  edge((0,3.5), (-2.2,3.5), "->"),
+  edge((2.6,2.2), (5.0,3.5), "->", stroke: (dash: "dashed"), label: [referencia]),
+)
+]
+]
+
+=== 4.8.2. Implementación en Payload
+
+El prototipo implementa tres colecciones: `Users`, `Melodies` y `GameSessions`. La Tabla 15 describe sus campos. La sesión de juego embebe las rondas en un arreglo, en lugar de modelarlas como una colección independiente, para simplificar la escritura y la lectura durante el prototipo. Esta decisión reduce el número de consultas, pero limita las consultas agregadas y la normalización; la versión completa separa las rondas, las respuestas y los resultados.
+
+#block(breakable: false)[
+#leyenda([Tabla], 15, [Colecciones implementadas en Payload])
 #apatable(
-  columns: (3.5cm, 12.4cm),
-  header: ([*Entidad*], [*Información que almacenará*]),
+  columns: (4.0cm, 5.8cm, 6.1cm),
+  header: ([*Colección*], [*Campos*], [*Propósito*]),
   rows: (
-    ([Usuarios], [Identificador, nombre y datos necesarios para la autenticación.]),
-    ([Salas], [Código de acceso, creador, configuración y estado de la sala.]),
-    ([Partidas], [Sala de origen, participantes, nivel de dificultad, actividad inicial, estado y fechas relevantes.]),
-    ([Rondas], [Número de ronda, tipo de actividad, estado y asignaciones de participantes.]),
-    ([Melodías], [Notas, alturas MIDI, posiciones temporales, duraciones, parámetros de generación y relación con la partida.]),
-    ([Respuestas], [Participante, melodía de referencia, contenido entregado y fecha de envío.]),
-    ([Transcripciones], [Notas detectadas a partir de una grabación y relación con la respuesta correspondiente.]),
-    ([Grabaciones], [Referencia al archivo de audio de la interpretación vocal.]),
-    ([Resultados], [Puntuación de alturas, puntuación rítmica, puntuación global y datos necesarios para reconstruir la clasificación.]),
+    ([`Users`], [`email`, `name`], [Autenticación y perfil mínimo.]),
+    ([`Melodies`], [`symbolicData`, `seed`, `difficulty`, `tempoBpm`, `generatorVersion`, `key`, `scale`], [Melodías generadas y sus metadatos.]),
+    ([`GameSessions`], [`sessionSeed`, `difficulty`, `firstActivity`, `tempoBpm`, `averageScore`, `rounds[]`], [Sesión, configuración y promedio.]),
+    ([GameSessions #linebreak() (rondas)], [`roundNumber`, `activity`, `melody`, `response`, `pitchScore`, `rhythmScore`, `overallScore`], [Resultado de cada ronda.]),
   ),
 )]
 
-Las entidades se relacionarán mediante identificadores, de modo que cada respuesta pueda asociarse con el jugador que la produjo, la ronda en que se creó y la melodía que debía reproducir o transcribir. Esta relación será especialmente importante para reconstruir el recorrido de una melodía durante el intercambio entre participantes.
+=== 4.8.3. Trazabilidad de la partida
 
-Se decidió conservar tanto las respuestas simbólicas como las grabaciones de las interpretaciones. Las primeras permitirán analizar las notas y los errores; las segundas permitirán reproducir la ejecución original. Junto con las melodías de referencia y las puntuaciones, estos registros harán posible generar una galería final de la partida.
+La sesión se identifica con `sessionSeed`; cada ronda se identifica con `roundNumber`; cada melodía se relaciona con la colección `Melodies`; y cada respuesta se almacena en el campo `response` de la ronda. Las puntuaciones de alturas, ritmo y global se almacenan en la misma ronda. Esta estructura permite reconstruir la partida completa a partir de una sesión y sus rondas, y permite verificar que la melodía evaluada corresponde a la melodía generada.
 
-Las cuentas de usuario serán deliberadamente sencillas. El prototipo permitirá identificar a los participantes mediante su nombre y los datos básicos requeridos por el sistema, sin incorporar funciones extensas de personalización de perfiles. La gestión de usuarios se implementará mediante Payload CMS.
+=== 4.8.4. Archivos de audio y retención
 
-También se incorporarán salas de clase simples para que un docente pueda organizar la participación de sus estudiantes y consultar sus resultados. Estas funciones no sustituirán el modelo de salas abiertas mediante códigos: las salas de clase serán una herramienta adicional para el contexto educativo. Durante la evaluación experimental, el acceso a las partidas de estudio se limitará a los participantes autorizados, aunque el diseño general del producto contemple que otros usuarios puedan crear salas y jugar entre sí.
+// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
+// evidencia de almacenamiento, consentimiento y retención implementados.
 
-La retención de grabaciones y resultados se implementará teniendo en cuenta que los datos se utilizarán para revisar partidas y, cuando corresponda, para el estudio de investigación. Las condiciones de acceso, almacenamiento y uso de estos datos deberán quedar definidas antes de realizar las sesiones con estudiantes.
+La versión completa conserva las grabaciones originales y las transcripciones. El audio se almacena en un servicio de objetos y la base de datos guarda la referencia y los metadatos; no se almacenan blobs grandes en las filas de PostgreSQL. La retención se define antes de la sesión con estudiantes e incluye el consentimiento informado, el plazo de conservación, el procedimiento de eliminación y las condiciones de acceso. El audio se trata como dato personal y no se expone públicamente por defecto.
 
-== 4.7. Diseño de la interfaz y retroalimentación al jugador
+=== 4.8.5. Control de acceso
 
-La interfaz se desarrollará como una aplicación web adaptable a distintos tamaños de pantalla. Se priorizará el uso desde computadoras, dado que las actividades requieren escuchar melodías, leer notación musical, introducir notas y grabar interpretaciones. La adaptación a dispositivos móviles se considerará en el diseño, aunque las funciones de grabación y edición musical deberán comprobarse específicamente en esos entornos.
+// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con la
+// implementación de access control de Payload y las pruebas de autorización.
 
-La interfaz se organizará en las siguientes vistas:
+La versión completa define tres roles: participante, docente y administrador. El participante consulta sus propios datos y las partidas en las que participa; el docente consulta los estudiantes y los resultados de las aulas que administra; el administrador gestiona usuarios y configuración. Las reglas se definen mediante el control de acceso de Payload y se validan en el servidor, no solo mediante la ocultación de elementos en la interfaz. En el prototipo, las colecciones emplean acceso abierto para facilitar la verificación funcional; esta configuración no se traslada a la versión completa.
 
-=== Pantalla de inicio y acceso
+== 4.9. Interfaz y retroalimentación
 
-Permitirá al usuario iniciar sesión, crear una sala o incorporarse a una existente mediante un código. La creación de una sala incluirá la selección del nivel de dificultad y de la actividad inicial.
+=== 4.9.1. Principios de diseño
 
-=== Sala de espera
+La interfaz se diseñó para computadoras de escritorio, porque las tareas requieren escuchar melodías, leer una representación musical, introducir notas y grabar la voz. La adaptación a dispositivos móviles se considera una línea de trabajo posterior y requiere probar la grabación y la edición musical en esos entornos.
 
-Mostrará los participantes conectados y la configuración de la partida. El creador podrá iniciar la sesión cuando estén preparados los jugadores. La sala también comunicará el estado de la partida para evitar que los participantes comiencen las actividades de forma desincronizada.
+La representación musical elegida es el piano roll, tanto para el dictado como para la lectura en repentización. Esta decisión aísla la altura y el ataque, que son las dos dimensiones evaluadas, y reduce la influencia de la lectoescritura en la medición. En repentización, el piano roll sustituye al pentagrama tradicional; esta simplificación favorece la comparabilidad entre jugadores con distinto nivel de lectura, pero reduce la validez ecológica respecto de la repentización sobre partitura. La tensión se reconoce como una limitación del diseño y se retoma en la sección 4.10.7.
 
-=== Pantalla de dictado
+=== 4.9.2. Flujo de pantallas
 
-Reproducirá la melodía asignada y proporcionará herramientas para transcribirla. La respuesta se representará mediante una estructura musical editable que permita introducir alturas y duraciones. Se incluirán controles para reproducir el ejercicio y revisar la transcripción antes de enviarla.
+La Figura 11 muestra el flujo de pantallas. Las pantallas sólidas corresponden al prototipo funcional: configuración, dictado, repentización, evaluación y resumen. Las pantallas discontinuas corresponden a la versión completa: acceso, sala de espera, galería final y vista docente.
 
-=== Pantalla de repentización
-
-Mostrará la partitura que el jugador debe interpretar y permitirá iniciar y finalizar la grabación. La interfaz comunicará cuándo se está grabando el audio y cuándo se está procesando la respuesta. Si la transcripción automática falla, se mostrará un mensaje que explique el problema y las opciones disponibles para continuar.
-
-=== Pantalla de resultados
-
-Presentará la puntuación global de la respuesta y las puntuaciones parciales de alturas y ritmo. Cuando sea posible, se señalarán las notas que coinciden y las que presentan diferencias respecto de la referencia. La intención es que la retroalimentación no se limite a indicar si una respuesta es correcta o incorrecta, sino que permita identificar el tipo de error cometido.
-
-=== Galería final de la partida
-
-Mostrará el recorrido de las melodías a través de las transcripciones e interpretaciones de los participantes. Cada secuencia podrá relacionarse con su melodía de origen, la respuesta producida y la evaluación obtenida. Se permitirá reproducir las grabaciones conservadas y revisar las puntuaciones de las distintas etapas. Esta vista cumplirá una doble función: ofrecer una conclusión entretenida a la sesión y permitir que los jugadores revisen sus errores después de jugar.
-
-=== Vista docente
-
-Permitirá organizar salas de clase y consultar los resultados de los estudiantes. La información incluirá las puntuaciones de las actividades realizadas y, cuando corresponda, los resultados parciales de alturas y ritmo. Esta funcionalidad estará orientada a la consulta del rendimiento registrado por la plataforma; no se asumirá que el docente podrá modificar libremente los parámetros internos de los modelos musicales.
-
-En todas las vistas se priorizará que el usuario comprenda qué acción debe realizar, qué información está disponible y cuándo debe esperar a que el sistema termine de procesar una respuesta. Estas condiciones serán especialmente importantes en las rondas multijugador, donde una demora o una transición confusa puede interrumpir el flujo de la partida.
-
-== 4.8. Integración de componentes y construcción del prototipo
-
-El desarrollo integrará los componentes musicales y la lógica de juego en una única aplicación web. Debido a que todavía no se ha iniciado la implementación, las actividades descritas en esta sección constituyen el plan técnico de construcción del prototipo; no representan funcionalidades ya implementadas ni resultados de pruebas realizadas.
-
-El desarrollo se organizará en las siguientes etapas.
-
-#listasin[
-  + *Preparación del entorno y persistencia.* Se configurará el proyecto Next.js, Payload CMS y PostgreSQL mediante Docker Compose. A continuación, se definirán las colecciones y relaciones necesarias para registrar usuarios, salas, partidas, rondas, melodías, respuestas, grabaciones y puntuaciones. En esta etapa se implementarán también las operaciones básicas de creación de salas y gestión de participantes.
-  + *Implementación del generador melódico.* Se desarrollará el algoritmo de generación utilizando Tonal para las operaciones relacionadas con escalas, notas e intervalos. Se comprobará que las secuencias respeten los parámetros de los tres niveles de dificultad, incluyendo el número de notas, el rango melódico y las restricciones rítmicas. También se revisarán las secuencias generadas para detectar patrones repetitivos o resultados musicalmente poco coherentes. Si el algoritmo no produce resultados satisfactorios, se ajustarán sus reglas antes de integrarlo en las partidas.
-  + *Implementación de la evaluación musical.* Se desarrollará el comparador de alturas y ritmo y se integrará la salida del modelo de transcripción de audio a MIDI. Se probarán las métricas con secuencias de referencia y respuestas que contengan errores controlados, como notas omitidas, alturas incorrectas y desplazamientos rítmicos. Estas pruebas permitirán comprobar si las puntuaciones reflejan de forma consistente las diferencias introducidas.
-
-    En paralelo, se evaluará Basic Pitch con grabaciones de voz cantada. Se prestará atención a la detección de las alturas, los inicios de nota y los errores que puedan surgir al procesar una interpretación vocal. Si el modelo no ofrece resultados adecuados para este caso de uso, será necesario reconsiderar la solución de transcripción antes de utilizarla en el estudio experimental.
-  + *Desarrollo del flujo multijugador.* Se implementará la creación de salas mediante códigos y la comunicación en tiempo real entre los participantes. La aplicación deberá coordinar el inicio y el cierre de cada ronda, comunicar qué jugadores han enviado sus respuestas y distribuir las transcripciones e interpretaciones según el flujo definido en la sección 4.5. Se comprobarán también los casos de desconexión y reingreso para evitar que un participante quede permanentemente bloqueado en una ronda.
-  + *Implementación de las interfaces y la galería final.* Se construirán las vistas de dictado, repentización, resultados y resumen de partida. La galería se alimentará de los registros almacenados durante el juego, por lo que deberá conservarse la relación entre las melodías iniciales, las respuestas de los participantes y las transcripciones posteriores. También se desarrollará la vista docente para consultar los resultados de las salas de clase.
-  + *Integración y pruebas funcionales.* Una vez disponibles los componentes, se ejecutarán partidas de prueba con varios usuarios. Se verificará que las melodías se asignen correctamente, que las respuestas se guarden, que las puntuaciones se calculen y que los resultados se muestren en la galería final. Además, se comprobará que los jugadores no puedan acceder anticipadamente a las respuestas que deben recibir en rondas posteriores.
+#block(breakable: false)[
+#leyenda([Figura], 11, [Flujo de pantallas del videojuego])
+#align(center)[
+#set text(size: 8pt)
+#diagram(
+  node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+  spacing: (0.9cm, 0.8cm),
+  caja-c4(-1.6, 0, [Acceso], fill: rgb("#fafafa")),
+  caja-c4(-1.6, 1.6, [Sala de espera], fill: rgb("#fafafa")),
+  caja-c4(0, 0.8, [Configuración]),
+  caja-c4(1.5, 0, [Dictado]),
+  caja-c4(1.5, 1.6, [Repentización]),
+  caja-c4(3.0, 0.8, [Evaluación]),
+  caja-c4(4.5, 0.8, [Resumen]),
+  caja-c4(6.0, 0, [Galería final], fill: rgb("#fafafa")),
+  caja-c4(6.0, 1.6, [Vista docente], fill: rgb("#fafafa")),
+  edge((-1.6,0), (0,0.8), "->", stroke: (dash: "dashed")),
+  edge((-1.6,1.6), (0,0.8), "->", stroke: (dash: "dashed")),
+  edge((0,0.8), (1.5,0), "->"),
+  edge((0,0.8), (1.5,1.6), "->"),
+  edge((1.5,0), (3.0,0.8), "->"),
+  edge((1.5,1.6), (3.0,0.8), "->"),
+  edge((3.0,0.8), (4.5,0.8), "->"),
+  edge((4.5,0.8), (6.0,0), "->", stroke: (dash: "dashed")),
+  edge((4.5,0.8), (6.0,1.6), "->", stroke: (dash: "dashed")),
+)
+]
 ]
 
-Las pruebas técnicas deberán incluir casos como respuestas incompletas, grabaciones vacías, fallos de transcripción, pérdida temporal de conexión y participantes que abandonen una sala. El objetivo será detectar problemas que impidan completar una partida o que produzcan registros inconsistentes.
+=== 4.9.3. Pantalla de configuración
 
-La integración se considerará satisfactoria cuando el prototipo pueda ejecutar el flujo completo de una sesión: crear una sala, incorporar participantes, generar melodías, realizar rondas alternadas de dictado y repentización, evaluar las respuestas, almacenar los resultados y mostrar la galería final. Esta comprobación corresponderá a la etapa de demostración de la metodología de investigación en ciencia del diseño descrita en el capítulo III; no será suficiente, por sí sola, para concluir que el videojuego mejora las habilidades auditivas de los estudiantes.
+La pantalla de configuración presenta cuatro controles: dificultad, actividad inicial, número de rondas y tempo. La dificultad se muestra con su número de notas y su intervalo máximo, de modo que el jugador comprenda el efecto de la selección. El número de rondas se ajusta entre 2 y 8 y el tempo entre 60 y 120 BPM. Al iniciar, se genera una semilla de sesión y se construyen todas las rondas.
 
-Finalmente, el prototipo se utilizará en sesiones controladas con participantes del estudio. La efectividad pedagógica se evaluará mediante el diseño experimental establecido en la metodología, comparando los resultados de las pruebas de desempeño correspondientes. De esta manera, se distinguirá entre la comprobación del funcionamiento técnico del artefacto y la evaluación de sus posibles efectos educativos.
+=== 4.9.4. Pantalla de dictado
+
+La pantalla de dictado reproduce la melodía y muestra un piano roll editable. El jugador coloca una nota por ataque; si coloca otra nota en el mismo ataque, la anterior se reemplaza, de modo que la respuesta es monofónica. La duración de cada nota se fija en un pulso y no es editable: la evaluación rítmica se basa en la ubicación de los ataques, no en la duración. Esta decisión simplifica la entrada y evita penalizar la notación de duraciones, que no forma parte del objetivo del ejercicio.
+
+La rejilla de entrada depende de la dificultad: un pulso en dificultad baja, medio pulso en dificultad media y un sexto de pulso en dificultad alta. El jugador puede reproducir la melodía, detener la reproducción y borrar la respuesta antes de enviarla. Al enviar, el sistema compara la respuesta con la referencia y muestra el panel de evaluación.
+
+=== 4.9.5. Pantalla de repentización
+
+La pantalla de repentización muestra la melodía en un piano roll y habilita la grabación. Durante la grabación se muestra un indicador y se informa del límite de 30 s. Al detenerla, el jugador puede escuchar la grabación, repetirla o enviarla. Al enviar, se muestra el progreso de la transcripción y, si el proceso falla, se informa del error y se permite reintentar. La interfaz no bloquea la edición ni la navegación durante la inferencia, porque esta ocurre en un Worker.
+
+=== 4.9.6. Evaluación y resumen
+
+El panel de evaluación muestra tres puntuaciones: alturas, ritmo y global. Debajo, presenta dos piano rolls: la respuesta del jugador y la melodía de referencia. Las notas se colorean en verde cuando encontraron correspondencia, en rojo cuando fueron omitidas y en ámbar cuando son adicionales. El coloreado se basa en la dimensión de alturas; la puntuación rítmica se informa por separado. El resumen final muestra una tabla con las puntuaciones de cada ronda y el promedio de precisión general.
+
+El uso exclusivo del color para señalar aciertos y errores es una limitación de accesibilidad. La versión completa incorpora formas o etiquetas adicionales para que la información no dependa de la percepción del color. Asimismo, el coloreado por altura puede mostrar en verde una nota con ataque incorrecto; la versión completa distingue ambos tipos de coincidencia.
+
+=== 4.9.7. Vistas de la versión completa
+
+// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
+// capturas y pruebas de usabilidad de la galería, el acceso y la vista docente.
+
+La versión completa incorpora el acceso y la sala de espera, la galería final y la vista docente. La galería muestra el recorrido de cada melodía a través de las rondas, permite reproducir las grabaciones y compara la referencia con cada respuesta. La vista docente permite organizar aulas y consultar los resultados de los estudiantes. Estas vistas reutilizan el panel de evaluación y la representación en piano roll, de modo que la experiencia de revisión sea consistente con la de juego.
+
+== 4.10. Integración, pruebas y validación técnica
+
+=== 4.10.1. Estrategia de pruebas
+
+Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de parámetros, de compilación y de navegador. La Tabla 16 resume el alcance de cada nivel. Las pruebas unitarias cubren el dominio musical; las de humo y barrido cubren la transcripción; la compilación verifica la integración de Next.js, Payload y TypeScript; y la prueba de navegador verifica el flujo completo de una partida individual.
+
+#block(breakable: false)[
+#leyenda([Tabla], 16, [Estrategia de pruebas])
+#apatable(
+  columns: (3.6cm, 5.8cm, 6.5cm),
+  header: ([*Nivel*], [*Alcance*], [*Herramienta y evidencia*]),
+  rows: (
+    ([Unitarias], [Generador, evaluador y parámetros de transcripción], [Vitest; 50 pruebas.]),
+    ([Humo], [Transcripción de una sinusoide de 2 s], [`smoke:basic-pitch`; detecta La4.]),
+    ([Barrido], [25 casos sintéticos con ruido y vibrato], [`tune:transcription`; ajuste de parámetros.]),
+    ([Compilación], [Build de producción de Next.js], [`next build`; sin errores.]),
+    ([Navegador], [Dictado, grabación, transcripción y resumen], [Prueba manual en Chrome.]),
+  ),
+)]
+
+=== 4.10.2. Pruebas unitarias
+
+La Tabla 17 resume las 50 pruebas unitarias. El generador concentra 26 pruebas porque cada propiedad estructural se verifica sobre 25 semillas por nivel; el evaluador concentra 20, incluyendo los casos límite de la Tabla 13; y los parámetros de transcripción concentran 4, que verifican el rango de frecuencias y la longitud mínima de nota.
+
+#block(breakable: false)[
+#leyenda([Tabla], 17, [Resultados de las pruebas unitarias])
+#apatable(
+  columns: (4.8cm, 2.8cm, 8.3cm),
+  header: ([*Módulo*], [*Pruebas*], [*Cobertura*]),
+  rows: (
+    ([Generador], [26], [Propiedades estructurales, modulación y reproducibilidad.]),
+    ([Evaluador], [20], [Emparejamiento, tolerancias y casos límite.]),
+    ([Parámetros de transcripción], [4], [Rango de frecuencias y longitud mínima.]),
+    ([Total], [50], [—]),
+  ),
+)]
+
+=== 4.10.3. Pruebas de transcripción
+
+La transcripción se verificó con una señal sinusoidal y con un banco de 25 casos sintéticos. El hallazgo principal fue que el ruido blanco no produce notas falsas, pero el ruido tonal por debajo del registro cantado sí: el zumbido de red, la ventilación o los golpes de escritorio generan notas espurias. Acotar el rango de inferencia a 75–1500 Hz fue la medida decisiva. La Tabla 18 resume el efecto.
+
+#block(breakable: false)[
+#leyenda([Tabla], 18, [Resultados del banco sintético de transcripción])
+#apatable(
+  columns: (4.2cm, 4cm, 7.7cm),
+  header: ([*Condición*], [*Precisión*], [*Observación*]),
+  rows: (
+    ([Sin filtro de frecuencia], [0.30], [El ruido tonal genera notas espurias.]),
+    ([Con rango 75–1500 Hz], [0.98], [Sin pérdida de notas reales.]),
+    ([Filtrado por amplitud], [Sin mejora], [Las notas espurias no son más débiles que las reales.]),
+  ),
+)]
+
+Estos resultados provienen de audio sintético y deben confirmarse con voz cantada real. El filtrado por amplitud no se adoptó porque las notas espurias no presentan una amplitud menor que las notas reales; el filtrado por frecuencia sí se adoptó porque elimina el ruido fuera del registro vocal sin afectar las notas del ejercicio.
+
+=== 4.10.4. Integración del flujo individual
+
+La compilación de producción se ejecutó sin errores. En el navegador se verificó el flujo completo: configuración, dictado con piano roll, evaluación con colores, repentización con grabación, transcripción en Worker y resumen con promedio. Se verificó que la transcripción puede ejecutarse dos veces en una misma partida sin bloquear la interfaz. El cliente incorpora un watchdog que cancela una solicitud estancada. La sesión se guarda en Payload al finalizar la partida; si el guardado falla, la interfaz informa del error y conserva los resultados en memoria hasta que el jugador inicia una nueva partida.
+
+=== 4.10.5. Validación con voz cantada
+
+// PLACEHOLDER: protocolo de validación pendiente de ejecución. Reescribir con
+// las grabaciones, métricas y resultados reales.
+
+El protocolo de validación con voz cantada real comprende un conjunto de grabaciones de melodías conocidas, interpretadas por participantes de distintas tesituras y niveles de experiencia. El conjunto incluye grabaciones con y sin ruido moderado, diferentes micrófonos y distintos navegadores. Para cada grabación se compara la transcripción automática con la referencia y se calculan la precisión de altura y la precisión de ataques. Esta validación técnica no sustituye la evaluación pedagógica del capítulo V.
+
+=== 4.10.6. Pruebas de la versión multijugador
+
+// PLACEHOLDER: pruebas pendientes de la versión completa. Reescribir con
+// resultados de sincronización, reconexión y latencia.
+
+El plan de pruebas de la versión completa comprende pruebas de sincronización, reconexión y latencia. Las pruebas verifican que todos los participantes observan la misma transición de ronda, que una respuesta se asigna a un único destinatario, que una desconexión no bloquea la partida y que una respuesta tardía no se incorpora a una ronda cerrada. También se mide la latencia de los eventos de sala y se comprueba que el canal de tiempo real no transporta audio ni melodías completas.
+
+=== 4.10.7. Limitaciones y amenazas a la validez
+
+La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a pruebas manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo individual; la mecánica multijugador, la galería y la vista docente forman parte de la especificación de la versión completa. El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El feedback por color y el registro de la dificultad alta son limitaciones reconocidas del diseño actual.
+
+== 4.11. Síntesis del capítulo
+
+El prototipo funcional integra un generador procedural determinista, un evaluador de similitud con emparejamiento bipartito, una transcripción de audio en el navegador, una interfaz de dictado y repentización y persistencia en Payload y PostgreSQL. La versión completa añade salas, intercambio, galería, aulas y vista docente. Las pruebas unitarias y el banco sintético evidencian el funcionamiento de los componentes implementados; la efectividad pedagógica se evalúa en el capítulo V.
 
 = Referencias
 
@@ -647,9 +1283,11 @@ Finalmente, el prototipo se utilizará en sesiones controladas con participantes
 
   Ou, J., Nogueira, J., & Qin, C. (2025). Exploring the impact of AI-assisted practice applications on music learners’ performance, self-efficacy, and self-regulated learning. Frontiers In Psychology, 16, 1675762. https://doi.org/10.3389/fpsyg.2025.1675762
 
-  Pesek, M., Suhadolnik, L., Šavli, P., & Marolt, M. (2020b). Motivating Students for Ear-Training with a Rhythmic Dictation Application. Applied Sciences, 10(19), 6781. https://doi.org/10.3390/app10196781
+  Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2008). A design science research methodology for information systems research. Journal of Management Information Systems, 24(3), 45-77. https://doi.org/10.2753/MIS0742-1222240302
 
   Pesek, M., Vucko, Z., Savli, P., Kavcic, A., & Marolt, M. (2020a). Troubadour: A Gamified e-Learning Platform for Ear Training. IEEE Access, 8, 97090-97102. https://doi.org/10.1109/access.2020.2994389
+
+  Pesek, M., Suhadolnik, L., Šavli, P., & Marolt, M. (2020b). Motivating Students for Ear-Training with a Rhythmic Dictation Application. Applied Sciences, 10(19), 6781. https://doi.org/10.3390/app10196781
 
   Qian, C., & Jiang, M. (2024). Exploring the Effects of Digital Game-Based Learning on Music Education. Studies In Social Science & Humanities, 3(5), 6-9. https://doi.org/10.56397/sssh.2024.05.02
 
