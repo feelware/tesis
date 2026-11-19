@@ -4,7 +4,7 @@
 **Fecha de consolidación:** 3 de noviembre de 2026  
 **Última actualización:** 19 de noviembre de 2026  
 **Idioma principal de trabajo:** español  
-**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21).
+**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente.
 
 > Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado.
 
@@ -100,7 +100,7 @@ Objetivo vigente en `tesis/tesis.typ` (actualizado por el tesista el 11 de novie
 Objetivos vigentes en `tesis/tesis.typ` (corregidos por el tesista el 11-11-2026), transcritos tal como están redactados hoy:
 
 1. Diseñar un algoritmo generador de estructuras melódicas simbólicas para la generación automática de ejercicios de dictado y repentización melódica.
-2. Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores?
+2. Diseñar un algoritmo de análisis de similitud melódica para la evaluación de transcripciones e interpretaciones musicales de los jugadores.
 3. Desarrollar un videojuego en línea que implementa mecánicas de dictado y repentización melódica para el desarrollo de habilidades auditivas en estudiantes de música.
 4. Validar el videojuego implementado mediante un estudio experimental con estudiantes de música para demostrar la efectividad pedagógica de dicho videojuego.
 
@@ -110,7 +110,7 @@ Antes había cinco objetivos; el dedicado a la transcripción musical automátic
 
 El tesista aplicó las correcciones de redacción el 11-11-2026 (objetivo 4 reformulado en infinitivo, "Tabla 4.1" corregido a "Tabla 3", erratas de 1.1/2.1/3.2.2 resueltas) y tomó la decisión sobre la transcripción automática: **no tendrá objetivo asociado** y queda relegada al problema/objetivo de la construcción del videojuego; se implementa igualmente como componente del artefacto (sección 10) porque es necesaria para evaluar la repentización.
 
-Pendiente menor: el objetivo 2 aún termina en "?" sobrante ("...de los jugadores?").
+Corregido el 19-11-2026: el objetivo 2 ya termina en punto ("...de los jugadores.").
 
 El objetivo de evaluación requiere especial atención: la factibilidad de un diseño experimental con grupo control, pretest, postest e intervención suficiente debe contrastarse con el calendario, el tamaño de muestra y la disponibilidad de estudiantes.
 
@@ -1367,6 +1367,8 @@ Requisito del tesista para fuentes futuras: si una afirmación del capítulo req
 
 Las figuras 3 a 11 se generaron con `@preview/fletcher` 0.5.5, no con `plotst`. La razón es que todas son diagramas estructurales (casos de uso, arquitectura, modelo de dominio, flujos, cadena de datos y flujo de pantallas), no gráficos estadísticos. Si en el futuro se agregan gráficos cuantitativos (distribuciones de puntuaciones, comparaciones de precisión, tiempos), corresponde usar `plotst` y mantener la misma numeración correlativa.
 
+En la rama `prototipo` la Figura 10 se renderiza con normalidad; en `prototipo-no-placeholders` quedó dentro del bloque comentado de 4.8.1.
+
 Convenciones de las figuras:
 
 - Los componentes implementados usan trazo continuo y relleno azul o verde.
@@ -1431,7 +1433,7 @@ Las siguientes secciones se redactaron a partir del código, de `package.json`, 
 
 ### 21.5. Placeholders (diseño; requieren implementación y evidencia)
 
-Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentarios `// PLACEHOLDER`. Su texto está redactado en el mismo registro que una tesis finalizada y no dice "en progreso"; la marca es interna. No deben interpretarse como resultados ejecutados. Cada apartado indica qué evidencia falta para reescribirlo:
+Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentarios `// PLACEHOLDER`. En la rama `prototipo` se renderizan con normalidad; en `prototipo-no-placeholders` se envolvieron en comentarios de bloque `/* ... */` para generar una versión sin ellos. Su texto está redactado en el mismo registro que una tesis finalizada y no dice "en progreso"; la marca es interna. No deben interpretarse como resultados ejecutados. Cada apartado indica qué evidencia falta para reescribirlo:
 
 - 4.2.4, párrafo de comunicación en tiempo real: definir el proveedor definitivo, la autenticación, los canales y la presencia; documentar límites, privacidad y pruebas de integración. Actualmente se describe el diseño y la comparación entre servicio administrado y servidor WebSocket propio.
 - 4.7.3: mecánica multijugador (salas, códigos, asignación, número impar de jugadores, trazabilidad de la cadena). Reescribir con la implementación y las pruebas de asignación.
@@ -1472,3 +1474,74 @@ Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentari
 - Implementación y pruebas de la versión multijugador.
 - Precisión de la afirmación "síncopas" en la dificultad alta: el generador no modela ligaduras; produce ataques desplazados por suma de duraciones y garantiza al menos una figura entre 1.5 y 2/3, no ambas.
 - Decidir si la duración de las notas formará parte de la puntuación o si se mantiene la evaluación exclusiva de ataques.
+
+---
+
+## 22. Estado del capítulo V: resultados y discusión (19-11-2026)
+
+### 22.1. Alcance redactado
+
+El capítulo V se redactó para el **primer objetivo específico** (generador procedural). Incluye:
+
+- 5.1.1 Configuración de la evaluación.
+- 5.1.2 Cumplimiento de restricciones y reproducibilidad.
+- 5.1.3 Perfil de intervalos y ambitus.
+- 5.1.4 Variedad melódica y rítmica.
+- 5.1.5 Síntesis de resultados.
+- 5.2.1 Sobre el cumplimiento de las restricciones.
+- 5.2.2 Sobre el perfil melódico y la repetitividad.
+- 5.2.3 Sobre la reproducibilidad y el uso pedagógico.
+- 5.2.4 Limitaciones y mejoras.
+- 5.2.5 Respuesta al primer objetivo específico.
+
+No se redactó la sección de resultados del evaluador de similitud (segundo objetivo). El capítulo no contiene placeholders: se limita a lo evaluado.
+
+### 22.2. Datos de la evaluación
+
+- Generador `0.1.0`.
+- 200 semillas por nivel de dificultad; 600 melodías en total.
+- Tempo 90 BPM; compás 4/4.
+- Patrón de semilla: `resultado-{dificultad}-###`.
+- Misma ruta de código que la aplicación (`generateMelody`).
+- Métricas registradas: éxito, tiempo, intervalos, ambitus, duraciones, tonalidad, escala, modulación, unicidad y variedad.
+
+La evaluación se ejecutó con un test temporal de Vitest el 19-11-2026; el test se retiró después de generar las cifras. Para reproducirla, crear un test o script que genere las 200 semillas por nivel con ese patrón y calcule las mismas métricas. Las cifras no se inventaron: provienen de esa ejecución.
+
+### 22.3. Resultados principales
+
+- 600/600 melodías generadas; 0 fallos.
+- 100 % de cumplimiento de escala y anti-repetición; 100 % de figura requerida en media y alta.
+- Tiempo medio: 0.25 ms (baja), 0.59 ms (media), 1.09 ms (alta); p95: 0.42, 0.98 y 1.40 ms.
+- Intervalos repetidos (0 semitonos): 40.9 %, 36.6 % y 35.3 %.
+- Intervalos ≤2 semitonos: 100 %, 82.3 % y 80.0 %.
+- Saltos de 3 a 7 semitonos: 0 %, 17.7 % y 20.0 %.
+- Ambitus medio: 3.49, 8.70 y 13.53 semitonos; máximo permitido: 12, 24 y 36; uso: 29.1 %, 36.2 % y 37.6 %.
+- Duración media: 9.82, 14.91 y 23.57 pulsos; 6.5, 9.9 y 15.7 s a 90 BPM.
+- Modulación: 0 %, 48 % y 100 %.
+- Alturas distintas por melodía: 3.1/8, 5.6/15 y 8.3/24.
+- Cambios de dirección: 1.8, 4.4 y 7.4.
+- Duraciones distintas: 1.9, 2.9 y 4.9.
+- Secuencias únicas: 92.5 %, 100 % y 100 %.
+- El 100 % de las melodías contiene al menos un par de notas repetidas; la racha máxima es 2.
+
+### 22.4. Interpretación central
+
+El generador cumple las restricciones, pero produce melodías poco variadas, sobre todo en dificultad baja. La causa es la ponderación $1/(1+d^2)$, que favorece la nota anterior ($d=0$) sobre el grado conjunto ($d=1$) y sobre el salto ($d=2$); la regla anti-repetición solo impide tres notas iguales consecutivas. El ambitus funciona como máximo, no como objetivo. La dificultad nominal no equivale a una dificultad musical efectiva; dos semillas pueden producir melodías con distinto ambitus y variedad.
+
+Mejoras propuestas en 5.2.4: penalizar la repetición, controlar el perfil de intervalos y el ambitus objetivo, añadir restricciones de frase, medir la diversidad en la validación y validar con docentes.
+
+### 22.5. Respuesta a los dos primeros objetivos
+
+- **OE1 (generador):** cumplido en el plano del diseño y de la implementación verificada. El algoritmo existe, genera ejercicios para dictado y repentización, cumple las restricciones y es reproducible. La limitación de variedad no invalida el objetivo, pero define una línea de refinamiento.
+- **OE2 (evaluador):** el algoritmo está diseñado, implementado y cubierto por pruebas (matching bipartito, F1, tolerancias de 50/150 ms y equivalencia de octava en dificultad baja). Lo que resta es trasladar esos resultados al capítulo V, en una sección de resultados y discusión del evaluador. No es un placeholder del capítulo actual; es la siguiente tarea de redacción.
+- Se corrigió el “?” sobrante del objetivo 2 en `tesis.typ`.
+
+### 22.6. Estilo, figuras y fuentes
+
+El capítulo sigue la estructura de Freire (2025): 5.1 Resultados y 5.2 Discusión, con subsecciones por componente. No se agregaron fuentes externas nuevas; la discusión cita Pesek et al. (2020a) para comparar con Troubadour.
+
+- **Figura 12:** gráfico de barras agrupadas de la distribución de intervalos. Se generó con `@preview/cetz-plot:0.1.4` y `@preview/cetz:0.5.2`. No se usó `plotst` porque su versión 0.2.0 usa la función `style`, retirada en Typst 0.14, y no compila.
+- **Figura 13:** piano roll de tres melodías reales (una por dificultad), dibujado con Typst a partir de las notas generadas. La línea vertical gris marca la modulación.
+- **Tablas 19–23:** configuración, cumplimiento y tiempo, distribución de intervalos, ambitus/duración/modulación y variedad melódica.
+
+Si se agrega la sección del evaluador, usar 5.1.6 y 5.2.6 (o renumerar) y continuar la numeración de tablas y figuras desde 24 y 14, respectivamente.
