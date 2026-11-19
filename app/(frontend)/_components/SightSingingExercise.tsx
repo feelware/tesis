@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import {
-  TRANSCRIPTION_TOLERANCES,
   evaluateSimilarity,
   melodyToEvaluatedNotes,
+  transcriptionTolerances,
   type EvaluationResult,
   type Melody,
   type NoteEvent,
@@ -107,7 +107,7 @@ export const SightSingingExercise = ({
       const evaluation = evaluateSimilarity(
         melodyToEvaluatedNotes(melody),
         response,
-        TRANSCRIPTION_TOLERANCES,
+        transcriptionTolerances(melody.difficulty),
       );
       const responseAsNoteEvents: NoteEvent[] = response.map((note) => ({
         midiPitch: note.midiPitch,

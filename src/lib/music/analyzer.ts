@@ -1,4 +1,4 @@
-import type { EvaluatedNote } from "./types";
+import type { Difficulty, EvaluatedNote } from "./types";
 
 export interface Score {
   precision: number;
@@ -13,6 +13,7 @@ export interface MatchingResult extends Score {
 export interface EvaluationTolerances {
   pitchSemitones: number;
   onsetSeconds: number;
+  octaveTolerant?: boolean;
 }
 
 export interface EvaluationResult {
@@ -30,6 +31,13 @@ export const TRANSCRIPTION_TOLERANCES: EvaluationTolerances = {
   pitchSemitones: 0.5,
   onsetSeconds: 0.15,
 };
+
+export const transcriptionTolerances = (
+  difficulty: Difficulty,
+): EvaluationTolerances =>
+  difficulty === "low"
+    ? { ...TRANSCRIPTION_TOLERANCES, octaveTolerant: true }
+    : TRANSCRIPTION_TOLERANCES;
 
 const maximumMatching = (compatibility: boolean[][]): [number, number][] => {
   const referenceCount = compatibility.length;
@@ -96,17 +104,26 @@ const evaluateDimension = (
   };
 };
 
+const pitchMatches = (
+  referenceNote: EvaluatedNote,
+  estimatedNote: EvaluatedNote,
+  tolerances: EvaluationTolerances,
+): boolean => {
+  const distance = Math.abs(referenceNote.midiPitch - estimatedNote.midiPitch);
+  if (distance <= tolerances.pitchSemitones) return true;
+  return (
+    tolerances.octaveTolerant === true &&
+    distance % 12 <= tolerances.pitchSemitones
+  );
+};
+
 export const evaluateSimilarity = (
   reference: EvaluatedNote[],
   estimated: EvaluatedNote[],
   tolerances: EvaluationTolerances = DEFAULT_TOLERANCES,
 ): EvaluationResult => {
-  const pitch = evaluateDimension(
-    reference,
-    estimated,
-    (referenceNote, estimatedNote) =>
-      Math.abs(referenceNote.midiPitch - estimatedNote.midiPitch) <=
-      tolerances.pitchSemitones,
+  const pitch = evaluateDimension(reference, estimated, (referenceNote, estimatedNote) =>
+    pitchMatches(referenceNote, estimatedNote, tolerances),
   );
   const rhythm = evaluateDimension(
     reference,

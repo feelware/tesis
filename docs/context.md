@@ -589,6 +589,8 @@ https://mir-eval.readthedocs.io/latest/api/transcription.html
 
 Tolerancias adoptadas en el prototipo (rama `prototipo`): 0.5 semitono y 50 ms para respuestas de dictado introducidas sobre rejilla; 0.5 semitono y 150 ms para respuestas transcritas de canto, porque los ataques del transcriptor no están cuantizados. Ambas definidas en `src/lib/music/analyzer.ts` y aplicadas consistentemente en cada tipo de ejercicio, según lo permitido en este apartado.
 
+Tolerancia de octava en repentización (decidida el 18-11-2026): en la dificultad fácil, la dimensión de altura de la repentización acepta equivalencia de octava, de modo que cantar la melodía en un registro distinto del escrito no se penaliza. Se aplica solo a esa dificultad y solo a la repentización; el dictado y las dificultades media y alta mantienen la comparación estricta. El resto de las tolerancias (0.5 semitono, 150 ms) no cambia. Implementada como `octaveTolerant` en `EvaluationTolerances` y derivada por dificultad en `transcriptionTolerances` (`src/lib/music/analyzer.ts`).
+
 ### 9.5. Pruebas del evaluador
 
 Construir casos unitarios con:
@@ -660,7 +662,7 @@ Sin embargo, deben probarse rendimiento y compatibilidad en navegadores y equipo
 - Rechazar o advertir ante audio demasiado corto, silencioso o saturado.
 - Mantener la grabación original para la galería e inspección, sujeto a consentimiento y política de retención.
 - Conservar la salida bruta del modelo además de la versión normalizada.
-- Registrar versión del modelo y parámetros de inferencia para reproducibilidad.
+- Registrar versión del modelo y parámetros de inferencia para reproducibilidad. En el prototipo los parámetros ya están centralizados en `src/lib/transcription/params.ts`, pero todavía no se persisten junto con cada transcripción (pendiente).
 
 ### 10.5. Validación específica
 
@@ -675,6 +677,8 @@ Preparar un conjunto pequeño de grabaciones vocales con:
 Comparar la transcripción automática con MIDI de referencia y calcular precisión de altura y onset. Esta validación técnica no sustituye la evaluación pedagógica del videojuego.
 
 Estado en el prototipo (rama `prototipo`): `@spotify/basic-pitch` quedó integrado y verificado con audio sintético (el modelo detecta correctamente el La4 de una sinusoide de 2 s; ejecutable con `npm run smoke:basic-pitch`). La inferencia corre en un Web Worker; el audio se remuestrea a 22050 Hz mono, se recorta el silencio inicial y se normalizan las notas (redondeo de altura, orden por ataque, fusión de segmentos contiguos de la misma altura con menos de 80 ms de separación). Verificado además en navegador real: la transcripción completa dos veces en una misma partida sin bloquear la interfaz. Hallazgo técnico confirmado: dentro de un Web Worker, el backend `webgl` de TensorFlow.js deja de avanzar en `model.execute`; se fuerza el backend `cpu` antes de inferir (y se fija `@tensorflow/tfjs` 3.21.0 como dependencia directa para compartir una única instancia con Basic Pitch). **Falta validar con grabaciones de voz cantada real**, que es la validación exigida en este apartado.
+
+Hallazgo empírico del banco sintético (`npm run tune:transcription`, 25 casos): el ruido blanco puro no produce notas falsas; las notas espurias provienen del ruido tonal por debajo del registro cantado (zumbido de red de 50 Hz, ventilación, golpes de escritorio). Acotar el rango de frecuencia de inferencia (75–1500 Hz) fue la palanca decisiva: sobre los mismos casos la precisión pasó de 0,30 a 0,98 sin perder notas reales. El filtrado por amplitud no resultó útil, porque las notas espurias no tienen menor amplitud que las reales. Estas cifras provienen de audio sintético y deben confirmarse con voz cantada real.
 
 ---
 
@@ -1116,10 +1120,10 @@ Antes de introducir sincronización, conseguir un flujo individual funcional:
 
 El tesista decidió pausar la redacción y construir un prototipo muy básico del videojuego, con estas decisiones confirmadas: **partida de un solo jugador** (sin usuarios ni salas; corresponde a la Fase 3 de este plan), **Payload + PostgreSQL desde ya** (estructura de repositorio al estilo de `~/dev/docestantes`), **aplicación en la raíz del repositorio** (con `docs/` intacto) e **interfaz musical de piano roll** tanto para el dictado como para la lectura en repentización.
 
-Contenido del prototipo, verificado con build limpia, 39 pruebas unitarias y pruebas de humo:
+Contenido del prototipo, verificado con build limpia, 50 pruebas unitarias y pruebas de humo:
 
-- `src/lib/music/`: tipos canónicos de melodía (con registro de modulaciones), generador procedural determinista por semilla y analizador de similitud con matching bipartito máximo, con pruebas de Vitest para generador (26) y analizador (13).
-- `src/lib/transcription/`: transcripción con `@spotify/basic-pitch` en Web Worker, con remuestreo a 22050 Hz mono, recorte de silencio inicial y normalización de notas; verificada con audio sintético (`npm run smoke:basic-pitch`).
+- `src/lib/music/`: tipos canónicos de melodía (con registro de modulaciones), generador procedural determinista por semilla y analizador de similitud con matching bipartito máximo, con pruebas de Vitest para generador (26) y analizador (20).
+- `src/lib/transcription/`: transcripción con `@spotify/basic-pitch` en Web Worker, con remuestreo a 22050 Hz mono, recorte de silencio inicial y normalización de notas. Los parámetros de inferencia están centralizados en `src/lib/transcription/params.ts` (`MODEL_PARAMS`) y protegidos por 4 pruebas de Vitest que verifican el rango de frecuencias. Verificada con audio sintético (`npm run smoke:basic-pitch`) y con un banco de ajuste que barre parámetros sobre voces sintéticas con vibrato, ruido y transitorios de respiración (`npm run tune:transcription`).
 - `app/(frontend)/`: página única de partida con configuración (dificultad, primera actividad, rondas, tempo), rondas alternadas de dictado y repentización, evaluación por ronda con sub-scores de alturas y ritmo, visualización de errores por color y resumen final con promedio de precisión general.
 - `src/collections/`: colecciones Payload `Melodies` y `GameSessions`; la partida se guarda al terminar (acceso abierto solo a nivel de prototipo; la validación de resultados en servidor y los permisos por rol quedan para la versión completa).
 
@@ -1224,7 +1228,7 @@ No redactar como si estas secciones ya se hubieran completado. Antes de tener im
 
 ### 17.1. Riesgos técnicos
 
-1. **Transcripción vocal:** Basic Pitch puede confundir vibrato, portamentos, armónicos, ruido y consonantes. Debe evaluarse pronto.
+1. **Transcripción vocal:** Basic Pitch puede confundir vibrato, portamentos, armónicos, ruido y consonantes. Debe evaluarse pronto. Evidencia del prototipo con audio sintético: el ruido blanco no genera notas falsas, pero el ruido tonal bajo el registro cantado sí; acotar el rango de frecuencia (75–1500 Hz) las elimina, mientras que el filtrado por amplitud no sirve porque las espurias no son más débiles que las notas reales. Falta confirmar ambas cosas con voz cantada real.
 2. **Latencia:** transcripción en navegador puede variar por dispositivo.
 3. **Compatibilidad:** acceso al micrófono requiere HTTPS en despliegue y permisos del usuario.
 4. **Sincronización:** desconexiones pueden romper una cadena de contenido si no se diseña recuperación.

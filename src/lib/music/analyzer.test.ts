@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TOLERANCES, evaluateSimilarity } from "./analyzer";
+import {
+  DEFAULT_TOLERANCES,
+  evaluateSimilarity,
+  transcriptionTolerances,
+} from "./analyzer";
 import type { EvaluatedNote } from "./types";
 
 const note = (
@@ -130,5 +134,72 @@ describe("analizador de similitud", () => {
     });
     expect(strict.overall).toBe(0);
     expect(lenient.overall).toBe(1);
+  });
+
+  describe("tolerancia de octava", () => {
+    it("acepta la melodía cantada una octava arriba", () => {
+      const reference = [note(60, 0), note(62, 0.5), note(64, 1)];
+      const estimated = [note(72, 0), note(74, 0.5), note(76, 1)];
+      const result = evaluateSimilarity(reference, estimated, {
+        ...DEFAULT_TOLERANCES,
+        octaveTolerant: true,
+      });
+      expect(result.pitch.f1).toBe(1);
+      expect(result.rhythm.f1).toBe(1);
+      expect(result.overall).toBe(1);
+    });
+
+    it("acepta la melodía cantada una octava abajo", () => {
+      const reference = [note(60, 0), note(62, 0.5)];
+      const estimated = [note(48, 0), note(50, 0.5)];
+      const result = evaluateSimilarity(reference, estimated, {
+        ...DEFAULT_TOLERANCES,
+        octaveTolerant: true,
+      });
+      expect(result.pitch.f1).toBe(1);
+    });
+
+    it("sigue castigando un error que no es de octava", () => {
+      const reference = [note(60, 0)];
+      const estimated = [note(67, 0)];
+      const result = evaluateSimilarity(reference, estimated, {
+        ...DEFAULT_TOLERANCES,
+        octaveTolerant: true,
+      });
+      expect(result.pitch.f1).toBe(0);
+    });
+
+    it("no altera la dimensión rítmica", () => {
+      const reference = [note(60, 0)];
+      const estimated = [note(72, DEFAULT_TOLERANCES.onsetSeconds + 0.01)];
+      const result = evaluateSimilarity(reference, estimated, {
+        ...DEFAULT_TOLERANCES,
+        octaveTolerant: true,
+      });
+      expect(result.pitch.f1).toBe(1);
+      expect(result.rhythm.f1).toBe(0);
+    });
+
+    it("queda desactivada por defecto", () => {
+      const reference = [note(60, 0)];
+      const estimated = [note(72, 0)];
+      const result = evaluateSimilarity(reference, estimated);
+      expect(result.pitch.f1).toBe(0);
+    });
+
+    it("se aplica a la repentización de dificultad fácil y no a las demás", () => {
+      expect(transcriptionTolerances("low").octaveTolerant).toBe(true);
+      expect(transcriptionTolerances("medium").octaveTolerant).toBeUndefined();
+      expect(transcriptionTolerances("high").octaveTolerant).toBeUndefined();
+    });
+
+    it("conserva las tolerancias de transcripción en todas las dificultades", () => {
+      for (const difficulty of ["low", "medium", "high"] as const) {
+        expect(transcriptionTolerances(difficulty)).toMatchObject({
+          pitchSemitones: 0.5,
+          onsetSeconds: 0.15,
+        });
+      }
+    });
   });
 });
