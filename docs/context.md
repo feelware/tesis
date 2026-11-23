@@ -2,11 +2,11 @@
 
 **Proyecto:** Tesis – videojuego web multijugador para entrenamiento auditivo  
 **Fecha de consolidación:** 3 de noviembre de 2026  
-**Última actualización:** 19 de noviembre de 2026  
+**Última actualización:** 23 de noviembre de 2026  
 **Idioma principal de trabajo:** español  
-**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente.
+**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente. La revisión del estado del arte se encuentra en marcha conforme a PRISMA 2020 (ver sección 6.5): búsqueda ejecutada en cuatro fuentes, cadenas restringidas y etapa 3 de screening completada.
 
-> Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado.
+> Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado. **Cada interacción significativa con un agente que cause una modificación en el proyecto debe actualizarse en este documento**, con los datos relevantes para que otro agente pueda continuar el trabajo: qué se hizo, qué se decidió, qué cambió en el código o en los documentos y qué queda pendiente.
 
 ---
 
@@ -291,7 +291,7 @@ El LLM que rehaga el estado del arte debe:
 9. Recalcular las cifras del flujo de selección; nunca copiar las cifras anteriores a la nueva revisión.
 10. Asegurar que toda afirmación bibliográfica tenga referencia verificable y que las citas y referencias finales coincidan.
 
-### 6.5. Nueva revisión del estado del arte: decisiones y estado (19-11-2026)
+### 6.5. Nueva revisión del estado del arte: decisiones y estado (19-11-2026; actualizado al 23-11-2026)
 
 Decisiones confirmadas por el tesista el 19-11-2026:
 
@@ -300,7 +300,7 @@ Decisiones confirmadas por el tesista el 19-11-2026:
 3. **Fuentes en uso:** IEEE Xplore y Scopus (exportación con navegador), Semantic Scholar (API) y ERIC (API pública; literatura pedagógica para C1). OpenAlex se descarta (20-11-2026, decisión del tesista): no soporta búsqueda booleana, lo que obligaba a una aproximación por frases con sobre-recuperación y desviaba la cadena de búsqueda. Springer Nature queda descartada (punto 2). Proceedings ISMIR/SMC se rastrean por bola de nieve. Se descarta Google Scholar por limitaciones de acceso.
 4. **Selección final sin cupo fijo**: entran todos los estudios que cumplan los criterios de inclusión (se sustituye el mecanismo anterior de "10 más relevantes por cluster"). Ningún cluster pasa a la etapa 2 hasta que todas sus búsquedas estén completas en todas las fuentes (ver punto 6).
 5. **Criterio de inclusión sobre modelos reformulado** (20-11-2026). El criterio original exigía "reportar públicamente modelos pre-entrenados", propuesto antes de cambiar el enfoque a generación procedural y análisis de similitud por algoritmos. El nuevo criterio es: estudios que describen un método de generación de melodías, de similitud o evaluación de secuencias musicales, o de transcripción de audio a notas, con detalle suficiente para replicarlo (algoritmo, pseudocódigo, parámetros o métricas definidas), mediante implementación pública, datos abiertos o descripción replicable. Los métodos basados en modelos aprendidos se incluyen cuando cumplen el mismo criterio. Está escrito en la tabla 2 de `tesis.typ`.
-6. **Completitud antes del screening** (20-11-2026; Springer excluida, ver punto 2). El tesista exige que todos los estudios que cumplen las cadenas y el corte temporal estén en los CSV antes de filtrar. Estado: las fuentes ejecutadas con tope de descarga son Semantic Scholar (C1b, C2a, C2b, C3a, C3b, C4a, C4b) y ERIC (C1, C1b). Semantic Scholar devuelve 429 de forma persistente desde el 20-11-2026 y el fetcher debe reejecutarse cuando la API responda. Springer tiene C3b, C4a y C4b pendientes y C1b, C2a, C2b y C3a truncadas en 3000 por tope del fetcher; su cuota diaria del plan gratuito se agotó el 20-11-2026 (`retry-after` ≈ 6,7 h).
+6. **Completitud antes del screening** (20-11-2026; Springer excluida, ver punto 2). El tesista exige que todos los estudios que cumplen las cadenas y el corte temporal estén en los CSV antes de filtrar. **Estado: cumplido el 23-11-2026.** Las cuatro fuentes (Semantic Scholar, ERIC, Scopus, IEEE) están completas y sin topes de descarga para las ocho búsquedas.
 
 Cadenas definitivas: 8 búsquedas (C1, C1b, C2a, C2b, C3a, C3b, C4a, C4b) definidas en `scripts/lit-queries.mjs` (fuente de verdad ejecutable) y transcritas en `docs/estado-del-arte/registro-busqueda.md`. Resumen de la intención:
 
@@ -367,16 +367,9 @@ Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit
 
 Hallazgos de la primera ejecución (19-11-2026): ERIC no indexa la literatura MIR de evaluación de canto (la consulta C3b devuelve 0 resultados reales; su aporte se concentra en C1 y C2b). Semantic Scholar responde sin API key pero con límites de tasa estrictos.
 
-### 6.6. Navegador en modo headless con reapertura por sesión caducada (diseño, pendiente)
+### 6.6. Navegador en modo headless con reapertura por sesión caducada (diseño descartado)
 
-Motivo: el navegador visible interrumpe el trabajo del tesista. Diseño acordado (20-11-2026):
-
-1. El login inicial se hace con `--wait-login` (ventana visible).
-2. Las exportaciones corren en headless con el mismo perfil `.lit-profile/`.
-3. Si Scopus o IEEE devuelven la página de login (`loggedOutPattern`) o el modal de descarga pide credenciales, el script cierra el contexto headless, abre una ventana visible solo para ese login y reanuda la búsqueda en headless al cerrarse la sesión.
-4. Los reintentos por año ya existen; el modo headless debe respetar los mismos pasos.
-
-Estado: la bandera `--wait-login` ya selecciona modo visible; el paso 3 no está implementado.
+**Descartado (23-11-2026, decisión del tesista):** todos los scripts de scraping corren en modo GUI. El diseño de headless con reapertura por sesión caducada no se implementa y no debe implementarse. Se conserva este párrafo solo como registro de que la opción se consideró y se rechazó.
 
 Cambio de política del capítulo IV: las decisiones de diseño del desarrollo pasarán a delimitarse explícitamente como tomadas de trabajos previos (con cita) o como aporte propio. Esto deja sin efecto la política "sin citas externas en el desarrollo" descrita en 21.1 para el capítulo IV; la sección 21.1 debe actualizarse cuando el nuevo estado del arte esté cerrado.
 
@@ -1369,12 +1362,12 @@ Orden recomendado, priorizando decisiones que pueden invalidar el diseño:
 3. Ajustar la sección metodológica DSRM para que distinga claramente diseño/desarrollo, demostración y evaluación.
 4. Revisar alcance y criterios de evaluación con el asesor.
 
-### Prioridad 2 – Rehacer el estado del arte
+### Prioridad 2 – Rehacer el estado del arte (en curso; ver sección 6.5)
 
-1. Reformular C2, C3 y C4 según las técnicas que realmente se implementarán.
-2. Ampliar C1 hacia mecánicas multijugador e intercambio de contenido.
-3. Ejecutar búsquedas reproducibles y documentar cifras nuevas.
-4. Comparar opciones técnicas y justificar la selección final.
+1. ~~Reformular C2, C3 y C4 según las técnicas que realmente se implementarán.~~ Completado.
+2. ~~Ampliar C1 hacia mecánicas multijugador e intercambio de contenido.~~ Completado (C1b).
+3. ~~Ejecutar búsquedas reproducibles y documentar cifras nuevas.~~ Completado (23-11-2026; ver `docs/estado-del-arte/registro-busqueda.md`).
+4. Comparar opciones técnicas y justificar la selección final. **Pendiente: etapa 4 (texto completo) y redacción del capítulo II conforme a PRISMA.**
 
 ### Prioridad 3 – Pruebas técnicas de factibilidad
 
@@ -1426,6 +1419,7 @@ Orden recomendado, priorizando decisiones que pueden invalidar el diseño:
 18. Si falta una decisión crítica, preguntar al tesista o registrar la cuestión como pendiente; no inventar una respuesta.
 19. Mantener el alcance realizable. Si se propone una reducción, explicitar qué requisito se aplaza y pedir aprobación.
 20. Cada vez que una decisión técnica cambie, actualizar este documento y las especificaciones relacionadas.
+21. **Regla de mantenimiento de este documento:** toda interacción significativa con un agente que cause una modificación en el proyecto (código, documentos, datos, decisiones) debe quedar reflejada aquí antes de terminar la sesión, con los datos necesarios para que otro agente continúe sin rehacer el trabajo: qué se hizo, qué se decidió, qué cambió y qué queda pendiente.
 
 ---
 
