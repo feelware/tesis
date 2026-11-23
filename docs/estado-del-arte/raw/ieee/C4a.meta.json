@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C4a",
+  "cluster": "C4",
+  "label": "Transcripción musical automática y de canto",
+  "canonical_query": "(\"automatic music transcription\" OR \"polyphonic note transcription\" OR \"multipitch estimation\" OR \"singing transcription\" OR \"singing voice transcription\" OR \"vocal melody extraction\" OR \"monophonic pitch tracking\" OR \"audio to MIDI\") AND (\"lightweight\" OR \"real-time\" OR \"in-browser\" OR \"note onset detection\" OR \"note-level\" OR \"singing\" OR \"monophonic\")",
+  "adapted_query": "((automatic AND music AND transcription) OR (polyphonic AND note AND transcription) OR (multipitch AND estimation) OR (singing AND transcription) OR (singing AND voice AND transcription) OR (vocal AND melody AND extraction) OR (monophonic AND pitch AND tracking) OR (audio AND to AND MIDI)) AND ((lightweight) OR (real-time) OR (in-browser) OR (note AND onset AND detection) OR (note-level) OR (singing) OR (monophonic))",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:53:09.401Z",
+  "result_count": 143
+}

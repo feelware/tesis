@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C2a",
+  "cluster": "C2",
+  "label": "Generación procedural, por reglas y por restricciones de melodías",
+  "canonical_query": "(\"melody generation\" OR \"melodic generation\" OR \"algorithmic composition\" OR \"procedural music generation\" OR \"procedural content generation\" OR \"rule-based music generation\" OR \"constraint-based music generation\" OR \"generative grammar\" OR \"Markov chain\" OR \"random walk\") AND (\"monophonic\" OR \"melody\" OR \"symbolic music\" OR \"controllable\" OR \"music education\" OR \"exercise generation\")",
+  "adapted_query": "((melody AND generation) OR (melodic AND generation) OR (algorithmic AND composition) OR (procedural AND music AND generation) OR (procedural AND content AND generation) OR (rule-based AND music AND generation) OR (constraint-based AND music AND generation) OR (generative AND grammar) OR (Markov AND chain) OR (random AND walk)) AND ((monophonic) OR (melody) OR (symbolic AND music) OR (controllable) OR (music AND education) OR (exercise AND generation))",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:51:46.309Z",
+  "result_count": 430
+}

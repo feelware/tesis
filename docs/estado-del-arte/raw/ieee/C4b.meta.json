@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C4b",
+  "cluster": "C4",
+  "label": "Transcripción e inferencia en navegador",
+  "canonical_query": "(\"music transcription\" OR \"pitch detection\" OR \"audio to MIDI\" OR \"pitch tracking\") AND (\"in-browser\" OR \"web audio\" OR \"TensorFlow.js\" OR \"client-side\" OR \"JavaScript\" OR \"web application\")",
+  "adapted_query": "((music AND transcription) OR (pitch AND detection) OR (audio AND to AND MIDI) OR (pitch AND tracking)) AND ((in-browser) OR (web AND audio) OR (TensorFlow.js) OR (client-side) OR (JavaScript) OR (web AND application))",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:53:26.931Z",
+  "result_count": 62
+}

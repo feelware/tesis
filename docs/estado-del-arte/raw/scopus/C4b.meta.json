@@ -1,0 +1,14 @@
+{
+  "source": "scopus",
+  "search_id": "C4b",
+  "cluster": "C4",
+  "label": "Transcripción e inferencia en navegador",
+  "canonical_query": "(\"music transcription\" OR \"pitch detection\" OR \"audio to MIDI\" OR \"pitch tracking\") AND (\"in-browser\" OR \"web audio\" OR \"TensorFlow.js\" OR \"client-side\" OR \"JavaScript\" OR \"web application\")",
+  "adapted_query": "TITLE-ABS-KEY(\"music transcription\" OR \"pitch detection\" OR \"audio to MIDI\" OR \"pitch tracking\") AND TITLE-ABS-KEY(\"in-browser\" OR \"web audio\" OR \"TensorFlow.js\" OR \"client-side\" OR \"JavaScript\" OR \"web application\")",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:15:26.573Z",
+  "result_count": 5
+}

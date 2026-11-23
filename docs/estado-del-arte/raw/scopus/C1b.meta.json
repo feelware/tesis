@@ -1,0 +1,14 @@
+{
+  "source": "scopus",
+  "search_id": "C1b",
+  "cluster": "C1",
+  "label": "Multijugador, intercambio de contenido y engagement en juegos musicales",
+  "canonical_query": "(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"music game\") AND (\"multiplayer\" OR \"collaborative game\" OR \"peer learning\")",
+  "adapted_query": "TITLE-ABS-KEY(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"music game\") AND TITLE-ABS-KEY(\"multiplayer\" OR \"collaborative game\" OR \"peer learning\")",
+  "filters": {
+    "year_from": 2022,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-23T06:54:57.388Z",
+  "result_count": 3
+}

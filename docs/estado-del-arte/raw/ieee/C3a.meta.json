@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C3a",
+  "cluster": "C3",
+  "label": "Métricas de evaluación nota a nota, alineamiento y correspondencia",
+  "canonical_query": "(\"melodic similarity\" OR \"symbolic music similarity\" OR \"melody comparison\" OR \"note matching\" OR \"note-level evaluation\" OR \"transcription evaluation\" OR \"melody alignment\" OR \"sequence alignment\" OR \"bipartite matching\" OR \"mir_eval\") AND (\"pitch accuracy\" OR \"rhythm accuracy\" OR \"onset\" OR \"tolerance\" OR \"precision\" OR \"recall\" OR \"F-measure\" OR \"monophonic\") AND (\"music\" OR \"melody\" OR \"melodic\" OR \"singing\" OR \"pitch\" OR \"MIDI\")",
+  "adapted_query": "((melodic AND similarity) OR (symbolic AND music AND similarity) OR (melody AND comparison) OR (note AND matching) OR (note-level AND evaluation) OR (transcription AND evaluation) OR (melody AND alignment) OR (sequence AND alignment) OR (bipartite AND matching) OR (mir_eval)) AND ((pitch AND accuracy) OR (rhythm AND accuracy) OR (onset) OR (tolerance) OR (precision) OR (recall) OR (F-measure) OR (monophonic)) AND ((music) OR (melody) OR (melodic) OR (singing) OR (pitch) OR (MIDI))",
+  "filters": {
+    "year_from": 2022,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-23T14:42:41.531Z",
+  "result_count": 101
+}

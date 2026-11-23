@@ -1,0 +1,16 @@
+{
+  "source": "semanticscholar",
+  "search_id": "C4a",
+  "cluster": "C4",
+  "label": "Transcripción musical automática y de canto",
+  "canonical_query": "(\"automatic music transcription\" OR \"polyphonic note transcription\" OR \"multipitch estimation\" OR \"singing transcription\" OR \"singing voice transcription\" OR \"vocal melody extraction\" OR \"monophonic pitch tracking\" OR \"audio to MIDI\") AND (\"lightweight\" OR \"real-time\" OR \"in-browser\" OR \"note onset detection\" OR \"note-level\" OR \"singing\" OR \"monophonic\")",
+  "filters": {
+    "year_from": 2022,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-20T20:52:35.632Z",
+  "phrase_stats": [],
+  "total_reported": 258,
+  "execution": "bulk search de Semantic Scholar con booleanos (| = OR, + = AND), paginación completa por token",
+  "result_count": 87
+}

@@ -105,7 +105,20 @@
 
 == 1.1. Situación problemática
 
-En entornos formales de educación musical, alcanzar un buen desempeño en los cursos de habilidades auditivas requiere de mucha práctica, pues la dificultad de estos aumenta rápidamente (Royston y Wilson, 2024). Estos cursos representan un obstáculo desalentador para muchos estudiantes de música, contribuyendo en ciertos casos a la deserción académica (Barlow, 2016). Las evaluaciones de aptitud auditiva consisten en escuchar una grabación proporcionada por el docente y transcribirla en papel. Calificar estas evaluaciones suele tomar varios días a los docentes, lo que impide al alumno obtener retroalimentación instantánea (Pesek et al., 2020b). Kleppinger (2017) señala que estas evaluaciones no se alinean consistentemente con lo que se espera que los estudiantes aprendan. Su naturaleza "contrarreloj" genera ansiedad incluso en estudiantes de alto rendimiento, lo que más adelante se transforma en perspectivas pesimistas sobre la utilidad de estos cursos. Chenette (2021) argumenta que el material de estudio para entrenamiento auditivo, al estar fuertemente enlazado a la currícula tradicional de teoría musical, hereda un enfoque eurocentrista, ignorando la música popular y las tradiciones musicales internacionales. Donn et al. (2024) argumentan que muchos de los métodos de entrenamiento auditivo aplicados en escuelas secundarias británicas fueron diseñados para un contexto musical mucho menos diverso que el contemporáneo.
+// ==== Fuentes nuevas de esta sección (extractos clave verificados) ====
+// Hannon, A. (2015). Helping Non-Singers Overcome Fear and Anxiety in Aural Skills. Journal of Music Theory Pedagogy E-Journal, 5, art. 2. https://digitalcollections.lipscomb.edu/jmtp_ejournal/vol5/iss1/2 — "Many students feel fear and anxiety upon entering the aural skills classroom... making aural skills a feared class in the curriculum"; "attempt to avoid sight-singing quizzes altogether by dropping courses just before the first quiz... sign up multiple times for a course only to withdraw, regardless of their grade."
+// Pomerleau-Turcotte, J., Moreno Sala, M. T., Dubé, F. y Vachon, F. (2021). Experiential and Cognitive Predictors of Sight-Singing Performance in Music Higher Education. Journal of Research in Music Education. https://doi.org/10.1177/00224294211049425 — "the age when students began learning music could predict sight-singing performance independently from the number of years of experience and the educational level"; la capacidad de memoria de trabajo (WMC) predice la repentización; los alumnos difieren en experiencia y capacidades cognitivas.
+// Chenette, T., Davis, S. y Kleppinger, S. V. (2022). A Critical Review of Current Aural Skills Materials and Pedagogical Practices. Journal of Music Theory Pedagogy, 36(1). https://doi.org/10.71156/2994-7073.1410 — "evidence suggests that mainstream aural skills teaching has not changed all that much"; "disconnect between aural skills pedagogy scholarship and teaching practice"; "Music by white, male, European composers is overrepresented in textbooks and anthologies"; sobre el dictado: "some students will do well while others will flounder."
+// Paney, A. S. y Buonviri, N. O. (2017). Developing Melodic Dictation Pedagogy: A Survey of College Theory Instructors. Update: Applications of Research in Music Education, 36(1), 51-58. https://doi.org/10.1177/8755123316686815 — "highlighted several challenges of teaching dictation and aural skills in general"; "acknowledged the difficulty of compound meter for students."
+// Kavčič Pucihar, A., Habe, K., Rotar Pance, B. y Laure, M. (2024). The key reasons for dropout in Slovenian music schools – a qualitative study. Frontiers in Psychology, 15, 1385840. https://doi.org/10.3389/fpsyg.2024.1385840 — "music theory and solfége lessons" figuran entre los factores externos de abandono "más prominentes"; "Many young pupils struggle with these subjects and fail to see their practical value."
+
+En los programas formales de educación musical, el entrenamiento auditivo —que abarca ejercicios como el dictado melódico y la entonación a primera vista (repentización)— constituye una competencia central del músico, pues su desarrollo fortalece otras destrezas como la interpretación, la composición y la lectura a primera vista (Rogers, 2013). No obstante, alcanzar un desempeño sólido en estas habilidades exige una práctica prolongada y constante: su dificultad aumenta de manera considerable a lo largo del currículo (Royston y Wilson, 2024) y las habilidades adquiridas se debilitan si no se practican con regularidad (Barlow, 2016). El dictado melódico resulta particularmente exigente porque obliga a percibir y retener a la vez alturas, ritmos y relaciones tonales, y su dificultad es reconocida tanto por los propios docentes (Paney y Buonviri, 2017) como por la investigación sobre procesamiento musical, según la cual el desempeño depende en buena medida de la memoria de trabajo, el entrenamiento previo y la familiaridad con ciertos estilos e instrumentos (Nichols y Springer, 2025). A ello se suma que los estudiantes llegan a estos cursos con niveles de preparación muy dispares, pues la edad de inicio en el estudio musical y la capacidad de memoria de trabajo predicen el rendimiento en repentización con independencia de los años de experiencia acumulados (Pomerleau-Turcotte et al., 2021).
+
+Las formas tradicionales de evaluar estas habilidades agravan la dificultad. El dictado suele plantearse pidiendo al estudiante que escuche una grabación y transcriba las notas en papel, mientras que la calificación a cargo del docente puede demorar varios días, lo que priva al alumno de retroalimentación oportuna para identificar y corregir sus errores (Pesek et al., 2020b). Kleppinger (2017) advierte que estas evaluaciones no se alinean de manera consistente con lo que realmente se espera que los estudiantes aprendan y que su carácter "contrarreloj" genera ansiedad incluso en alumnos de alto rendimiento, lo que deriva con frecuencia en perspectivas pesimistas sobre la utilidad del propio curso; la evaluación del entrenamiento auditivo se sitúa así en una encrucijada compleja entre las expectativas docentes, las habilidades de audición del estudiante, sus percepciones y ansiedades ante la evaluación y las peculiaridades de los instrumentos evaluativos. Una revisión crítica de los materiales y las prácticas vigentes muestra que el entrenamiento auditivo sigue dominado por unas pocas tareas —identificación, repentización y dictado— que apenas han cambiado en generaciones y que revelan una marcada desconexión entre la investigación pedagógica y la enseñanza real; el propio dictado, por componerse de múltiples habilidades combinadas, resulta además una herramienta de instrucción y diagnóstico poco eficiente, en la que algunos estudiantes progresan mientras otros se estancan (Chenette et al., 2022).
+
+Estas condiciones tienen consecuencias afectivas y académicas verificables. Numerosos estudiantes experimentan temor y ansiedad al ingresar al aula de entrenamiento auditivo, hasta el punto de que la asignatura es percibida como una de las más temidas del currículo, y quienes llegan con menor preparación suelen rezagarse desde el inicio (Hannon, 2015). El mismo autor describe un ciclo pernicioso: algunos alumnos evitan por completo los exámenes de repentización e incluso se dan de baja de la asignatura poco antes de la primera evaluación, llegando a matricularse repetidas veces solo para retirarse, con independencia de su calificación (Hannon, 2015). Este clima de evaluación centrado en el producto y en el acierto o el error, más que en el proceso de aprendizaje, nerviosa a los estudiantes y refuerza una mentalidad de incapacidad del tipo "simplemente no sirvo para el entrenamiento auditivo" (Chenette et al., 2022). En una escala más amplia, las asignaturas de teoría musical y solfeo —que engloban el entrenamiento auditivo— figuran entre las principales causas de frustración y abandono reportadas por estudiantes, familias y docentes de escuelas de música (Kavčič Pucihar et al., 2024). De este modo, los cursos de habilidades auditivas pueden convertirse en un obstáculo desalentador que contribuye a la deserción académica (Barlow, 2016).
+
+A lo anterior se suman limitaciones de enfoque y representación. El material de estudio para entrenamiento auditivo, fuertemente enlazado a la currícula tradicional de teoría musical, hereda un enfoque eurocentrista que ignora la música popular y las tradiciones musicales internacionales (Chenette, 2021), y muchos de los métodos aplicados en la educación secundaria fueron diseñados para un contexto musical mucho menos diverso que el contemporáneo (Donn et al., 2024). La revisión crítica de Chenette et al. (2022) confirma que la música de compositores europeos, blancos y varones está sobrerrepresentada en los libros de texto y las antologías, de modo que estos materiales no reflejan la diversidad del alumnado al que se dirigen. Esta falta de pertinencia cultural se superpone a la enorme variabilidad individual: como el desempeño en dictado y repentización depende de la memoria de trabajo, la experiencia previa y la familiaridad con ciertos estilos e instrumentos, los estudiantes requieren planes de práctica diferenciados que la enseñanza tradicional, de carácter a menudo masivo y uniforme, no logra ofrecer (Nichols y Springer, 2025; Pomerleau-Turcotte et al., 2021). En conjunto, la dificultad inherente a estas habilidades, unas formas de evaluación lentas y poco alineadas con los objetivos de aprendizaje, sus efectos emocionales y sus sesgos culturales configuran un problema real que afecta de forma directa a estudiantes y docentes de la educación musical formal.
 
 == 1.2. Formulación del problema
 
@@ -219,38 +232,15 @@ La evaluación de rendimiento en entornos de educación musical, particularmente
 
 == 2.4. Estado del arte
 
-=== 2.4.1. Planificación
+La revisión del estado del arte se realizó conforme a las recomendaciones de la declaración PRISMA 2020 (Page et al., 2021)#footnote[Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Mulrow, C. D., Shamseer, L., Tetzlaff, J. M., Akl, E. A., Brennan, S. E., Chou, R., Glanville, J., Grimshaw, J. M., Hróbjartsson, A., Lalu, M. M., Li, T., Loder, E. W., Mayo-Wilson, E., McDonald, S., ... Moher, D. (2021). The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. BMJ, 372, n71. https://doi.org/10.1136/bmj.n71] y de las recomendaciones de reporte de búsquedas PRISMA-S (Rethlefsen et al., 2021)#footnote[Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D., Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the PRISMA Statement for Reporting Literature Searches in Systematic Reviews. Systematic Reviews, 10, 39. https://doi.org/10.1186/s13643-020-01542-z], para asegurar que el proceso de búsqueda, selección y síntesis sea reproducible y auditable.
 
-La búsqueda del estado del arte realizada en el presente estudio consistió en múltiples trabajos de búsqueda de literatura ejecutados en paralelo. Esto con el propósito de identificar soluciones existentes al problema central de investigación, así como técnicas computacionales con el potencial de ser aplicadas a la construcción del sistema propuesto por este estudio. Dicha propuesta consiste en un videojuego en línea dirigido a estudiantes de música. La partida inicia con cada jugador realizando dictado melódico sobre piezas musicales generadas por el sistema. En la siguiente ronda, cada jugador recibirá la transcripción realizada por algún otro jugador en la ronda anterior y realizará repentización sobre ésta, interpretando la partitura en vivo. Este ciclo de dictado y repentización se repite por tantas rondas como deseen los jugadores. Al final de la partida, cada jugador recibirá estadísticas sobre su desempeño: qué tan similares fueron sus transcripciones e interpretaciones musicales a las piezas que recibieron. Estas estadísticas se acumularán a modo de un historial que permitirá al estudiante visualizar su progreso a lo largo de varias partidas.
+=== 2.4.1. Objetivo y criterios de elegibilidad
 
-Así, el videojuego propuesto involucra una serie de técnicas que hacen posible la mecánica de juego y evaluación descrita: generación automática de material musical, análisis de similitud melódica y transcripción musical automática. Búsquedas preliminares revelaron que muy pocos estudios han abordado estas tres técnicas en contextos de educación musical basada en juegos. Restringir la revisión de literatura a estos estudios omitiría información técnica valiosa para el desarrollo del sistema. Por esta razón, la revisión del estado del arte se dividió en cuatro búsquedas (o clusters) independientes una de la otra. El primer cluster (C1) se enfoca en estudios que proponen plataformas gamificadas y otras propuestas digitales para solucionar problemas en educación musical, específicamente en entrenamiento auditivo. Esto con el fin de identificar qué mecánicas de juego y otras estrategias pedagógicas se suelen proponer ante el problema central de la presente investigación. Puesto que ningún trabajo previo implementa las mismas mecánicas de juego propuestas por el presente estudio, se requieren búsquedas adicionales que permitan estudiar el estado del arte de las tres técnicas mencionadas anteriormente. En este sentido, el segundo cluster (C2) se enfocó en trabajos que utilizan generación automática de estructuras melódicas, con el fin de identificar modelos o herramientas existentes, de preferencia con implementaciones o pesos preentrenados públicamente disponibles, que puedan integrarse en la plataforma para la generación de ejercicios de dictado musical. El tercer cluster (C3) se enfocó en estudios que emplean modelos capaces de comparar estructuras musicales simbólicas, con el objetivo de identificar un modelo existente que pueda integrarse para evaluar la precisión de las transcripciones e interpretaciones musicales de los jugadores. Finalmente, el cuarto cluster (C4) se centró en modelos de transcripción musical automática, es decir, modelos que convierten grabaciones musicales en representaciones simbólicas como MIDI, un paso realizado por la propia plataforma para permitir evaluar la similitud musical entre audio y MIDI.
+El objetivo de la revisión es identificar soluciones existentes al problema central de investigación, así como técnicas computacionales con el potencial de ser aplicadas a la construcción del sistema propuesto por este estudio: un videojuego en línea dirigido a estudiantes de música, en el que cada jugador realiza dictado melódico sobre piezas generadas por el sistema, recibe la transcripción realizada por otro jugador e interpreta la partitura en vivo (repentización), en un ciclo que se repite por rondas y que concluye con estadísticas de similitud entre la respuesta y la pieza recibida.
 
-Para cada cluster se formuló una cadena de búsqueda independiente del resto. La cadena del primer cluster está conformada por dos grupos de términos de búsqueda: el primero representando conceptos asociados al entrenamiento auditivo y educación musical; y el segundo grupo, a la gamificación y juegos serios. Ambos grupos están unidos por un operador AND, asegurando que los estudios obtenidos aborden ambos frentes. Cada una de las otras tres cadenas de búsqueda contienen un solo grupo para los conceptos asociados a la técnica correspondiente. La Tabla 1 muestra las cadenas de búsqueda para cada cluster. Los repositorios full-text Springer Nature Link e IEEE Xplore, así como los índices de abstracts y citas Scopus y OpenAlex, fueron elegidos como fuentes de literatura debido a su amplia cobertura de áreas académicas, incluyendo aquellas relevantes a esta investigación, y por sus capacidades para búsqueda booleana. Ciertos repositorios fueron excluidos por sus limitaciones en búsqueda booleana, tal como MDPI, el cual no es capaz de procesar cadenas de búsqueda de gran tamaño, o como ScienceDirect, el cual impone restricciones en el tamaño de la cadena (no más de 500 caracteres) y el número de operadores booleanos (no más de 8).
+El sistema involucra tres técnicas: generación automática de material musical, análisis de similitud melódica y transcripción musical automática. Búsquedas preliminares revelaron que muy pocos estudios abordan estas tres técnicas en contextos de educación musical basada en juegos, de modo que la revisión se dividió en cuatro clusters independientes: C1 (plataformas gamificadas para entrenamiento auditivo), C2 (generación automática de melodías), C3 (análisis de similitud melódica) y C4 (transcripción musical automática).
 
-#block(breakable: false)[
-#leyenda([Tabla], 1, [Cadenas de búsqueda por cluster])
-#apatable(
-  columns: (5cm, 10.9cm),
-  header: ([*Tipo de criterio*], [*Descripción*]),
-  rows: (
-    (
-      [Gamificación en educación musical],
-      [("ear training" OR "aural training" OR "music dictation" OR "melodic dictation" OR "sight reading" OR "music education") AND ("gamification" OR "gamified" OR "serious game" OR "educational game" OR "game-based learning" OR "multiplayer game" OR "online platform")],
-    ),
-    (
-      [Generación automática de melodías],
-      ["melody generation" OR "melodic generation" OR "music generation" OR "symbolic music generation" OR "automatic exercise generation" OR "procedural music generation" OR "algorithmic composition" OR "computational music generation"],
-    ),
-    (
-      [Análisis de similitud melódica],
-      ["melodic similarity" OR "music similarity" OR "symbolic music similarity" OR "melody comparison" OR "symbolic sequence similarity" OR "music sequence alignment" OR "music pattern matching"],
-    ),
-    (
-      [Transcripción musical automática],
-      ["automatic music transcription" OR "audio to MIDI" OR "music transcription" OR "symbolic music transcription" OR "pitch detection" OR "note onset detection" OR "singing transcription" OR "polyphonic transcription"],
-    ),
-  ),
-)]
+La Tabla 2 resume los criterios de elegibilidad aplicados. Esta revisión no se registró formalmente en un repositorio de protocolos antes de iniciar la búsqueda; las decisiones de método (cadenas, criterios, ventana temporal y proceso de selección) quedaron documentadas en el registro de búsqueda del proyecto antes de ejecutar cada fase. La ausencia de registro previo se declara como limitación del reporte.
 
 #block(breakable: false)[
 #leyenda([Tabla], 2, [Criterios de inclusión y exclusión])
@@ -261,7 +251,7 @@ Para cada cluster se formuló una cadena de búsqueda independiente del resto. L
     (
       [Exclusión],
       [
-        Estudios previos al 2021#linebreak()
+        Estudios publicados en 2021 o antes#linebreak()
         Estudios de acceso cerrado#linebreak()
         Estudios en idiomas distintos al inglés y español
       ],
@@ -269,24 +259,75 @@ Para cada cluster se formuló una cadena de búsqueda independiente del resto. L
     (
       [Inclusión],
       [
-        Artículos científicos o papers de conferencia#linebreak()
+        Artículos científicos o papers de conferencia publicados entre 2022 y 2027#linebreak()
         Estudios que abordan problemas en educación musical mediante gamificación y aprendizaje basado en juegos#linebreak()
-        Estudios que aplican técnicas de generación automática de melodías, análisis de similitud melódica o transcripción musical automática para resolver un problema de investigación y que, además, reporten públicamente modelos pre-entrenados.
+        Estudios que describen un método de generación de melodías, de similitud o evaluación de secuencias musicales, o de transcripción de audio a notas, con un nivel de detalle que permita replicarlo (algoritmo, pseudocódigo, parámetros o métricas definidas), ya sea mediante implementación pública, datos abiertos o una descripción replicable. Se incluyen los métodos basados en modelos aprendidos cuando cumplen el mismo criterio.
       ],
     ),
   ),
 )]
 
-ACM Digital Library fue excluido por sus limitaciones en la descarga de resultados de búsqueda. Web of Science fue excluido por no permitir acceso a través de la Universidad Nacional Mayor de San Marcos. Por otro lado, se definieron una serie de criterios de exclusión e inclusión con los cuales seleccionar los estudios más relevantes entre aquellos obtenidos en la búsqueda. Estos criterios son descritos en la Tabla 2.
+=== 2.4.2. Fuentes de información y estrategia de búsqueda
 
-=== 2.4.2. Desarrollo
+Las fuentes de información fueron IEEE Xplore (repositorio full-text), los índices de abstracts y citas Scopus y Semantic Scholar, y el índice educativo ERIC. Estas fuentes fueron elegidas por su amplia cobertura de áreas académicas, incluyendo las relevantes a esta investigación, y por sus capacidades de búsqueda booleana. Ciertas fuentes fueron descartadas por limitaciones conocidas: Springer Nature Link, porque su API de metadatos impone límites de cuota diaria en el plan gratuito que impidieron obtener los resultados de forma completa dentro del plazo del estudio; OpenAlex, porque no soporta búsqueda booleana y obliga a una aproximación por frases que sobre-recupera resultados y desvía la cadena; MDPI, que no procesa cadenas de búsqueda de gran tamaño; ScienceDirect, que restringe el tamaño de la cadena (no más de 500 caracteres) y el número de operadores booleanos (no más de 8); ACM Digital Library, por sus limitaciones en la descarga de resultados; y Web of Science, por no permitir acceso a través de la Universidad Nacional Mayor de San Marcos.
 
-La Figura 1 muestra el proceso seguido para la búsqueda y selección del estado del arte. Se utilizaron las cuatro cadenas de búsqueda en los cuatro repositorios elegidos. Luego, se configuraron los filtros de dichos repositorios de tal manera que se apliquen los criterios de exclusión. Tras esto, se descargaron los resultados de búsqueda en formato CSV. Para cada cluster, se concatenaron los resultados de cada repositorio y se eliminaron duplicados, resultando en 1488 estudios. Se analizó el título de cada uno y se descartaron aquellos que no cumplen con los criterios de inclusión, resultando en 832 estudios candidatos. Finalmente, se analizó el abstract de cada candidato y se seleccionaron los 10 estudios más relevantes por cada cluster, resultando en 40 estudios listados en el Anexo A. Por cada estudio se mencionan las técnicas implementadas en la propuesta de solución, así como el dataset utilizado para el entrenamiento de los modelos pertinentes, o la población de interés en el caso de aquellos estudios que no utilizaron modelos de inteligencia artificial. También se menciona de forma muy concisa los resultados obtenidos y el research gap.
+Para cada cluster se formuló una cadena de búsqueda independiente, con dos o tres grupos de términos unidos por el operador AND para asegurar que los estudios obtenidos aborden todos los conceptos requeridos. La ventana de publicación es 2022–2027. Las cadenas se adaptaron a la sintaxis de cada fuente (búsqueda experta en Scopus, command search en IEEE Xplore, búsqueda booleana en Semantic Scholar y consulta Lucene en ERIC). La Tabla 1 muestra las cadenas canónicas por cluster.
 
 #block(breakable: false)[
-  #leyenda([Figura], 1, [Proceso de búsqueda y selección de estado del arte])
+#leyenda([Tabla], 1, [Cadenas de búsqueda por cluster])
+#apatable(
+  columns: (3.2cm, 12.7cm),
+  header: ([*Búsqueda*], [*Cadena*]),
+  rows: (
+    (
+      [C1 — Gamificación en educación musical],
+      [("ear training" OR "aural training" OR "melodic dictation" OR "interval dictation") AND ("gamification" OR "gamified" OR "serious game" OR "game-based learning")],
+    ),
+    (
+      [C1b — Multijugador y intercambio de contenido],
+      [("ear training" OR "aural training" OR "melodic dictation" OR "music game") AND ("multiplayer" OR "collaborative game" OR "peer learning")],
+    ),
+    (
+      [C2a — Generación automática de melodías],
+      [("melody generation" OR "melodic generation" OR "algorithmic composition" OR "procedural music generation" OR "procedural content generation" OR "rule-based music generation" OR "constraint-based music generation" OR "generative grammar" OR "Markov chain" OR "random walk") AND ("monophonic" OR "melody" OR "symbolic music" OR "controllable" OR "music education" OR "exercise generation")],
+    ),
+    (
+      [C2b — Dificultad y complejidad melódica y rítmica],
+      [("melodic complexity" OR "rhythmic complexity" OR "melody difficulty" OR "melodic dictation difficulty" OR "sight-reading difficulty" OR "difficulty level" OR "adaptive exercise" OR "automatic item generation") AND ("music education" OR "ear training" OR "melodic dictation" OR "sight singing" OR "melody")],
+    ),
+    (
+      [C3a — Métricas de evaluación nota a nota],
+      [("melodic similarity" OR "symbolic music similarity" OR "melody comparison" OR "note matching" OR "note-level evaluation" OR "transcription evaluation" OR "melody alignment" OR "sequence alignment" OR "bipartite matching" OR "mir_eval") AND ("pitch accuracy" OR "rhythm accuracy" OR "onset" OR "tolerance" OR "precision" OR "recall" OR "F-measure" OR "monophonic") AND ("music" OR "melody" OR "melodic" OR "singing" OR "pitch" OR "MIDI")],
+    ),
+    (
+      [C3b — Evaluación automática de dictado y canto],
+      [("automatic assessment" OR "automated evaluation" OR "objective evaluation" OR "computer-assisted assessment") AND ("singing" OR "sight-singing" OR "sight reading" OR "melodic dictation" OR "vocal performance" OR "ear training") AND ("pitch accuracy" OR "rhythm accuracy" OR "intonation" OR "feedback" OR "scoring" OR "note-level")],
+    ),
+    (
+      [C4a — Transcripción musical automática],
+      [("automatic music transcription" OR "polyphonic note transcription" OR "multipitch estimation" OR "singing transcription" OR "singing voice transcription" OR "vocal melody extraction" OR "monophonic pitch tracking" OR "audio to MIDI") AND ("lightweight" OR "real-time" OR "in-browser" OR "note onset detection" OR "note-level" OR "singing" OR "monophonic")],
+    ),
+    (
+      [C4b — Transcripción e inferencia en navegador],
+      [("music transcription" OR "pitch detection" OR "audio to MIDI" OR "pitch tracking") AND ("in-browser" OR "web audio" OR "TensorFlow.js" OR "client-side" OR "JavaScript" OR "web application")],
+    ),
+  ),
+)]
+
+Dos limitaciones de exportación afectaron la descarga de resultados y fueron resueltas dividiendo cada búsqueda por año de publicación: Scopus limita la exportación de resultados a 2000 registros por búsqueda y IEEE Xplore a 1000. Semantic Scholar impone límites de tasa que requirieron pausas y reintentos automáticos entre consultas. Estas desviaciones respecto de la cadena canónica se documentan en el registro de búsqueda.
+
+=== 2.4.3. Selección de estudios
+
+La Figura 1 muestra el proceso de selección conforme al diagrama de flujo de PRISMA 2020. Los resultados de cada fuente se normalizaron a un esquema común de columnas (título, autores, año, abstract, palabras clave, DOI) y se concatenaron. Se eliminaron los duplicados, primero por DOI y, cuando no estaba disponible, por título normalizado y año de publicación. La selección posterior se realiza en cuatro etapas: (1) exclusión mecánica de estudios publicados en 2021 o antes, sin título ni abstract, o en idiomas distintos al inglés o español; (2) prefiltrado temático sobre título, abstract y palabras clave, que conserva los registros con términos del dominio musical; (3) lectura del título y el abstract de cada registro restante, aplicando los criterios de inclusión y exclusión con registro del motivo de cada decisión; y (4) verificación del método descrito en el texto completo de los candidatos de acceso abierto, para confirmar que sea replicable. El número de estudios incluidos se determina por la aplicación de los criterios, no por un cupo fijo.
+
+#block(breakable: false)[
+  #leyenda([Figura], 1, [Proceso de búsqueda y selección de estudios conforme a PRISMA 2020])
   #align(center)[#image("fig1.png", width: 100%)]
 ]
+
+=== 2.4.4. Extracción de datos y síntesis
+
+Por cada estudio incluido se extraen las técnicas implementadas en la propuesta de solución, el dataset utilizado para el entrenamiento de los modelos pertinentes o la población de interés en el caso de estudios que no utilizaron modelos de aprendizaje automático, los resultados obtenidos, las limitaciones reportadas y el research gap identificado. Dado que los estudios abordan clusters de naturaleza distinta y no se busca estimar un efecto común, la síntesis es narrativa: los estudios se agrupan por cluster y se comparan según la técnica aplicada, el nivel de detalle del método y su pertinencia para el diseño del sistema propuesto. Los estudios seleccionados se listan en el Anexo A.
 
 = Capítulo III: Metodología
 
@@ -1549,6 +1590,8 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
 
   Chenette, T. (2021). What Are the Truly Aural Skills? Music Theory Online, 27(2). https://doi.org/10.30535/mto.27.2.2
 
+  Chenette, T., Davis, S., & Kleppinger, S. V. (2022). A Critical Review of Current Aural Skills Materials and Pedagogical Practices. Journal of Music Theory Pedagogy, 36(1). https://doi.org/10.71156/2994-7073.1410
+
   De Carvalho, C. V., & Coelho, A. (2022). Game-Based Learning, Gamification in Education and Serious Games. Computers, 11(3), 36. https://doi.org/10.3390/computers11030036
 
   Demian, A.-M. y Nedelcut, N. (2018). The Mental Processes Involved in the Musical Dictation. Music Cognition, 4, 86-97.
@@ -1561,7 +1604,11 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
 
   Giraldo, S., Waddell, G., Nou, I., Ortega, A., Mayor, O., Perez, A., Williamon, A., & Ramirez, R. (2019). Automatic Assessment of Tone Quality in Violin Music Performance. Frontiers In Psychology, 10, 334. https://doi.org/10.3389/fpsyg.2019.00334
 
+  Hannon, A. (2015). Helping Non-Singers Overcome Fear and Anxiety in Aural Skills. Journal of Music Theory Pedagogy E-Journal, 5, Article 2. https://digitalcollections.lipscomb.edu/jmtp_ejournal/vol5/iss1/2
+
   Huovinen, E., Ylitalo, A.-K., y Puurtinen, M. (2018). Early Attraction in Temporally Controlled Sight Reading of Music. Journal of Eye Movement Research, 11(2), 1-30. https://doi.org/10.16910/jemr.11.2.3
+
+  Kavčič Pucihar, A., Habe, K., Rotar Pance, B., & Laure, M. (2024). The key reasons for dropout in Slovenian music schools – a qualitative study. Frontiers in Psychology, 15, 1385840. https://doi.org/10.3389/fpsyg.2024.1385840
 
   Kleppinger, N. S. V. (2017). Practical and Philosophical Reflections Regarding Aural Skills Assessment. Indiana Theory Review, 33(1-2), 153. https://doi.org/10.2979/inditheorevi.33.1-2.06
 
@@ -1577,15 +1624,23 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
 
   Ou, J., Nogueira, J., & Qin, C. (2025). Exploring the impact of AI-assisted practice applications on music learners’ performance, self-efficacy, and self-regulated learning. Frontiers In Psychology, 16, 1675762. https://doi.org/10.3389/fpsyg.2025.1675762
 
+  Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Mulrow, C. D., Shamseer, L., Tetzlaff, J. M., Akl, E. A., Brennan, S. E., Chou, R., Glanville, J., Grimshaw, J. M., Hróbjartsson, A., Lalu, M. M., Li, T., Loder, E. W., Mayo-Wilson, E., McDonald, S., ... Moher, D. (2021). The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. BMJ, 372, n71. https://doi.org/10.1136/bmj.n71
+
+  Paney, A. S., & Buonviri, N. O. (2017). Developing Melodic Dictation Pedagogy: A Survey of College Theory Instructors. Update: Applications of Research in Music Education, 36(1), 51-58. https://doi.org/10.1177/8755123316686815
+
   Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2008). A design science research methodology for information systems research. Journal of Management Information Systems, 24(3), 45-77. https://doi.org/10.2753/MIS0742-1222240302
 
   Pesek, M., Vucko, Z., Savli, P., Kavcic, A., & Marolt, M. (2020a). Troubadour: A Gamified e-Learning Platform for Ear Training. IEEE Access, 8, 97090-97102. https://doi.org/10.1109/access.2020.2994389
 
   Pesek, M., Suhadolnik, L., Šavli, P., & Marolt, M. (2020b). Motivating Students for Ear-Training with a Rhythmic Dictation Application. Applied Sciences, 10(19), 6781. https://doi.org/10.3390/app10196781
 
+  Pomerleau-Turcotte, J., Moreno Sala, M. T., Dubé, F., & Vachon, F. (2021). Experiential and Cognitive Predictors of Sight-Singing Performance in Music Higher Education. Journal of Research in Music Education. https://doi.org/10.1177/00224294211049425
+
   Qian, C., & Jiang, M. (2024). Exploring the Effects of Digital Game-Based Learning on Music Education. Studies In Social Science & Humanities, 3(5), 6-9. https://doi.org/10.56397/sssh.2024.05.02
 
   Respati, R., Apriyaningsih, E., & Muslihin, H. Y. (2021). The development of Aurilio games to facilitate the ear training of early childhood. Proceedings of the 3rd International Conference on Arts and Design Education (ICADE 2020).
+
+  Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D., Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the PRISMA Statement for Reporting Literature Searches in Systematic Reviews. Systematic Reviews, 10, 39. https://doi.org/10.1186/s13643-020-01542-z
 
   Richards, J. (2023). Discovering the Pedagogy and Secrets of Gamification and Game-Based Learning Applied to the Music Theory Classroom \[Disertación\]. Liberty University.
 

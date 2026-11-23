@@ -1,0 +1,18 @@
+{
+  "source": "eric",
+  "search_id": "C4b",
+  "cluster": "C4",
+  "label": "Transcripción e inferencia en navegador",
+  "canonical_query": "(\"music transcription\" OR \"pitch detection\" OR \"audio to MIDI\" OR \"pitch tracking\") AND (\"in-browser\" OR \"web audio\" OR \"TensorFlow.js\" OR \"client-side\" OR \"JavaScript\" OR \"web application\")",
+  "filters": {
+    "year_from": 2022,
+    "peer_reviewed": true,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-20T20:36:11.562Z",
+  "phrase_stats": [],
+  "total_reported": 0,
+  "peerreviewed_skipped": 0,
+  "execution": "consulta Lucene booleana (título o descripción por frase; bloques con AND), paginación completa por numFound",
+  "result_count": 0
+}

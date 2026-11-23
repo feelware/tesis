@@ -172,7 +172,7 @@ La revisión se dividió en cuatro búsquedas o clusters independientes porque l
 - **C3 – Similitud melódica:** comparación de estructuras musicales simbólicas y alineamiento de secuencias.
 - **C4 – Transcripción musical automática:** conversión de audio a representaciones simbólicas, detección de alturas y ataques, transcripción de canto.
 
-Las fuentes documentales descritas en el borrador son Springer Nature Link, IEEE Xplore, Scopus y OpenAlex. Se justificó su selección por cobertura académica y capacidades de búsqueda booleana. El borrador menciona limitaciones de búsqueda/descarga como razones para excluir ACM Digital Library, MDPI, ScienceDirect y Web of Science en el proceso original. Si se rehace la revisión, volver a comprobar las condiciones actuales de acceso y búsqueda; no asumir que las limitaciones siguen idénticas.
+Las fuentes documentales descritas en el borrador eran Springer Nature Link, IEEE Xplore, Scopus y OpenAlex (Springer y OpenAlex se descartaron, ver sección 6.5). Se justificó su selección por cobertura académica y capacidades de búsqueda booleana. El borrador menciona limitaciones de búsqueda/descarga como razones para excluir ACM Digital Library, MDPI, ScienceDirect y Web of Science en el proceso original. Si se rehace la revisión, volver a comprobar las condiciones actuales de acceso y búsqueda; no asumir que las limitaciones siguen idénticas.
 
 Las cadenas originales incluidas en el borrador son:
 
@@ -242,6 +242,8 @@ C1 debe ampliarse para buscar específicamente:
 
 ### 6.3. Cadenas nuevas sugeridas
 
+> Actualización 19-11-2026: estas cadenas fueron sustituidas por las cadenas definitivas de la nueva revisión, registradas en `docs/estado-del-arte/registro-busqueda.md` (ver sección 6.5). Se conservan aquí solo como antecedente del proceso.
+
 No reemplazan automáticamente las cadenas oficiales; son punto de partida para una nueva búsqueda documentada.
 
 **C1 – Juego y entrenamiento auditivo**
@@ -288,6 +290,95 @@ El LLM que rehaga el estado del arte debe:
 8. Conservar los estudios C1 que siguen siendo pertinentes, pero verificar actualidad y pertinencia. Los clusters C2–C4 requieren una revisión sustantiva.
 9. Recalcular las cifras del flujo de selección; nunca copiar las cifras anteriores a la nueva revisión.
 10. Asegurar que toda afirmación bibliográfica tenga referencia verificable y que las citas y referencias finales coincidan.
+
+### 6.5. Nueva revisión del estado del arte: decisiones y estado (19-11-2026)
+
+Decisiones confirmadas por el tesista el 19-11-2026:
+
+1. **Corte temporal ≥2022** para todo el flujo sistemático (actualizado el 20-11-2026; antes ≥2021). La tesis se publicará en 2027, así que la ventana es 2022–2027. Todo estudio publicado en 2021 o antes queda excluido. No habrá pista separada de "referentes fundacionales": `mir_eval` (Raffel et al., 2014) y otros trabajos anteriores a 2022 no se citarán como antecedentes del estado del arte. Las tolerancias (50 ms, 50 cents) y el matching bipartito deberán respaldarse con literatura 2022+ que las use/compare o delimitarse explícitamente como aporte propio en el capítulo IV. El paper de Basic Pitch (Bittner et al., 2022) entra en la ventana (2022) y figura en el Anexo A como última entrada de C4.
+2. ~~**Springer Nature vía Metadata API**~~ **Descartada (20-11-2026, decisión del tesista).** Sus límites de cuota diaria en el plan gratuito impidieron obtener los resultados completos dentro del plazo del estudio. No se usó ningún resultado de Springer: se eliminaron sus CSV, metas, código del fetcher, claves de `.env` y registros. La tesis lo menciona como limitación del acceso a fuentes.
+3. **Fuentes en uso:** IEEE Xplore y Scopus (exportación con navegador), Semantic Scholar (API) y ERIC (API pública; literatura pedagógica para C1). OpenAlex se descarta (20-11-2026, decisión del tesista): no soporta búsqueda booleana, lo que obligaba a una aproximación por frases con sobre-recuperación y desviaba la cadena de búsqueda. Springer Nature queda descartada (punto 2). Proceedings ISMIR/SMC se rastrean por bola de nieve. Se descarta Google Scholar por limitaciones de acceso.
+4. **Selección final sin cupo fijo**: entran todos los estudios que cumplan los criterios de inclusión (se sustituye el mecanismo anterior de "10 más relevantes por cluster"). Ningún cluster pasa a la etapa 2 hasta que todas sus búsquedas estén completas en todas las fuentes (ver punto 6).
+5. **Criterio de inclusión sobre modelos reformulado** (20-11-2026). El criterio original exigía "reportar públicamente modelos pre-entrenados", propuesto antes de cambiar el enfoque a generación procedural y análisis de similitud por algoritmos. El nuevo criterio es: estudios que describen un método de generación de melodías, de similitud o evaluación de secuencias musicales, o de transcripción de audio a notas, con detalle suficiente para replicarlo (algoritmo, pseudocódigo, parámetros o métricas definidas), mediante implementación pública, datos abiertos o descripción replicable. Los métodos basados en modelos aprendidos se incluyen cuando cumplen el mismo criterio. Está escrito en la tabla 2 de `tesis.typ`.
+6. **Completitud antes del screening** (20-11-2026; Springer excluida, ver punto 2). El tesista exige que todos los estudios que cumplen las cadenas y el corte temporal estén en los CSV antes de filtrar. Estado: las fuentes ejecutadas con tope de descarga son Semantic Scholar (C1b, C2a, C2b, C3a, C3b, C4a, C4b) y ERIC (C1, C1b). Semantic Scholar devuelve 429 de forma persistente desde el 20-11-2026 y el fetcher debe reejecutarse cuando la API responda. Springer tiene C3b, C4a y C4b pendientes y C1b, C2a, C2b y C3a truncadas en 3000 por tope del fetcher; su cuota diaria del plan gratuito se agotó el 20-11-2026 (`retry-after` ≈ 6,7 h).
+
+Cadenas definitivas: 8 búsquedas (C1, C1b, C2a, C2b, C3a, C3b, C4a, C4b) definidas en `scripts/lit-queries.mjs` (fuente de verdad ejecutable) y transcritas en `docs/estado-del-arte/registro-busqueda.md`. Resumen de la intención:
+
+- **C1/C1b:** gamificación y juegos para entrenamiento auditivo; multijugador, intercambio de contenido y engagement (justifican las mecánicas del juego).
+- **C2a/C2b:** generación procedural/por reglas/por restricciones, gramáticas, cadenas de Markov y random walk; y dificultad/complejidad melódica parametrizable y generación de ejercicios (justifican el generador del prototipo: selección ponderada por proximidad, restricciones de intervalo/ambitus/escala, modulación, figuras rítmicas, determinismo por semilla).
+- **C3a/C3b:** métricas de evaluación nota a nota (note matching, tolerancias, precision/recall/F1, alineamiento, correspondencia bipartita) y evaluación automática de dictado/repentización/canto con retroalimentación (justifican el analizador del prototipo: dimensiones separadas de altura y ritmo, tolerancias 0.5 semitono y 50/150 ms, matching bipartito máximo, media de F1).
+- **C4a/C4b:** transcripción musical automática y de canto y despliegue/inferencia en navegador (justifican la integración de `@spotify/basic-pitch` en Web Worker con TensorFlow.js). Las cadenas no incluyen nombres de productos: el estudio que introduce Basic Pitch (Bittner et al., 2022) se recupera por términos técnicos, sin sesgo circular (decisión del tesista, 19-11-2026).
+
+Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit:browser`):
+
+1. `lit-fetch.mjs`: consultas por API (Semantic Scholar, ERIC) con booleanos del lado del servidor. Pagina hasta agotar resultados. Escribe `docs/estado-del-arte/raw/<fuente>/<busqueda>.csv` y `.meta.json` con fecha, cadena exacta, filtros y conteos.
+2. `lit-browser-export.mjs`: navegador Playwright con perfil persistente (`.lit-profile/`, gitignoreado) para exportar CSV de Scopus e IEEE Xplore; el login manual del tesista se hace una sola vez y las credenciales no se comparten con el agente ni se guardan en el repo. Modo de operación: con `--wait-login` el navegador se muestra para iniciar sesión; sin esa bandera corre en headless. Pendiente de implementar: detectar sesión caducada en headless y reabrir una ventana visible solo para ese login (ver 6.6).
+3. `lit-merge.mjs`: normaliza nombres de columnas (por ejemplo "abstract"/"Abstract"/"description"), concatena, deduplica por DOI o título+año y escribe `docs/estado-del-arte/merged/` (deduped.csv, duplicates.csv, report.md).
+4. Selección en cuatro etapas (decisión del tesista, 20-11-2026; ver también `tesis.typ` sección 2.4.2):
+   - **Etapa 1, mecánica (script):** descartar año ≤2021 (la ventana vigente es 2022–2027), registros sin título ni abstract, e idiomas distintos de inglés o español. Resultado: `merged/` filtrado.
+   - **Etapa 2, prefiltro temático (script):** conservar registros con términos del dominio musical en título, abstract o keywords.
+   - **Etapa 3, lectura de título y abstract (agente):** aplicar criterios de inclusión y exclusión, registrando motivo para cada decisión. No se usa cupo por cluster. Se valida una muestra aleatoria con criterio humano del tesista antes de confiar en el filtro.
+   - **Etapa 4, texto completo (lectura manual, solo acceso abierto):** para los candidatos de la etapa 3, verificar que el método es replicable. El criterio de acceso cerrado se verifica con la bandera de acceso abierto de Semantic Scholar.
+   Ninguna etapa comienza para un cluster hasta cumplir el punto 6 de la sección 6.5.
+
+**Estado de la selección (20-11-2026, sin Springer):**
+
+- Entrada: `merged/deduped.csv` con 43935 estudios únicos.
+- **Etapa 1 (completa, script):** 41608 aprobados (`screening/etapa1_aprobados.csv`); 2327 excluidos con motivo (`screening/etapa1_excluidos.csv`): 1076 por año ≤2021 y 1251 por idioma distinto de inglés o español. Los idiomas sin dato (3325) no se excluyen por sí solos.
+- **Etapa 2 (completa, script):** 18601 aprobados (`screening/etapa2_aprobados.csv`); 23007 excluidos con motivo (`screening/etapa2_excluidos.csv`). El prefiltro es amplio a propósito: una comprobación sobre los descartados encontró solo 2 con señal musical fuerte en el título, y ninguno de música técnica.
+- **Etapa 3 (iniciada, pendiente de lectura):** `screening/etapa3_lectura_titulo_abstract.csv` clonado de la etapa 2 con las columnas `etapa3_razonamiento` y `etapa3_incluir` (sí/no), vacías. Una muestra de C2a mostró que de cada 15 registros, unos 6 son de música técnica y el resto es ruido de otros campos; por eso la etapa 3 es la que más descarta. Se llena por lotes; ningún registro debe marcarse sin leer título y abstract.
+- **Etapa 4:** no iniciada. Depende de la etapa 3.
+- Pendiente de validación: muestra aleatoria de la etapa 3 revisada por el tesista para medir concordancia.
+
+**Re-ejecución con cadenas restringidas y sin OpenAlex (23-11-2026):**
+
+- Base nueva: `merged/deduped.csv` con 4759 estudios únicos (5232 filas leídas, 473 duplicados, 4297 con abstract).
+- Etapa 1: 4599 aprobados, 160 excluidos (143 por año ≤2021, 17 por idioma).
+- Etapa 2b: **656 aprobados** (`screening/etapa2b_aprobados.csv`), 3943 excluidos con motivo (2721 tipo documental, 1132 sin señal musical en título, 90 señal débil en abstract).
+- Por cluster: C2a 370, C4a 139, C3a 70, C3b 56, C2b 52, C4b 22, C1b 11, C1 4.
+- Validación de C1: Troubadour (Pesek et al.) está entre los 4 aprobados de C1, con la cadena restringida.
+- El volumen bajó de 18601 a 656, dentro del objetivo de ≤1000 fijado por el tesista.
+- Corrección de pipeline (23-11-2026): se restauró `matchedPhrasesOf` en `lit-fetch.mjs` (se perdió al borrar OpenAlex), se corrigió el adaptador de ERIC (las comillas de frase anulan la combinación AND; ahora expande frases a palabras con AND, como en IEEE) y se hicieron no bloqueantes la lectura de página y la captura de diagnógico de `lit-browser-export.mjs`, que colgaban la detección de sesión.
+**Etapa 3 completada (23-11-2026):**
+
+- 656 registros leídos (título y abstract): **448 incluidos**, **208 excluidos**, ninguno sin decidir. Cada fila de `screening/etapa3_lectura_titulo_abstract.csv` lleva `etapa3_incluir` (sí/no) y `etapa3_razonamiento`.
+- Incluidos por cluster: C2a 291, C4a 108, C3a 40, C2b 20, C3b 16, C4b 12, C1b 7, C1 3.
+- Exclusiones por categoría (para el resumen PRISMA): fuera de alcance del método 105; síntesis o conversión de voz 60; sin método replicable 1; otros motivos puntuales 42.
+- Sobre PRISMA y la tabla de la tesis: PRISMA no exige una tabla con el razonamiento de cada estudio. Exige el conteo de excluidos en título/abstract y, en texto completo, los motivos resumidos por categoría. La tabla de técnicas/resultados/gap aplica solo a los estudios incluidos, que es lo que el tesista planea incluir. El razonamiento por registro queda como material de auditoría del proceso.
+- **Pendiente: etapa 4 (texto completo de los 448 candidatos de acceso abierto) y validación de una muestra por el tesista.**
+
+**Reducción de volumen (20-11-2026, decisiones del tesista):**
+
+- **Etapa 2b (script, aplicada):** tipo documental admitido (artículo, conferencia, peer review) y señal musical en título, o al menos dos términos musicales distintos en el abstract. Resultado: 5567 aprobados (`screening/etapa2b_aprobados.csv`), 13034 excluidos con motivo (`screening/etapa2b_excluidos.csv`).
+- **Principio fijado por el tesista:** no se excluye C1 (gamificación). Su volumen se reduce restringiendo la cadena, no excluyendo el cluster.
+- **C1 y C1b restringidas (cambio de cadena, pendiente de re-ejecución):** ancla en entrenamiento auditivo o dictado, y en gamificación o juego serio (C1) o multijugador (C1b). Criterio de validación: Troubadour (Pesek et al.) debe recuperarse. Verificado en OpenAlex con tres variantes de consulta (las tres devuelven Troubadour). Semantic Scholar no pudo medirse por 429.
+- **C3a restringida (opción B, cambio de cadena, pendiente de re-ejecución):** se añade un bloque obligatorio de contexto musical (music, melody, melodic, singing, pitch, MIDI) a las frases originales.
+- **OpenAlex: descartada (20-11-2026, decisión del tesista).** No soporta búsqueda booleana; su aproximación por frases con sobre-recuperación desviaba la cadena. No se usó ningún resultado de OpenAlex: se eliminaron sus CSV, metas, código del fetcher y la `OPENALEX_API_KEY` de `.env`.
+- **Efecto esperado:** la restricción de C1 y C3a se mide re-ejecutando esas búsquedas. Con la cadena anterior la etapa 2b dejaba 5567 candidatos; la cifra nueva debe registrarse, no estimarse.
+
+**Estado del pipeline (20-11-2026, sesión con cambio de corte):**
+
+- Corte temporal cambiado a ≥2022 en `scripts/lit-queries.mjs` (`YEARS_FROM = 2022`) y en `lit-browser-export.mjs`. `lit-fetch.mjs` lo lee de la misma constante.
+- Completitud por fuente y búsqueda: Semantic Scholar, ERIC, Scopus e IEEE están completas (sin topes). OpenAlex y Springer se descartaron y no tienen datos.
+- Completitud anterior alcanzada (20-11-2026) con las cadenas vigentes en esa fecha; pendiente re-ejecutar C1, C1b y C3a con las cadenas restringidas y re-ejecutar Semantic Scholar cuando su cuota lo permita.
+- Springer: descartada (ver punto 2). Sin lote pendiente.
+- Merge sin Springer (20-11-2026): 53125 filas leídas, 43935 estudios únicos, 39968 con abstract.
+- Decisión de modo: todos los scripts de scraping corren en GUI (sin headless), por decisión del tesista.
+
+Hallazgos de la primera ejecución (19-11-2026): ERIC no indexa la literatura MIR de evaluación de canto (la consulta C3b devuelve 0 resultados reales; su aporte se concentra en C1 y C2b). Semantic Scholar responde sin API key pero con límites de tasa estrictos.
+
+### 6.6. Navegador en modo headless con reapertura por sesión caducada (diseño, pendiente)
+
+Motivo: el navegador visible interrumpe el trabajo del tesista. Diseño acordado (20-11-2026):
+
+1. El login inicial se hace con `--wait-login` (ventana visible).
+2. Las exportaciones corren en headless con el mismo perfil `.lit-profile/`.
+3. Si Scopus o IEEE devuelven la página de login (`loggedOutPattern`) o el modal de descarga pide credenciales, el script cierra el contexto headless, abre una ventana visible solo para ese login y reanuda la búsqueda en headless al cerrarse la sesión.
+4. Los reintentos por año ya existen; el modo headless debe respetar los mismos pasos.
+
+Estado: la bandera `--wait-login` ya selecciona modo visible; el paso 3 no está implementado.
+
+Cambio de política del capítulo IV: las decisiones de diseño del desarrollo pasarán a delimitarse explícitamente como tomadas de trabajos previos (con cita) o como aporte propio. Esto deja sin efecto la política "sin citas externas en el desarrollo" descrita en 21.1 para el capítulo IV; la sección 21.1 debe actualizarse cuando el nuevo estado del arte esté cerrado.
 
 ---
 

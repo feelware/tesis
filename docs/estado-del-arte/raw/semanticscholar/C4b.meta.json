@@ -1,0 +1,16 @@
+{
+  "source": "semanticscholar",
+  "search_id": "C4b",
+  "cluster": "C4",
+  "label": "Transcripción e inferencia en navegador",
+  "canonical_query": "(\"music transcription\" OR \"pitch detection\" OR \"audio to MIDI\" OR \"pitch tracking\") AND (\"in-browser\" OR \"web audio\" OR \"TensorFlow.js\" OR \"client-side\" OR \"JavaScript\" OR \"web application\")",
+  "filters": {
+    "year_from": 2022,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-20T20:53:38.162Z",
+  "phrase_stats": [],
+  "total_reported": 33,
+  "execution": "bulk search de Semantic Scholar con booleanos (| = OR, + = AND), paginación completa por token",
+  "result_count": 11
+}

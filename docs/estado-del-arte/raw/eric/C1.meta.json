@@ -1,0 +1,18 @@
+{
+  "source": "eric",
+  "search_id": "C1",
+  "cluster": "C1",
+  "label": "Gamificación y plataformas digitales para entrenamiento auditivo",
+  "canonical_query": "(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"interval dictation\") AND (\"gamification\" OR \"gamified\" OR \"serious game\" OR \"game-based learning\")",
+  "filters": {
+    "year_from": 2022,
+    "peer_reviewed": true,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-23T06:50:57.107Z",
+  "phrase_stats": [],
+  "total_reported": 71,
+  "peerreviewed_skipped": 36,
+  "execution": "consulta Lucene booleana (título o descripción por frase; bloques con AND), paginación completa por numFound",
+  "result_count": 15
+}

@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C2b",
+  "cluster": "C2",
+  "label": "Dificultad y complejidad melódica/rítmica parametrizables; generación de ejercicios",
+  "canonical_query": "(\"melodic complexity\" OR \"rhythmic complexity\" OR \"melody difficulty\" OR \"melodic dictation difficulty\" OR \"sight-reading difficulty\" OR \"difficulty level\" OR \"adaptive exercise\" OR \"automatic item generation\") AND (\"music education\" OR \"ear training\" OR \"melodic dictation\" OR \"sight singing\" OR \"melody\")",
+  "adapted_query": "((melodic AND complexity) OR (rhythmic AND complexity) OR (melody AND difficulty) OR (melodic AND dictation AND difficulty) OR (sight-reading AND difficulty) OR (difficulty AND level) OR (adaptive AND exercise) OR (automatic AND item AND generation)) AND ((music AND education) OR (ear AND training) OR (melodic AND dictation) OR (sight AND singing) OR (melody))",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:52:03.113Z",
+  "result_count": 64
+}

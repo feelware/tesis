@@ -1,0 +1,16 @@
+{
+  "source": "semanticscholar",
+  "search_id": "C1b",
+  "cluster": "C1",
+  "label": "Multijugador, intercambio de contenido y engagement en juegos musicales",
+  "canonical_query": "(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"music game\") AND (\"multiplayer\" OR \"collaborative game\" OR \"peer learning\")",
+  "filters": {
+    "year_from": 2022,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-23T06:50:58.487Z",
+  "phrase_stats": [],
+  "total_reported": 5,
+  "execution": "bulk search de Semantic Scholar con booleanos (| = OR, + = AND), paginación completa por token",
+  "result_count": 1
+}

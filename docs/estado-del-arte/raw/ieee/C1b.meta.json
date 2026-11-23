@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C1b",
+  "cluster": "C1",
+  "label": "Multijugador, intercambio de contenido y engagement en juegos musicales",
+  "canonical_query": "(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"music game\") AND (\"multiplayer\" OR \"collaborative game\" OR \"peer learning\")",
+  "adapted_query": "((ear AND training) OR (aural AND training) OR (melodic AND dictation) OR (music AND game)) AND ((multiplayer) OR (collaborative AND game) OR (peer AND learning))",
+  "filters": {
+    "year_from": 2022,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-23T14:15:39.431Z",
+  "result_count": 29
+}

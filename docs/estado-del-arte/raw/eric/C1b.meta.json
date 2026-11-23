@@ -1,0 +1,18 @@
+{
+  "source": "eric",
+  "search_id": "C1b",
+  "cluster": "C1",
+  "label": "Multijugador, intercambio de contenido y engagement en juegos musicales",
+  "canonical_query": "(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"music game\") AND (\"multiplayer\" OR \"collaborative game\" OR \"peer learning\")",
+  "filters": {
+    "year_from": 2022,
+    "peer_reviewed": true,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-23T06:50:59.008Z",
+  "phrase_stats": [],
+  "total_reported": 30,
+  "peerreviewed_skipped": 16,
+  "execution": "consulta Lucene booleana (título o descripción por frase; bloques con AND), paginación completa por numFound",
+  "result_count": 6
+}

@@ -1,0 +1,18 @@
+{
+  "source": "eric",
+  "search_id": "C2a",
+  "cluster": "C2",
+  "label": "Generación procedural, por reglas y por restricciones de melodías",
+  "canonical_query": "(\"melody generation\" OR \"melodic generation\" OR \"algorithmic composition\" OR \"procedural music generation\" OR \"procedural content generation\" OR \"rule-based music generation\" OR \"constraint-based music generation\" OR \"generative grammar\" OR \"Markov chain\" OR \"random walk\") AND (\"monophonic\" OR \"melody\" OR \"symbolic music\" OR \"controllable\" OR \"music education\" OR \"exercise generation\")",
+  "filters": {
+    "year_from": 2022,
+    "peer_reviewed": true,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-20T20:36:07.254Z",
+  "phrase_stats": [],
+  "total_reported": 0,
+  "peerreviewed_skipped": 0,
+  "execution": "consulta Lucene booleana (título o descripción por frase; bloques con AND), paginación completa por numFound",
+  "result_count": 0
+}

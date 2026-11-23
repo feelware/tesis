@@ -1,0 +1,14 @@
+{
+  "source": "scopus",
+  "search_id": "C4a",
+  "cluster": "C4",
+  "label": "Transcripción musical automática y de canto",
+  "canonical_query": "(\"automatic music transcription\" OR \"polyphonic note transcription\" OR \"multipitch estimation\" OR \"singing transcription\" OR \"singing voice transcription\" OR \"vocal melody extraction\" OR \"monophonic pitch tracking\" OR \"audio to MIDI\") AND (\"lightweight\" OR \"real-time\" OR \"in-browser\" OR \"note onset detection\" OR \"note-level\" OR \"singing\" OR \"monophonic\")",
+  "adapted_query": "TITLE-ABS-KEY(\"automatic music transcription\" OR \"polyphonic note transcription\" OR \"multipitch estimation\" OR \"singing transcription\" OR \"singing voice transcription\" OR \"vocal melody extraction\" OR \"monophonic pitch tracking\" OR \"audio to MIDI\") AND TITLE-ABS-KEY(\"lightweight\" OR \"real-time\" OR \"in-browser\" OR \"note onset detection\" OR \"note-level\" OR \"singing\" OR \"monophonic\")",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:13:32.471Z",
+  "result_count": 95
+}

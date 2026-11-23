@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C3b",
+  "cluster": "C3",
+  "label": "Evaluación automática de dictado melódico, repentización y canto",
+  "canonical_query": "(\"automatic assessment\" OR \"automated evaluation\" OR \"objective evaluation\" OR \"computer-assisted assessment\") AND (\"singing\" OR \"sight-singing\" OR \"sight reading\" OR \"melodic dictation\" OR \"vocal performance\" OR \"ear training\") AND (\"pitch accuracy\" OR \"rhythm accuracy\" OR \"intonation\" OR \"feedback\" OR \"scoring\" OR \"note-level\")",
+  "adapted_query": "((automatic AND assessment) OR (automated AND evaluation) OR (objective AND evaluation) OR (computer-assisted AND assessment)) AND ((singing) OR (sight-singing) OR (sight AND reading) OR (melodic AND dictation) OR (vocal AND performance) OR (ear AND training)) AND ((pitch AND accuracy) OR (rhythm AND accuracy) OR (intonation) OR (feedback) OR (scoring) OR (note-level))",
+  "filters": {
+    "year_from": 2021,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-20T01:52:51.155Z",
+  "result_count": 232
+}

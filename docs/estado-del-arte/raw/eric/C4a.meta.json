@@ -1,0 +1,18 @@
+{
+  "source": "eric",
+  "search_id": "C4a",
+  "cluster": "C4",
+  "label": "Transcripción musical automática y de canto",
+  "canonical_query": "(\"automatic music transcription\" OR \"polyphonic note transcription\" OR \"multipitch estimation\" OR \"singing transcription\" OR \"singing voice transcription\" OR \"vocal melody extraction\" OR \"monophonic pitch tracking\" OR \"audio to MIDI\") AND (\"lightweight\" OR \"real-time\" OR \"in-browser\" OR \"note onset detection\" OR \"note-level\" OR \"singing\" OR \"monophonic\")",
+  "filters": {
+    "year_from": 2022,
+    "peer_reviewed": true,
+    "nota": "filtro de año en cliente"
+  },
+  "retrieved_at": "2026-11-20T20:36:10.764Z",
+  "phrase_stats": [],
+  "total_reported": 0,
+  "peerreviewed_skipped": 0,
+  "execution": "consulta Lucene booleana (título o descripción por frase; bloques con AND), paginación completa por numFound",
+  "result_count": 0
+}

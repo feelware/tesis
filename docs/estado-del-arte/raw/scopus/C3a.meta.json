@@ -1,0 +1,14 @@
+{
+  "source": "scopus",
+  "search_id": "C3a",
+  "cluster": "C3",
+  "label": "Métricas de evaluación nota a nota, alineamiento y correspondencia",
+  "canonical_query": "(\"melodic similarity\" OR \"symbolic music similarity\" OR \"melody comparison\" OR \"note matching\" OR \"note-level evaluation\" OR \"transcription evaluation\" OR \"melody alignment\" OR \"sequence alignment\" OR \"bipartite matching\" OR \"mir_eval\") AND (\"pitch accuracy\" OR \"rhythm accuracy\" OR \"onset\" OR \"tolerance\" OR \"precision\" OR \"recall\" OR \"F-measure\" OR \"monophonic\") AND (\"music\" OR \"melody\" OR \"melodic\" OR \"singing\" OR \"pitch\" OR \"MIDI\")",
+  "adapted_query": "TITLE-ABS-KEY(\"melodic similarity\" OR \"symbolic music similarity\" OR \"melody comparison\" OR \"note matching\" OR \"note-level evaluation\" OR \"transcription evaluation\" OR \"melody alignment\" OR \"sequence alignment\" OR \"bipartite matching\" OR \"mir_eval\") AND TITLE-ABS-KEY(\"pitch accuracy\" OR \"rhythm accuracy\" OR \"onset\" OR \"tolerance\" OR \"precision\" OR \"recall\" OR \"F-measure\" OR \"monophonic\") AND TITLE-ABS-KEY(\"music\" OR \"melody\" OR \"melodic\" OR \"singing\" OR \"pitch\" OR \"MIDI\")",
+  "filters": {
+    "year_from": 2022,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-23T06:56:52.328Z",
+  "result_count": 11
+}

@@ -1,0 +1,14 @@
+{
+  "source": "ieee",
+  "search_id": "C1",
+  "cluster": "C1",
+  "label": "Gamificación y plataformas digitales para entrenamiento auditivo",
+  "canonical_query": "(\"ear training\" OR \"aural training\" OR \"melodic dictation\" OR \"interval dictation\") AND (\"gamification\" OR \"gamified\" OR \"serious game\" OR \"game-based learning\")",
+  "adapted_query": "((ear AND training) OR (aural AND training) OR (melodic AND dictation) OR (interval AND dictation)) AND ((gamification) OR (gamified) OR (serious AND game) OR (game-based AND learning))",
+  "filters": {
+    "year_from": 2022,
+    "year_to": 2026
+  },
+  "retrieved_at": "2026-11-23T14:11:50.145Z",
+  "result_count": 7
+}
