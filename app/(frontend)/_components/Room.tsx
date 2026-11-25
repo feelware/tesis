@@ -74,6 +74,7 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
         <WaitingRoom state={state} onStarted={refresh} />
       ) : state.room.status === "in_progress" && state.round ? (
         <GameRound
+          key={state.round.number}
           roomId={roomId}
           round={state.round}
           settings={state.room.settings}

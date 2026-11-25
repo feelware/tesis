@@ -36,7 +36,9 @@ export const GameRound = ({
   roundCount,
   onSubmitted,
 }: GameRoundProps) => {
-  const [sending, setSending] = useState(false);
+  const [phase, setPhase] = useState<"playing" | "submitting" | "submitted">(
+    "playing",
+  );
   const [sendError, setSendError] = useState<string | null>(null);
 
   const melody: Melody | null = round.submission?.receivedMelody ?? null;
@@ -55,8 +57,8 @@ export const GameRound = ({
   const gridBeats = GRID_BEATS[settings?.difficulty ?? "low"];
 
   const submit = async (response: NoteEvent[]) => {
-    if (sending) return;
-    setSending(true);
+    if (phase !== "playing") return;
+    setPhase("submitting");
     setSendError(null);
     try {
       const result = await fetch(`/api/rooms/${roomId}/submit`, {
@@ -71,12 +73,13 @@ export const GameRound = ({
       if (!result.ok) {
         throw new Error(body.error ?? "No se pudo enviar la respuesta");
       }
+      setPhase("submitted");
       onSubmitted();
     } catch (err) {
       setSendError(
         err instanceof Error ? err.message : "Error al enviar la respuesta",
       );
-      setSending(false);
+      setPhase("playing");
     }
   };
 
@@ -99,13 +102,13 @@ export const GameRound = ({
     );
   }
 
-  if (sending || round.submission.status === "done") {
+  if (phase !== "playing" || round.submission.status === "done") {
     return (
       <div className="space-y-4">
         {header}
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <p className="text-zinc-700">
-            {sending
+            {phase === "submitting"
               ? "Enviando tu respuesta…"
               : "Respuesta enviada. Esperando a que los demás jugadores terminen la ronda…"}
           </p>
