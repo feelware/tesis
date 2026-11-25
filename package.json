@@ -21,7 +21,8 @@
     "tune:transcription": "node scripts/tune-transcription.mjs",
     "lit:fetch": "node scripts/lit-fetch.mjs",
     "lit:merge": "node scripts/lit-merge.mjs",
-    "lit:browser": "node scripts/lit-browser-export.mjs"
+    "lit:browser": "node scripts/lit-browser-export.mjs",
+    "lit:fulltext": "node scripts/lit-fulltext.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",

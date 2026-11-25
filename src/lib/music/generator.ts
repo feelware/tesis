@@ -4,10 +4,18 @@ import { validateMelody } from "./melody";
 
 export const GENERATOR_VERSION = "0.1.0";
 
+// Reglas de dificultad derivadas del estado del arte. Los tres primeros campos son
+// los ejes de dificultad de Poćwiardowski et al. (2025): longitud, magnitud de
+// intervalo y frecuencia de patrones (aquí, penalización de la repetición). Se
+// complementan con la tesitura cantable (MusicAIR: la melodía debe ser cantable),
+// la estructura de frases (Raposo y Soares; Wu y Yang; Shan et al.), el ritmo y la
+// tonalidad. Los validadores deterministas siguen a Meng et al. (2026).
 export interface DifficultyRules {
-  maxIntervalSemitones: number;
-  ambitusSemitones: number;
-  noteCount: number;
+  noteCount: number; // longitud: número de notas
+  maxIntervalSemitones: number; // magnitud de intervalo máximo entre notas consecutivas
+  repeatAvoidance: number; // frecuencia de patrones: penalización de repetición (0–1)
+  ambitusSemitones: number; // tesitura cantable (≤ 24 semitonos, registro vocal)
+  phraseCount: number; // estructura de frases: número de frases
   rhythmDurations: number[];
   rhythmWeights: number[];
   requiredRhythmFigures: number[];
@@ -16,27 +24,35 @@ export interface DifficultyRules {
 
 export const DIFFICULTY_RULES: Record<Difficulty, DifficultyRules> = {
   low: {
-    maxIntervalSemitones: 2,
-    ambitusSemitones: 12,
     noteCount: 8,
+    maxIntervalSemitones: 2,
+    repeatAvoidance: 0.35,
+    ambitusSemitones: 12,
+    phraseCount: 1,
     rhythmDurations: [1, 2],
     rhythmWeights: [3, 1],
     requiredRhythmFigures: [],
     modulation: "none",
   },
   medium: {
-    maxIntervalSemitones: 5,
-    ambitusSemitones: 24,
     noteCount: 15,
+    maxIntervalSemitones: 5,
+    repeatAvoidance: 0.65,
+    ambitusSemitones: 19,
+    phraseCount: 2,
     rhythmDurations: [0.5, 1, 2],
     rhythmWeights: [2, 4, 1],
     requiredRhythmFigures: [0.5],
     modulation: "optional",
   },
   high: {
-    maxIntervalSemitones: 7,
-    ambitusSemitones: 36,
     noteCount: 24,
+    maxIntervalSemitones: 7,
+    repeatAvoidance: 1,
+    // Tesitura cantable: se limita a 2 octavas (48–72, C3–C5). La dificultad alta
+    // usaba 3 octavas (F#2–F#5), fuera de cualquier registro vocal razonable.
+    ambitusSemitones: 24,
+    phraseCount: 3,
     rhythmDurations: [0.5, 1, 1.5, 2, 2 / 3],
     rhythmWeights: [3, 3, 2, 1, 2],
     requiredRhythmFigures: [1.5, 2 / 3],
@@ -187,6 +203,7 @@ const generatePitches = (
 ): number[] => {
   const pitches: number[] = [];
   const intervals: number[] = [];
+  const phraseLength = Math.max(1, Math.ceil(rules.noteCount / rules.phraseCount));
   for (let index = 0; index < rules.noteCount; index += 1) {
     const segment = segmentAt(segments, index);
     const candidates = pitchesInWindow(segment, windowMin, windowMax);
@@ -202,10 +219,24 @@ const generatePitches = (
     let pool = candidates.filter((pitch) => withinReach(pitch) && avoidsRepetition(pitch));
     if (pool.length === 0) pool = candidates.filter(withinReach);
     if (pool.length === 0) pool = candidates;
+    const isPhraseEnd = (index + 1) % phraseLength === 0 || index === rules.noteCount - 1;
     const weights = pool.map((pitch) => {
       const distance = index === 0 ? Math.abs(pitch - TONIC_MIDI) : Math.abs(pitch - prev);
-      const stepWeight = 1 / (1 + distance * distance);
-      return ((pitch % 12) + 12) % 12 === segment.tonicChroma ? stepWeight * 1.5 : stepWeight;
+      // Preferencia por grado conjunto (MusicAIR): el peso máximo está en el paso de
+      // un semitono, por encima de la repetición (distancia 0) y de los saltos (> 2).
+      let weight = 1 / (1 + (distance - 1) ** 2);
+      // Frecuencia de patrones (Poćwiardowski et al.): penaliza la repetición en
+      // función del nivel. A mayor dificultad, más variedad (menos repeticiones).
+      if (index > 0 && pitch === prev) weight *= 1 - rules.repeatAvoidance;
+      if (intervals.length >= 1 && pitch - prev === lastInterval) {
+        weight *= 1 - 0.5 * rules.repeatAvoidance;
+      }
+      const chroma = ((pitch % 12) + 12) % 12;
+      // Final de frase (Raposo y Soares; Wu y Yang): prefiere tonos estables.
+      const isStable = chroma === segment.tonicChroma || chroma === (segment.tonicChroma + 7) % 12;
+      if (isPhraseEnd && isStable) weight *= 2.5;
+      if (chroma === segment.tonicChroma) weight *= 1.5;
+      return weight;
     });
     const chosen = weightedPick(rng, pool, weights);
     pitches.push(chosen);
@@ -238,6 +269,14 @@ const buildNotes = (pitches: number[], durations: number[]): NoteEvent[] => {
     onsetBeats += durations[index];
     return note;
   });
+};
+
+// Índices de inicio de cada frase (estructura de frases; Raposo y Soares, Wu y Yang).
+const phraseBoundariesOf = (noteCount: number, phraseCount: number): number[] => {
+  const length = Math.max(1, Math.ceil(noteCount / phraseCount));
+  const boundaries: number[] = [];
+  for (let start = 0; start < noteCount; start += length) boundaries.push(start);
+  return boundaries;
 };
 
 const findViolations = (melody: Melody, rules: DifficultyRules): string[] => {
@@ -314,6 +353,7 @@ export const generateMelody = (params: GenerateMelodyParams): Melody => {
       scale,
       notes: buildNotes(pitches, durations),
       modulations,
+      phrases: phraseBoundariesOf(rules.noteCount, rules.phraseCount),
       difficulty: params.difficulty,
       generatorVersion: GENERATOR_VERSION,
       seed: params.seed,

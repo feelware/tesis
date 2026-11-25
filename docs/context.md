@@ -2,9 +2,9 @@
 
 **Proyecto:** Tesis – videojuego web multijugador para entrenamiento auditivo  
 **Fecha de consolidación:** 3 de noviembre de 2026  
-**Última actualización:** 23 de noviembre de 2026  
+**Última actualización:** 24 de noviembre de 2026  
 **Idioma principal de trabajo:** español  
-**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente. La revisión del estado del arte se encuentra en marcha conforme a PRISMA 2020 (ver sección 6.5): búsqueda ejecutada en cuatro fuentes, cadenas restringidas y etapa 3 de screening completada.
+**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente. La revisión del estado del arte se encuentra en marcha conforme a PRISMA 2020 (ver sección 6.5): búsqueda ejecutada en cuatro fuentes, cadenas restringidas, etapa 3 de screening completada y **etapa 4 (texto completo) completada** (76 incluidos de los 448; ver sección 6.5).
 
 > Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado. **Cada interacción significativa con un agente que cause una modificación en el proyecto debe actualizarse en este documento**, con los datos relevantes para que otro agente pueda continuar el trabajo: qué se hizo, qué se decidió, qué cambió en el código o en los documentos y qué queda pendiente.
 
@@ -309,7 +309,7 @@ Cadenas definitivas: 8 búsquedas (C1, C1b, C2a, C2b, C3a, C3b, C4a, C4b) defini
 - **C3a/C3b:** métricas de evaluación nota a nota (note matching, tolerancias, precision/recall/F1, alineamiento, correspondencia bipartita) y evaluación automática de dictado/repentización/canto con retroalimentación (justifican el analizador del prototipo: dimensiones separadas de altura y ritmo, tolerancias 0.5 semitono y 50/150 ms, matching bipartito máximo, media de F1).
 - **C4a/C4b:** transcripción musical automática y de canto y despliegue/inferencia en navegador (justifican la integración de `@spotify/basic-pitch` en Web Worker con TensorFlow.js). Las cadenas no incluyen nombres de productos: el estudio que introduce Basic Pitch (Bittner et al., 2022) se recupera por términos técnicos, sin sesgo circular (decisión del tesista, 19-11-2026).
 
-Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit:browser`):
+Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit:browser|lit:fulltext`):
 
 1. `lit-fetch.mjs`: consultas por API (Semantic Scholar, ERIC) con booleanos del lado del servidor. Pagina hasta agotar resultados. Escribe `docs/estado-del-arte/raw/<fuente>/<busqueda>.csv` y `.meta.json` con fecha, cadena exacta, filtros y conteos.
 2. `lit-browser-export.mjs`: navegador Playwright con perfil persistente (`.lit-profile/`, gitignoreado) para exportar CSV de Scopus e IEEE Xplore; el login manual del tesista se hace una sola vez y las credenciales no se comparten con el agente ni se guardan en el repo. Modo de operación: con `--wait-login` el navegador se muestra para iniciar sesión; sin esa bandera corre en headless. Pendiente de implementar: detectar sesión caducada en headless y reabrir una ventana visible solo para ese login (ver 6.6).
@@ -327,7 +327,7 @@ Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit
 - **Etapa 1 (completa, script):** 41608 aprobados (`screening/etapa1_aprobados.csv`); 2327 excluidos con motivo (`screening/etapa1_excluidos.csv`): 1076 por año ≤2021 y 1251 por idioma distinto de inglés o español. Los idiomas sin dato (3325) no se excluyen por sí solos.
 - **Etapa 2 (completa, script):** 18601 aprobados (`screening/etapa2_aprobados.csv`); 23007 excluidos con motivo (`screening/etapa2_excluidos.csv`). El prefiltro es amplio a propósito: una comprobación sobre los descartados encontró solo 2 con señal musical fuerte en el título, y ninguno de música técnica.
 - **Etapa 3 (iniciada, pendiente de lectura):** `screening/etapa3_lectura_titulo_abstract.csv` clonado de la etapa 2 con las columnas `etapa3_razonamiento` y `etapa3_incluir` (sí/no), vacías. Una muestra de C2a mostró que de cada 15 registros, unos 6 son de música técnica y el resto es ruido de otros campos; por eso la etapa 3 es la que más descarta. Se llena por lotes; ningún registro debe marcarse sin leer título y abstract.
-- **Etapa 4:** no iniciada. Depende de la etapa 3.
+- **Etapa 4 (en curso, texto completo por lotes):** ver detalle abajo. Pipeline: `scripts/lit-fulltext.mjs` (comandos `resolve`, `fetch`, `clean`).
 - Pendiente de validación: muestra aleatoria de la etapa 3 revisada por el tesista para medir concordancia.
 
 **Re-ejecución con cadenas restringidas y sin OpenAlex (23-11-2026):**
@@ -345,7 +345,47 @@ Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit
 - Incluidos por cluster: C2a 291, C4a 108, C3a 40, C2b 20, C3b 16, C4b 12, C1b 7, C1 3.
 - Exclusiones por categoría (para el resumen PRISMA): fuera de alcance del método 105; síntesis o conversión de voz 60; sin método replicable 1; otros motivos puntuales 42.
 - Sobre PRISMA y la tabla de la tesis: PRISMA no exige una tabla con el razonamiento de cada estudio. Exige el conteo de excluidos en título/abstract y, en texto completo, los motivos resumidos por categoría. La tabla de técnicas/resultados/gap aplica solo a los estudios incluidos, que es lo que el tesista planea incluir. El razonamiento por registro queda como material de auditoría del proceso.
-- **Pendiente: etapa 4 (texto completo de los 448 candidatos de acceso abierto) y validación de una muestra por el tesista.**
+- **Etapa 4 completada (24-11-2026):** 76 incluidos / 372 excluidos (ver "Etapa 4 COMPLETA" abajo). Pendiente: poblar la tabla de técnicas/resultados/gap con los 76 incluidos, redactar el capítulo II conforme a PRISMA, y validación de una muestra de la etapa 3 y 4 por el tesista.
+- **Aclaración sobre el criterio de acceso abierto (23-11-2026, observación del tesista):** la columna `open_access` de los CSV de las etapas 1–3 no es el criterio de exclusión por acceso cerrado, sino un metadato incompleto: IEEE y Scopus no la exportan (blanco = desconocido, no cerrado) y el `false` de Semantic Scholar significa "S2 no encontró copia OA", no "acceso cerrado confirmado". El criterio de exclusión por acceso cerrado **sí se aplica, en la etapa 4**, contra el resultado de la resolución OA (`etapa4_oa_status`): los 246 con estado CLOSED quedan fuera del conjunto de lectura y se documentan como excluidos por acceso cerrado. Los UNKNOWN (61) no tienen copia OA identificable y, por la decisión del 23-11-2026 (sin recuperación manual ni Unpaywall), se excluyen como "sin acceso abierto directo" (ver "Estado de la etapa 4"). Error corregido: se había excluido en etapa 3 a 11 registros por `open_access=false`, varios de ellos preprints o copias verdes; se revirtieron a incluidos y su destino lo decide la resolución OA de la etapa 4.
+
+**Etapa 4 (texto completo por lotes, completada 24-11-2026). Pipeline `scripts/lit-fulltext.mjs`.**
+
+Objetivo (context.md 6.5): sobre los 448 incluidos en la etapa 3, verificar leyendo el texto completo que el método es replicable (criterio del punto 5: método de generación/similitud/transcripción descrito con detalle replicable —algoritmo, pseudocódigo, parámetros o métricas— vía implementación pública, datos abiertos o descripción replicable). Solo se procesan estudios de acceso abierto; el criterio de acceso se verifica con la bandera de acceso abierto de Semantic Scholar.
+
+- **No se almacenan los textos completos en el repo.** Decisión del tesista: descargar en lotes para no guardarlos todos. `fetch` descarga cada lote a la carpeta temporal de la sesión (scratchpad `fulltext/`), extrae el texto con `pdftotext` y se borra con `clean` tras leer. Lo durable es el CSV de decisiones.
+- **Ledger:** `screening/etapa4_fulltext.csv` — clona las columnas del CSV de la etapa 3 y añade: `etapa4_id`, `etapa4_oa_status`, `etapa4_fulltext_url`, `etapa4_candidatas`, `etapa4_acceso`, `etapa4_replicable`, `etapa4_razonamiento`, `etapa4_incluir`. `resolve` (idempotente, merge-safe) resuelve OA y preserva las decisiones ya escritas; el agente rellena las columnas de decisión a medida que lee cada lote.
+- **Comandos:** `npm run lit:fulltext -- resolve` (resuelve OA de los 448 vía S2 batch por DOI + búsqueda por título para no-resueltos); `npm run lit:fulltext -- fetch [--size K]` (descarga el siguiente lote, registra `etapa4_acceso` y aplica la regla de exclusión a las descargas fallidas); `npm run lit:fulltext -- clean` (borra los textos del lote leído). Sin Unpaywall (decisión 23-11-2026).
+
+**Resolución de acceso abierto (resolve, 24-11-2026):** de los 448 incluidos de la etapa 3 (418 con DOI), S2 devuelve:
+- **141 con URL de texto completo OA** (GOLD 52, GREEN 58, HYBRID 20, BRONZE 11) → conjunto de lectura de la etapa 4.
+- **246 cerrados** (bandera `isOpenAccess=false` de S2; incluye 1 resuelto por título) → excluidos por acceso cerrado.
+- **61 sin resolver/no OA identificado** (28 sin URL recuperable, 33 con DOI intentados contra doi.org sin éxito) → excluidos como no recuperados. Decisión del tesista (23-11-2026): sin recuperación manual ni Unpaywall; si no se descargan solos, se excluyen.
+- Por cluster (conjunto OA de 141): C2a 86, C4a 39, C3a 11, C2b 6, C3b 5, C4b 4, C1b 3, C1 2.
+
+**Etapa 4 COMPLETA (24-11-2026):** de los 448 incluidos en la etapa 3 →
+- **76 incluidos** (texto completo leído, método replicable; ver `etapa4_fulltext.csv`). De ellos, 74 con `etapa4_replicable=sí` y 2 "parcial" (E4-0154 panorama pedagógico; E4-0242 ANN guiada por análisis armónico, reproducibilidad limitada). Por cluster: C2a 50, C4a 19, C3a 8, C2b 3, C3b 2, C4b 2, C1 1, C1b 1.
+- **372 excluidos:** 246 por acceso cerrado (resolución OA de S2) + 126 "informe no recuperado" / "sin acceso abierto directo" (descargas fallidas: landing de editorial, sin URL recuperable, o intentos doi.org sin éxito). Entre los excluidos está Troubadour (E4-0003, Pesek et al.); su contenido queda en `docs/Troubadour.md` como antecedente, pero no como estudio incluido del SOTA.
+- Tasa de descarga automática ~47% de las URLs OA (arXiv, PLOS, MDPI PDF, repositorios); el resto eran landing de editoriales, excluidas como "informe no recuperado".
+
+**Resumen PRISMA de la etapa 4 (completo):** 448 evaluados en texto completo → excluidos: acceso cerrado 246 + informe no recuperado 126 (= 372) → **incluidos 76**.
+
+**Decisión del tesista sobre acceso (23-11-2026): no se usa Unpaywall ni recuperación manual.** Se descarta todo estudio del que se adquiera certeza de que no tiene acceso abierto directo (PDF descargable automáticamente desde la URL resuelta). La certeza se adquiere al intentar la descarga en la etapa 4, no antes. Unpaywall queda descartado como herramienta; la opción `--unpaywall` de `resolve` no debe usarse.
+
+**Entregables del estado del arte (24-11-2026):**
+- **Textos completos de los 76 incluidos** en markdown: `docs/estado-del-arte/fulltext/E4-XXXX.md` (metadatos + texto con `pdftotext`; E4-0154 sin texto extraíble, solo metadatos). Para que otros agentes los referencien al diseñar el generador y el analizador.
+- **CSV de referencia detallado para agentes:** `docs/estado-del-arte/tabla-sota-referencia.csv` (76 filas × 27 columnas: identidad, técnica, método/algoritmo, representación, parámetros, dataset, código, métricas, resultados, limitaciones, pertinencia por componente (generador/analizador/transcripción/juego), gap y takeaway de diseño, + `fulltext_path`). Generado por extracción sobre los textos completos.
+- **Tabla simplificada en `tesis.typ` (Anexo A):** `anexo-filas` reemplazado con 77 filas (76 incluidos agrupados por cluster + Basic Pitch). Columnas: Cluster | Autores | Título | DOI | Técnicas | Dataset | Resultados | Gap. Las celdas son breves (estilo divulgación). El detalle completo está en el CSV.
+- **Basic Pitch (Bittner et al., 2022) = excepción señalada.** Es el modelo de transcripción que integra la tesis. La etapa 4 lo **excluyó por la regla de acceso** (no se pudo descargar automáticamente: E4-0359, `sin-descarga`). Se incluyó en el Anexo A como última entrada de C4 y marcado "(modelo integrado en la tesis)" por la decisión documentada de que figure ahí. **Decisión pendiente del tesista:** mantenerlo como excepción (fundacional) o excluirlo para adherencia estricta a la regla de acceso. Su relación con la decisión de diseño debe explicitarse en la sección de transcripción (4.6).
+- **Nota de compilación (resuelta 24-11-2026):** el error de compilación preexistente (`expected path or string, found array` en `cetz/src/canvas.typ`) provenía de `cetz:0.3.2` (arrastrado por `fletcher`), incompatible con Typst 0.15. Se resolvió actualizando el import a `@preview/fletcher:0.5.7`, que usa `cetz:0.3.4` (compatible). `tesis.typ` compila a PDF sin errores (93 páginas).
+
+**Siguientes pasos (para el siguiente agente):**
+1. Etapa 4 completada. El ledger `etapa4_fulltext.csv` tiene las 448 decisiones como material de auditoría.
+2. ~~Poblar la tabla de técnicas/resultados/gap~~ — hecho (CSV detallado + Anexo A en tesis.typ).
+3. Decidir sobre Basic Pitch (ver arriba) y explicitar su relación de diseño en la sección de transcripción.
+4. Redactar el **capítulo II conforme a PRISMA**: flujo 448 → 76 (acceso cerrado 246, informe no recuperado 126), estado del arte por clusters (C2a 50, C4a 19, C3a 8, C2b 3, C3b 2, C4b 2, C1 1, C1b 1).
+5. Validación de una muestra de las etapas 3 y 4 por el tesista (concordancia).
+
+**Nota técnica sobre los 61 UNKNOWN (aplicada):** `fetch` solo procesa registros con `etapa4_candidatas` (URLs OA resueltas). Los UNKNOWN no tenían URL, así que `resolve` intentó asignarles candidata por título (sin éxito: no rescató nuevas copias OA) y luego se aplicó el criterio: los con DOI se intentaron contra `doi.org` (certeza por intento; todos fallaron) y los sin URL se excluyeron por ausencia de identificador recuperable. Resultado: los 61 excluidos como "sin acceso abierto directo", coherente con la regla del tesista (23-11-2026).
 
 **Reducción de volumen (20-11-2026, decisiones del tesista):**
 
@@ -488,15 +528,21 @@ Debe permitir consultar resultados por jugador y por partida, y conservar los ar
 
 ## 8. Parámetros del generador procedural de melodías
 
-El tesista ha definido los siguientes niveles:
+El diseño se ha reformulado a partir del estado del arte (sección 2.4.5, cluster de generación). Los tres primeros parámetros son los ejes de dificultad de Poćwiardowski et al. (2025): longitud, magnitud de intervalo y frecuencia de patrones (aquí, penalización de la repetición). Se complementan con la tesitura cantable (MusicAIR), la estructura de frases (Raposo y Soares; Wu y Yang; Shan et al.), la congruencia tonal y la complejidad rítmica. Los validadores deterministas siguen a Meng et al. (2026).
 
 | Parámetro                                 | Dificultad baja               | Dificultad media   | Dificultad alta     |
 | ----------------------------------------- | ----------------------------- | ------------------ | ------------------- |
-| Intervalo máximo entre notas consecutivas | 2 semitonos                   | 5 semitonos        | 7 semitonos         |
+| Longitud (eje: longitud)                  | 8 notas                       | 15 notas           | 24 notas            |
+| Intervalo máximo consecutivo (eje: magnitud de intervalo) | 2 semitonos | 5 semitonos | 7 semitonos |
+| Penalización de repetición (eje: frecuencia de patrones) | 0.35      | 0.65               | 1.0                 |
+| Ambitus — tesitura cantable               | 12 semitonos (1 octava)       | 19 semitonos (≈1.5 octavas) | 24 semitonos (2 octavas) |
+| Estructura de frases                      | 1 frase                       | 2 frases           | 3 frases            |
 | Congruencia tonal                         | Una sola escala               | Posible modulación | Modulación          |
-| Ambitus (rango total)                     | 1 octava                      | 2 octavas          | 3 octavas           |
 | Complejidad rítmica                       | Negras/blancas, compás simple | Corcheas           | Síncopas, tresillos |
-| Longitud                                  | 8 notas                       | 15 notas           | 24 notas            |
+
+Nota sobre la tesitura (derivada del estado del arte): el ambitus se limita a una tesitura cantable (máximo 2 octavas, registro C3–C5). La dificultad alta se había fijado en 3 octavas (F#2–F#5), fuera de cualquier registro vocal razonable; MusicAIR (Liao et al., 2025) genera dentro de una tesitura cantable cómoda y esa restricción se adopta aquí. Además, el generador prefiere el movimiento por grado conjunto (MusicAIR), penaliza la repetición según el nivel (eje de frecuencia de patrones) y cierra cada frase en un tono estable (tónica o dominante), de modo que aumenta la variedad —el capítulo V documentó baja variedad por exceso de notas repetidas— sin perder coherencia melódica.
+
+**Evaluación del generador re-ejecutada (24-11-2026):** la evaluación de 600 melodías (200 por nivel, patrón `resultado-{dificultad}-###`) se re-ejecutó con la versión reformada y el capítulo V (tablas 20–23, figura 12 y textos 5.1–5.2) se actualizó. Mejoras confirmadas: intervalos de 0 semitonos 19.6/9.5/0 % (antes 40.9/36.6/35.3), melodías con notas repetidas 87/82.5/0 % (antes 100 % en los tres niveles), cambios de dirección 2.1/6.5/13.1 (antes 1.8/4.4/7.4), secuencias únicas 97/100/100 % y ambitus cantable (máx. 12/19/24). Se conserva el 100 % de cumplimiento de escala, anti-triple-repetición y figura requerida. El analizador solo añadió localización de errores (las métricas no cambian), por lo que sus resultados siguen siendo válidos. La evaluación es reproducible con `src/lib/music/generator-eval.test.ts`. Pendiente menor: la Figura 13 muestra melodías de muestra generadas con la versión anterior; pueden regenerarse con la nueva para mayor exactitud.
 
 ### 8.1. Recomendación técnica
 
@@ -667,6 +713,8 @@ La media aritmética simple es la recomendación inicial porque es transparente,
 - Es posible que las tolerancias deban diferir entre respuestas MIDI introducidas manualmente y audio transcrito; cualquier ajuste debe justificarse y aplicarse consistentemente.
 - No incluir duración/offset de notas en la puntuación si el alcance acordado es solamente altura y onset. La duración puede conservarse para reconstrucción y visualización, pero no forma parte de la puntuación inicial.
 - La puntuación debe mostrar al jugador sub-scores de altura y ritmo, no solo un número general.
+- Localización de errores para el feedback (Zhang et al., 2025): además de los sub-scores, el resultado identifica qué notas de referencia fueron omitidas, cuáles fueron adicionales y, por dimensión, el desvío de altura y de ataque, de modo que la retroalimentación señale el error en el tiempo y no solo un puntaje.
+- Tolerancias configurables por perfil de evaluación (Kumar et al., 2026): los umbrales de altura y ataque deben poder ajustarse (collares de tolerancia), no fijarse en un único valor global; en el prototipo se distingue ya entre dictado (50 ms) y canto (150 ms).
 
 Referencia metodológica para las tolerancias y el concepto de matching: documentación de `mir_eval`:
 https://mir-eval.readthedocs.io/latest/api/transcription.html
@@ -1367,7 +1415,7 @@ Orden recomendado, priorizando decisiones que pueden invalidar el diseño:
 1. ~~Reformular C2, C3 y C4 según las técnicas que realmente se implementarán.~~ Completado.
 2. ~~Ampliar C1 hacia mecánicas multijugador e intercambio de contenido.~~ Completado (C1b).
 3. ~~Ejecutar búsquedas reproducibles y documentar cifras nuevas.~~ Completado (23-11-2026; ver `docs/estado-del-arte/registro-busqueda.md`).
-4. Comparar opciones técnicas y justificar la selección final. **Pendiente: etapa 4 (texto completo) y redacción del capítulo II conforme a PRISMA.**
+4. Comparar opciones técnicas y justificar la selección final. **Etapa 4 completada (76 incluidos; ver 6.5). Pendiente: tabla de técnicas/resultados/gap y redacción del capítulo II conforme a PRISMA.**
 
 ### Prioridad 3 – Pruebas técnicas de factibilidad
 
@@ -1626,7 +1674,8 @@ Mejoras propuestas en 5.2.4: penalizar la repetición, controlar el perfil de in
 El capítulo sigue la estructura de Freire (2025): 5.1 Resultados y 5.2 Discusión, con subsecciones por componente. No se agregaron fuentes externas nuevas; la discusión cita Pesek et al. (2020a) para comparar con Troubadour.
 
 - **Figura 12:** gráfico de barras agrupadas de la distribución de intervalos. Se generó con `@preview/cetz-plot:0.1.4` y `@preview/cetz:0.5.2`. No se usó `plotst` porque su versión 0.2.0 usa la función `style`, retirada en Typst 0.14, y no compila.
-- **Figura 13:** piano roll de tres melodías reales (una por dificultad), dibujado con Typst a partir de las notas generadas. La línea vertical gris marca la modulación.
+- **Figura 13:** piano roll de tres melodías de muestra (una por dificultad), dibujado con Typst a partir de las notas generadas con el generador reformado (semillas `figura13-{baja|media|alta}`). La línea vertical gris marca la modulación. Regenerada el 24-11-2026 tras la reforma del generador.
+- **Figura 1 (capítulo II):** proceso de búsqueda y selección conforme a PRISMA 2020. Se regeneró el 24-11-2026 como diagrama de Typst (`fletcher`), sustituyendo a `fig1.png` (obsoleto: mostraba la revisión anterior con Springer/OpenAlex y 10 estudios por cluster). Refleja las cifras del SOTA actualizado: 5232 → 4759 únicos → 4599 → 656 → 448 → 76 incluidos.
 - **Tablas 19–23:** configuración, cumplimiento y tiempo, distribución de intervalos, ambitus/duración/modulación y variedad melódica.
 
 Si se agrega la sección del evaluador, usar 5.1.6 y 5.2.6 (o renumerar) y continuar la numeración de tablas y figuras desde 24 y 14, respectivamente.

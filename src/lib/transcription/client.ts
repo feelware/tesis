@@ -1,15 +1,12 @@
 import type { EvaluatedNote } from "@/lib/music";
-import {
-  BASIC_PITCH_MODEL_URL,
-  type TranscriptionRequest,
-  type TranscriptionResponse,
-} from "./protocol";
+import type { TranscriptionRequest, TranscriptionResponse } from "./protocol";
 import {
   normalizeTranscription,
   resampleToMono,
   trimLeadingSilence,
 } from "./normalize";
 
+const TARGET_SAMPLE_RATE = 22050;
 const STALL_TIMEOUT_MS = 30000;
 const WATCHDOG_INTERVAL_MS = 5000;
 
@@ -77,7 +74,7 @@ export const transcribeAudio = (
   onProgress?: (percent: number) => void,
 ): Promise<EvaluatedNote[]> =>
   resampleToMono(audioBuffer).then((mono) => {
-    const audio = trimLeadingSilence(mono, 22050);
+    const audio = trimLeadingSilence(mono, TARGET_SAMPLE_RATE);
     return new Promise<EvaluatedNote[]>((resolve, reject) => {
       const id = nextRequestId;
       nextRequestId += 1;
@@ -101,7 +98,7 @@ export const transcribeAudio = (
       const message: TranscriptionRequest = {
         id,
         audio,
-        modelUrl: BASIC_PITCH_MODEL_URL,
+        sampleRate: TARGET_SAMPLE_RATE,
       };
       getWorker().postMessage(message, [audio.buffer]);
     });

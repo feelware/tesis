@@ -72,6 +72,11 @@
   body
 }
 
+#import "@preview/fletcher:0.5.7" as fletcher: diagram, node, edge
+#let caja-c4(x, y, body, fill: rgb("#eef2ff")) = node((x, y), body, shape: fletcher.shapes.rect, fill: fill)
+#let pastilla-c4(x, y, body, fill: rgb("#eef2ff")) = node((x, y), body, shape: fletcher.shapes.pill, fill: fill)
+#let diam-c4(x, y, body, fill: rgb("#fff7ed")) = node((x, y), body, shape: fletcher.shapes.diamond, fill: fill)
+
 // ============ Portada ============
 #align(center)[
   #v(1.5cm)
@@ -322,12 +327,102 @@ La Figura 1 muestra el proceso de selección conforme al diagrama de flujo de PR
 
 #block(breakable: false)[
   #leyenda([Figura], 1, [Proceso de búsqueda y selección de estudios conforme a PRISMA 2020])
-  #align(center)[#image("fig1.png", width: 100%)]
+  #align(center)[
+  #set text(size: 8pt)
+  #diagram(
+    node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
+    spacing: (5.6cm, 1.65cm),
+    caja-c4(0, 0, [Registros identificados #linebreak() en 4 fuentes (n = 5232)]),
+    caja-c4(0, 1, [Registros únicos tras #linebreak() deduplicación (n = 4759)]),
+    caja-c4(0, 2, [Cribado por año e idioma #linebreak() (etapa 1) (n = 4599)]),
+    caja-c4(0, 3, [Cribado temático #linebreak() (etapa 2b) (n = 656)]),
+    caja-c4(0, 4, [Cribado de título y abstract #linebreak() (etapa 3) (n = 448)]),
+    caja-c4(0, 5, [Texto completo #linebreak() (etapa 4) (n = 76)]),
+    caja-c4(0, 6, [Estudios incluidos #linebreak() en la síntesis (n = 76)], fill: rgb("#dcfce7")),
+    caja-c4(2, 2, [Excluidos (n = 160): #linebreak() año ≤ 2021 o idioma], fill: rgb("#fee2e2")),
+    caja-c4(2, 3, [Excluidos (n = 3943): #linebreak() sin señal musical #linebreak() o tipo documental], fill: rgb("#fee2e2")),
+    caja-c4(2, 4, [Excluidos (n = 208): #linebreak() fuera de alcance #linebreak() o sin método replicable], fill: rgb("#fee2e2")),
+    caja-c4(2, 5, [Excluidos (n = 372): #linebreak() acceso cerrado (246) / #linebreak() informe no recuperado (126)], fill: rgb("#fee2e2")),
+    edge((0, 0), (0, 1), "->"),
+    edge((0, 1), (0, 2), "->"),
+    edge((0, 2), (0, 3), "->"),
+    edge((0, 3), (0, 4), "->"),
+    edge((0, 4), (0, 5), "->"),
+    edge((0, 5), (0, 6), "->"),
+    edge((0, 2), (2, 2), "->"),
+    edge((0, 3), (2, 3), "->"),
+    edge((0, 4), (2, 4), "->"),
+    edge((0, 5), (2, 5), "->"),
+  )
+  ]
 ]
 
 === 2.4.4. Extracción de datos y síntesis
 
 Por cada estudio incluido se extraen las técnicas implementadas en la propuesta de solución, el dataset utilizado para el entrenamiento de los modelos pertinentes o la población de interés en el caso de estudios que no utilizaron modelos de aprendizaje automático, los resultados obtenidos, las limitaciones reportadas y el research gap identificado. Dado que los estudios abordan clusters de naturaleza distinta y no se busca estimar un efecto común, la síntesis es narrativa: los estudios se agrupan por cluster y se comparan según la técnica aplicada, el nivel de detalle del método y su pertinencia para el diseño del sistema propuesto. Los estudios seleccionados se listan en el Anexo A.
+
+=== 2.4.5. Síntesis del estado del arte
+
+La síntesis de los estudios incluidos se organiza por los cuatro clusters de búsqueda. Para cada uno se describen los enfoques predominantes, los resultados representativos, las limitaciones observadas y el hueco que la propuesta de esta tesis busca cubrir. El detalle técnico de cada estudio (técnicas, datasets, resultados y brechas) se recoge en el Anexo A.
+
+*Juegos y educación musical (C1).*
+
+El corpus revisado evidencia que la investigación sobre juegos y plataformas de entrenamiento auditivo asistido por computadora es aún escasa y se concentra en el diseño de experiencias individuales con gamificación de superficie. El antecedente más directo es el juego de ear training técnico de (Kim et al., 2023), una plataforma gamificada de cuatro módulos (identificación espectral, localización auditiva, consistencia y memoria de mezcla) implementada en Unity con secuenciación adaptativa por niveles, incentivos tipo star tokens y retroalimentación inmediata mediante un bucle audiomotor cerrado, cuya dificultad se regula con tablas explícitas de parámetros por nivel (ganancias de filtro, número de fuentes, radios de tolerancia). En una línea complementaria orientada al videojuego, (Amaral et al., 2022) proponen una arquitectura de generación musical adaptativa basada en un Transformer que modula la intensidad y el carácter de la música según el estado del juego y las emociones del jugador (modelo arousal/valence con hasta cuatro capas superpuestas), lo que ilustra cómo el contenido sonoro puede adaptarse dinámicamente a la partida. Fuera del estricto ámbito lúdico, diversos trabajos aportan piezas funcionales para la retroalimentación pedagógica que un juego de entrenamiento auditivo requiere: (Zhang et al., 2025) desarrollan un coach basado en un modelo de lenguaje que genera evaluación y comentarios formativos sobre la interpretación musical; (Kumar et al., 2026) proponen la detección y el análisis automático de errores de canto en tareas de aprendizaje por imitación; y (Andono et al., 2022) clasifican la dificultad de melodías a partir de patrones frecuentes y distancias entre notas, aportando un mecanismo de adaptación de dificultad directamente utilizable en la secuenciación de niveles.
+
+En cuanto a los resultados representativos, (Kim et al., 2023) reportan que el grupo entrenado durante catorce semanas exclusivamente con el juego mejoró significativamente frente al grupo de referencia en la tarea más difícil (comprensión de habla de fondo colocalizada, ANOVA F(2,79) = 6,35, p = 0,003) y respondió con mayor rapidez en las condiciones separadas, con una transferencia del beneficio a una habilidad no entrenada (habla en ruido), lo cual respalda la eficacia del bucle de práctica gamificada con retroalimentación inmediata. En el terreno de la retroalimentación automática, (Zhang et al., 2025) muestran que su modelo supera a otros sistemas de lenguaje-audio en métricas objetivas (MAE 0,97 en escala de 6 puntos) y que sus sugerencias obtienen valoraciones significativamente más altas en un estudio con estudiantes y docentes, lo que demuestra el valor pedagógico del feedback textual formativo frente a la puntuación sumativa. (Kumar et al., 2026) alcanzan F1 con collar de tolerancia del 82,5 \% al 88,1 \% en errores de frecuencia y alrededor del 91 \% en amplitud, y observan que los collars de tolerancia mejoran las métricas por marco, aunque la transferencia entre docentes degrada el rendimiento por diferencias en los criterios de error (12 frente a 22 cents). Por su parte, (Andono et al., 2022) logran un 82 \% de exactitud en la clasificación de dificultad melódica frente al criterio experto, y (Biesinger et al., 2025) demuestran la viabilidad de un análisis espectral de baja latencia (aproximadamente 0,31 µs por muestra y menos del 2 \% de CPU) apto para dar respuesta auditiva o visual inmediata durante la ejecución en vivo, condición técnica indispensable para juegos de dictado o repentización.
+
+No obstante, el estado del arte revela limitaciones y brechas consistentes. Desde la perspectiva lúdica, ni (Kim et al., 2023) ni (Amaral et al., 2022) incluyen mecánicas multijugador reales: la práctica es individual, no existe intercambio de producciones ni de contenido generado por los jugadores entre rondas, y la gamificación se reduce a incentivos y niveles sin dinámicas sociales ni competitivas colaborativas. Además, el juego de (Kim et al., 2023) opera en el dominio de la ingeniería de audio (no melódico), con una muestra muy pequeña (cuatro participantes de tratamiento y cuatro de control) y sin evaluación nota a nota, mientras que la arquitectura de (Amaral et al., 2022) es un proof of concept sin métricas perceptuales ni cuantitativas y con integración en un juego real aún pendiente. En el plano de la evaluación automática, (Zhang et al., 2025) reconocen que su feedback carece de localización temporal del error (no señala compás o pulso), limitando su accionabilidad pedagógica; (Kumar et al., 2026) documentan que la anotación de errores es subjetiva y dependiente del docente, que solo se modelan frecuencia y amplitud (no timing) y que las métricas a nivel de evento siguen siendo bajas; y (Andono et al., 2022) validan su clasificador solo sobre un conjunto de 50 piezas del repertorio gamelan, sin parámetros psicofísicos del aprendiz. En síntesis, el gap transversal es la ausencia de plataformas de entrenamiento auditivo en el dominio melódico (dictado y repentización) que combinen evaluación nota a nota, retroalimentación formativa localizada y, sobre todo, mecánicas multijugador con intercambio real de contenido producido por los propios jugadores.
+
+El insight para el presente trabajo es doble. Por un lado, los estudios revisados respaldan decisiones de diseño centrales del juego propuesto: la retroalimentación inmediata tras cada intento y la secuenciación adaptativa por niveles con tablas explícitas de parámetros de dificultad (Kim et al., 2023), la combinación de métricas objetivas nota a nota con explicaciones textuales por dimensión —altura y ritmo— en lugar de un simple puntaje (Zhang et al., 2025), la evaluación con umbrales de tolerancia ajustables (collars de 80–200 ms y 12–22 cents) que refleje la percepción humana del error (Kumar et al., 2026), la puntuación procedural de dificultad basada en longitud, magnitud de intervalos y frecuencia de patrones (Andono et al., 2022) y la viabilidad de un analizador de audio en vivo de baja latencia ejecutable en navegador (Biesinger et al., 2025). Por otro lado, la mecánica diferenciadora de la tesis —el intercambio encadenado de melodías y producciones entre jugadores entre rondas, en la línea de Gartic Phone— llena un hueco que la literatura no ha cubierto: hasta ahora la gamificación del entrenamiento auditivo es superficial y estrictamente individual, sin dinámicas sociales, sin leaderboard por partida ni circulación de material musical generado por los estudiantes. Al trasladar el feedback automático inmediato a un contexto multijugador de intercambio encadenado, el juego propuesto no solo capitaliza los hallazgos sobre retroalimentación formativa y adaptación de dificultad, sino que introduce una capa de motivación social y de aprendizaje entre pares que el estado del arte del dominio aún no ha explorado.
+
+*Generación de melodías (C2).*
+
+El análisis del corpus permite identificar dos grandes familias de enfoques para la generación de melodías y música simbólica: los enfoques procedurales y basados en reglas —gramáticas, cadenas de Markov, sistemas dinámicos, algoritmos genéticos y métodos estadísticos ligeros— frente a los enfoques de aprendizaje automático basados en redes neuronales profundas —Transformers autorregresivos, LLM, GAN, VAE y modelos de difusión—. La primera familia, aunque minoritaria en número de publicaciones, demuestra que es posible generar material musical válido y controlable sin entrenamiento de modelos, mientras que la segunda concentra la mayor parte del esfuerzo investigador reciente y logra altos niveles de calidad perceptual a costa de la opacidad, el coste computacional y la pérdida de control paramétrico explícito. Esta dualidad resulta directamente relevante para la presente tesis, cuyo generador de melodías para dictado melódico y repentización se inscribe deliberadamente en la primera familia: generación procedural simbólica monofónica por reglas y restricciones, determinista por semilla.
+
+Dentro de los enfoques procedurales y basados en reglas, los estudios confirman la vigencia de las cadenas de Markov, las gramáticas generativas y la codificación explícita de conocimiento musical. Kamberaj, Kadriu y Besimi (2025) combinan gramática generativa para la construcción de acordes con cadenas de Markov para las líneas de solo sobre un dataset MIDI propio, logrando que las generaciones se mantengan dentro de los parámetros del corpus (escala, octavas, tempo, compás 4/4) con sincronización exacta entre solo y acordes, y validación positiva por profesionales. En la misma línea, Raposo y Soares (2025) generan patrones rítmicos frase a frase para solos de jazz mediante cadenas de Markov de primer orden (bigrams), y demuestran que no existen diferencias estadísticamente significativas entre las frases generadas y las del conjunto de prueba (notes p=0.808; length p=0.946; pattern p=0.925), reproduciendo medias y distribuciones del corpus original. El núcleo algorítmico de MusicAIR (Liao, Liao y Zhang, 2025) prescinde por completo de redes neuronales: reglas de teoría musical determinan tonalidad, construcción rítmica y de alturas, con una confianza tonal media (correlación de Krumhansl-Schmuckler) de 0.85 frente a 0.79 de los compositores humanos y un rhythm matching del 73.6\%. Asimismo, Nakayama et al. (2024) formalizan reglas de progresión de grados y modulación (acorde pivote o compulsiva) que, aplicadas a un contexto de diseño sonoro, superan al método convencional en coincidencia con la frecuencia de pico (77.8\% vs 67.5\%; 94.9\% vs 35.9\%) y en confort percibido (3.8 vs 3.4 en escala 1–5). Otras aproximaciones procedurales amplían el repertorio de operadores: plantillas con conocimiento experto y reglas de ritmo para la generación poema-canción (Shan et al., 2023), sistemas dinámicos de la teoría KAM que producen melodías y variaciones coherentes con solo dos parámetros ajustables (Agustín-Aquino y Santiago-Santos, 2024), la codificación de transformaciones melódicas cromáticas, diatónicas y mutacionales de clara raíz pedagógica aún sin formalizar algorítmicamente (Pitombeira, 2026), gramáticas And-Or atribuidas con muestreo por modelo de energía que, con solo 3 piezas y 289 parámetros, obtienen las mejores puntuaciones subjetivas de ejecutabilidad (9.27/10) frente a modelos neuronales entrenados con millones de piezas (Qian et al., 2025), y métodos estadísticos ligeros basados en compresión LZ78 que generan secuencias monofónicas con calidad distributiva competitiva (Wasserstein 8.57 vs 27.91 de un baseline de difusión) y una velocidad de generación \~300× superior en CPU (Ding et al., 2025, LzMidi). Incluso en un sistema híbrido que integra algoritmos genéticos, cadenas de Markov y un LLM, el control de la dificultad y la validez musical se articulan mediante métricas musicales explícitas con función de fitness gaussiana sobre \~21 indicadores, alcanzando una consistencia de escala del 98.8\% (Poćwiardowski, Modrzejewski y Tatara, 2025).
+
+En el bloque de aprendizaje automático, los Transformers autorregresivos y los LLM dominan la generación simbólica. Compose & Embellish (Wu y Yang, 2023) emplea dos Transformers con representación REMI —tokens de compás, tiempo, altura, duración, acorde y marcas explícitas de frase/repetición— y reduce a la mitad la brecha de estructura de largo alcance frente a un baseline (SI\_long 35.1 vs 29.9 vs 43.1 del corpus real), con MOS global 3.18 vs 2.33. Theme Transformer (Shih et al., 2023) condiciona la generación a material temático recuperado contrastivamente, logrando theme inconsistency 0.27 frente a 1.01 del baseline seq2seq. En el preentrenamiento masivo, PianoBART (Liang et al., 2024) alcanza 96.67\% de reconstrucción con codificación Octuple (tuplas de tiempo, tempo, compás, posición, instrumento, altura, duración y velocidad). En el terreno de los LLM, SongComposer (Ding et al., 2025) supera a GPT-4 en generación letra-melodía (PD 50.75\% vs 36.43\%; MD 2.20 vs 2.87) con tuplas de texto por nota (altura, duración, silencio), y la alineación de un LLM con cinco restricciones musicales formales (formato, letra, monotonía, duración, registro vocal) mediante preferencia DPO/KTO eleva la similaridad de distribución de alturas y duraciones (32.37/37.11 en inglés; 33.94/43.44 en chino) con un MOS de 3.42 frente a 3.50 del corpus real y una reducción drástica de violaciones de reglas (Meng et al., 2026). Cabe destacar que este último trabajo, aun siendo neuronal, formaliza validadores deterministas con umbrales configurables, lo que evidencia una tendencia a reinsertar reglas musicales verificables dentro de los propios modelos generativos.
+
+Los modelos de difusión, VAE y GAN constituyen la tercera corriente, orientada al control fino y la calidad de textura. En difusión simbólica, MelodyDiffusion (Li y Sung, 2023) condicionada por acordes alcanza 72.41\% de Hits\@1 en restauración melódica (vs 71.78\% de un baseline de difusión estándar), y la variante VQ-VAE con difusión discreta de Zhang, Fazekas y Saitis (2024) logra un control de estilo del 72.36\% (vs 60.67\% de MusicTransformer) y un Overlapping Area medio de 0.92 sobre rasgos estadísticos (densidad de notas, rango, media y varianza de altura y duración). Su extensión Mamba-Diffusion (Zhang, Fazekas y Saitis, 2025) mejora el OA medio a 0.939 y el Chord F1 a 0.541 con preferencia subjetiva del 80.16/100. En el dominio audio, Music ControlNet (Wu et al., 2024) sigue controles temporales de melodía, dinámica y ritmo con hasta un 49\% más de fidelidad melódica que MusicGen pese a tener 35× menos parámetros, con tolerancias de evaluación explícitas (70 ms en ritmo) de directa traslación al cotejo de respuestas. En VAE, Multi-View MidiVAE (Lin et al., 2024) alcanza 0.969 de accuracy de reconstrucción global con representación OctupleMIDI, que reduce la longitud de secuencia un 75\% y multiplica por 4.57 la velocidad de inferencia. Finalmente, los GAN y los enfoques híbridos muestran tanto potencial como fragilidad: ConL2M (Zhang, Yu y Takasu, 2023) controla estilo melódico mediante atributos estadísticos interpretables (rango, media y varianza) con puntuaciones de control de 4.92/5 en distribución de altura, pero su control de contorno y patrón rítmico decae notablemente (3.63 y 3.52/5); y un GAN con atención de canal (He, 2024) obtiene la mejor puntuación de teoría musical (7.9/10 vs 6.575–6.925 de baselines) pero repite notas excesivamente en tempo lento. En conjunto, las representaciones de datos predominantes son los tokens de eventos MIDI tipo REMI/Octuple y sus extensiones modales (Chen et al., 2025), los pianorolls, la notación ABC (Zhou et al., 2025) y las tuplas de texto (altura, duración, silencio), con una clara tendencia a representar cada nota como tupla compacta para acortar las secuencias.
+
+En cuanto a resultados y métricas, el estado del arte revela un desplazamiento desde la evaluación puramente cualitativa hacia métricas musicales interpretables, aunque sin consenso. Se emplean métricas distributivas (PD, DD, MD; Overlapping Area sobre ambitus, IOI y duración; entropía de clases de altura), métricas de estructura y coherencia (SSMD, Chroma Similarity, Grooving Similarity, Note Density Distance; Structureness Indicators), métricas de control condicional (accuracy de estilo, Chord F1, Hits\@k, melody accuracy frame a frame) y pruebas de escucha con MOS. Resultados representativos son la indistinguibilidad estadística de los patrones rítmicos de Markov frente al corpus (Raposo y Soares, 2025), la confianza tonal de MusicAIR por encima de compositores humanos (Liao, Liao y Zhang, 2025), el MOS 3.42 casi al nivel del corpus real en el LLM alineado por reglas (Meng et al., 2026), y las ganancias de eficiencia de los enfoques ligeros (Ding et al., 2025, LzMidi: entrenamiento \~30× y generación \~300× más rápidos que un baseline de difusión). Sin embargo, la evaluación objetiva de la música generada sigue siendo un problema abierto (Zhang, Fazekas y Saitis, 2025), y varios trabajos advierten que las métricas distributivas no capturan la validez nota a nota que exige la retroalimentación educativa (Ding et al., 2025, SongComposer; Huang et al., 2026).
+
+Las limitaciones recurrentes del campo son consistentes entre familias. En los enfoques de aprendizaje automático destacan: la impredecibilidad y la dificultad de control de la generación (Amaral et al., 2022), la dependencia de datasets escasos, sesgados al compás 4/4 y a progresiones comunes (Poćwiardowski, Modrzejewski y Tatara, 2025), la pérdida de coherencia estructural de largo alcance (Wu y Yang, 2023), la acumulación de error autorregresivo, el coste computacional, la no determinabilidad de la salida y la ausencia de parámetros pedagógicos de dificultad y de generación determinista por semilla, un gap que múltiples estudios enuncian de forma explícita (Li y Sung, 2023; Lin et al., 2024; Liang et al., 2024; Wu, Liu y Fan, 2023; Yi et al., 2025). En los enfoques procedurales, en cambio, las limitaciones son de alcance: control reducido a la dimensión de altura (Agustín-Aquino y Santiago-Santos, 2024), dependencia de reglas heurísticas diseñadas manualmente, ausencia de métricas objetivas y de evaluación con usuarios finales (Kamberaj, Kadriu y Besimi, 2025), y escasez de formalización algorítmica de las transformaciones melódicas de tradición pedagógica (Pitombeira, 2026). De manera transversal, ningún trabajo del corpus genera melodías monofónicas didácticas con parámetros explícitos de dificultad y determinismo por semilla para entrenamiento auditivo, carencia que se repite como oportunidad declarada en estudios tan dispares como los de Raposo y Soares (2025), Liao, Liao y Zhang (2025), Zhang, Fazekas y Saitis (2025) y Qian et al. (2025).
+
+El insight para la presente tesis se desprende directamente de esta evidencia. Los estudios procedurales y estadísticos muestran que los enfoques por reglas, gramáticas y cadenas de Markov generan melodías musicalmente válidas, controlables y reproducibles —con restricciones explícitas de escala, ambitus, tonalidad, compás y sincronización— con coste computacional despreciable, apto para ejecución en navegador (Kamberaj, Kadriu y Besimi, 2025; Liao, Liao y Zhang, 2025; Ding et al., 2025, LzMidi; Raposo y Soares, 2025). Asimismo, los propios trabajos neuronales respaldan decisiones de diseño trasladables a un generador por reglas: el control por atributos interpretables (rango, media y varianza de altura y duración) como parámetros de dificultad (Zhang, Yu y Takasu, 2023; Zhou et al., 2025), las marcas explícitas de frase y repetición para controlar longitud y coherencia (Wu y Yang, 2023; Shan et al., 2023), los validadores deterministas con umbrales configurables de registro, duraciones y repeticiones (Meng et al., 2026), la codificación de restricciones de bien-formación en una gramática explícita (Qian et al., 2025), la calibración de la dificultad como conjunto de métricas musicales con valores objetivo (Poćwiardowski, Modrzejewski y Tatara, 2025) y la generación como motivo base con variaciones procedurales controladas (transposición diatónica, cambios rítmicos) que escalan el reto manteniendo la reconocibilidad (Shih et al., 2023; Agustín-Aquino y Santiago-Santos, 2024). El hueco que llena el generador de esta tesis es, precisamente, el que el estado del arte deja abierto: un generador procedural monofónico, determinista por semilla, que expone parámetros pedagógicos explícitos —intervalo máximo, ambitus, tonalidad y modulación, complejidad rítmica y longitud— para producir ejercicios de dictado melódico y repentización calibrados por nivel de dificultad, validados por reglas musicales verificables y evaluables con métricas nota a nota, sin depender de modelos de aprendizaje automático opacos, no reproducibles ni desplegables en el navegador.
+
+*Similitud y evaluación musical (C3).*
+
+El estado del arte en evaluación y similitud musical se organiza en torno a cuatro familias de enfoques. La primera y más consolidada es la métrica nota a nota basada en precision, recall y F1 con tolerancias de matching, heredada del estándar mir\_eval y aplicada tanto a la transcripción de canto como a la comparación entre una referencia y una respuesta: Kim et al. (2025) evalúan onsets, offsets y conjuntos onset+pitch con umbrales de tolerancia explícitos, y Yong et al. (2023) descomponen la evaluación en métricas de onset (COn), offset (COff) y combinadas (COnP, COnPOff). La segunda familia corresponde al matching o emparejamiento de eventos: Lukoianov et al. (2025) emparejan onsets mediante un two-way mismatch (distancia mínima en ambos sentidos con varianza σ y tolerancia de ±40 ms en el peak-picking), un antecedente directo de la correspondencia bipartita entre notas de referencia y notas ejecutadas. La tercera familia es el alineamiento temporal flexible tipo DTW: Krause et al. (2023) proponen Soft Dynamic Time Warping como función de pérdida y métrica diferenciable que alinea secuencias con desfases temporales sin requerir correspondencias exactas. La cuarta familia aborda la evaluación automática con sentido pedagógico: la detección de errores de canto para aprendizaje por imitación (Kumar et al., 2026), la evaluación de la interpretación expresiva con retroalimentación formativa mediante modelos audio-lenguaje (Zhang et al., 2025) y la clasificación de dificultad melódica a partir de parámetros estructurales como la distancia entre notas y la frecuencia de patrones (Andono et al., 2022).
+
+En cuanto a métricas y tolerancias representativas, los estudios convergen en un rango notablemente estrecho. Kim et al. (2025) fijan umbrales de 50 ms para onset y offset (o 20 \% de la duración en offset) y 50 cents (0,5 semitono) para la altura, y reportan F1 de 0,806 en onset, 0,771 en onset+pitch y 0,610 en la métrica nota completa sobre el dataset ST500. Yong et al. (2023) usan tolerancias equivalentes (50 y 100 ms en onset, 50 ms o 20 \% en offset, 50 cents en pitch) y alcanzan F1 de onset de 0,9305 y COnP de 0,8975, mostrando que la tolerancia de 50 ms es el umbral de facto del campo. En evaluación de errores de canto, Kumar et al. (2026) introducen collars de tolerancia de 80 ms (nivel frame) y 200 ms (nivel evento) y umbrales de error de frecuencia entre 12 y 22 cents calibrados por docente, logrando F1 con collar del 82,5–88,1 \% en errores de frecuencia y cerca del 91 \% en amplitud. En el plano rítmico, Wachter et al. (2025) evalúan onset y valor de nota como métricas independientes (onset F1 de 97,3 \% y note value accuracy de 83,3 \%), y Lukoianov et al. (2025) aplican tolerancias de 50 ms para onsets y 70 ms para compases con F1 de 96,9 \% en detección de eventos. En clasificación de dificultad, Andono et al. (2022) obtienen 82 \% de accuracy con un modelo por reglas basado en longitud de melodía, distancia entre notas consecutivas y soporte de patrones frecuentes.
+
+En alineamiento y emparejamiento, Krause et al. (2023) demuestran que el SoftDTW iguala a las extensiones multi-etiqueta de CTC (AP de 0,737 frente a 0,734 en SWD; AP de 0,896 en Bach10 con la red mayor) para alinear secuencias solo débilmente alineadas, lo que lo convierte en una alternativa tolerante al matching exacto cuando la respuesta del jugador presenta desfases o duraciones variables respecto a la referencia. Sin embargo, el propio trabajo advierte que el alineamiento colapsa (F = 0,00) cuando la secuencia objetivo es mucho más corta que la entrada, lo que limita su uso como única estrategia de comparación. Lukoianov et al. (2025) aportan, desde el matching de onsets, una lección complementaria: el emparejamiento por distancia mínima bidireccional con tolerancia explícita produce correspondencias robustas y decodificables en patrones rítmicos legibles (F1 de 94,7 \% en la secuencia de patrones). Finalmente, Weiß et al. (2022) alertan sobre la rigurosidad metodológica de estas comparaciones: al evaluar estrategias de estimación multipitch, encuentran que la variabilidad entre corridas de entrenamiento y entre particiones train/test supera con frecuencia las diferencias atribuibles al algoritmo, por lo que cualquier métrica de similitud debe reportarse con múltiples corridas, splits limpios y validación cruzada entre datasets.
+
+Las limitaciones y gaps del campo son consistentes entre líneas de investigación. En primer lugar, la elección de tolerancias sigue siendo empírica y dependiente del evaluador: Kumar et al. (2026) documentan que los umbrales de error aceptable varían entre docentes (12 frente a 22 cents) y que la transferencia entre evaluadores degrada el F1, lo que revela que no existe un criterio único de "nota correcta". En segundo lugar, la mayoría de los esquemas nota a nota fusionan dimensiones musicales en una sola métrica combinada (COnP, onset+pitch), y solo recientemente se han propuesto desgloses que evalúan por separado la dimensión temporal y la de altura o valor de nota (Wachter et al., 2025) o la frecuencia y la amplitud del error (Kumar et al., 2026), sin que haya consenso sobre cómo ponderarlas. En tercer lugar, la utilidad pedagógica queda sistemáticamente sin evaluar: Kim et al. (2025) reconocen la falta de estudios sobre la utilidad pedagógica de sus métricas, y Zhang et al. (2025) señalan que los sistemas de retroalimentación no localizan el error en el tiempo (compás o pulso), lo que impide generar feedback accionable. A ello se suma la escasez de datos anotados con figuras rítmicas (Kim et al., 2025), la dependencia de vocabularios curados y supuestos de tempo estable (Lukoianov et al., 2025) y la ausencia de modelos de dificultad validados fuera de contextos musicales específicos como el gamelan (Andono et al., 2022).
+
+En materia de retroalimentación y dificultad, Zhang et al. (2025) demuestran que una rúbrica multidimensional (12 dimensiones, entre ellas altura, ritmo y tempo) combinada con feedback textual formativo supera en valoración humana a las puntuaciones globales sumativas, aunque sus propias métricas objetivas (MAE de 0,97; PFR de 0,99) exigen desglosar la evaluación por dimensión en lugar de emitir un único puntaje. Andono et al. (2022), por su parte, cuantifican la dificultad melódica como combinación de longitud, magnitud de intervalos entre notas consecutivas y frecuencia de patrones, con umbrales calibrados por expertos que permiten clasificar material en niveles básico, intermedio y avanzado. Juntos, estos estudios sugieren que la evaluación automática es pedagógicamente útil solo cuando es a la vez multidimensional, localizada y ajustada al perfil del aprendiz.
+
+El insight para la tesis es directo y convergente. El estándar mir\_eval con métricas precision/recall/F1 nota a nota y tolerancias de 50 ms y 50 cents (0,5 semitono) está respaldado por Kim et al. (2025) y Yong et al. (2023) como esquema de evaluación exacto para comparar una melodía de referencia con la respuesta del jugador. La correspondencia bipartita máxima entre notas encuentra respaldo en el two-way mismatch con tolerancias de Lukoianov et al. (2025), mientras que el SoftDTW de Krause et al. (2023) se perfila como mecanismo complementario para absorber desfases temporales sin penalizar en exceso. La separación de dimensiones —altura y ritmo evaluados independientemente— está respaldada por la evaluación disociada de onset y valor de nota de Wachter et al. (2025) y por la separación de errores de frecuencia y de ritmo/amplitud de Kumar et al. (2026); a ello se suma la recomendación de tolerancias ajustables por perfil de evaluador (collars de 80–200 ms y umbrales de 12–22 cents), que en el juego se traduce en tolerancias configurables (0,5 semitono; 50/150 ms) y en feedback por dimensión con localización temporal (Zhang et al., 2025). El hueco que llena el analizador propuesto es, precisamente, el que la literatura identifica pero no resuelve: un sistema de evaluación nota a nota que combine matching bipartito con tolerancias explícitas en cents y milisegundos, mantenga separadas las dimensiones de altura y ritmo para una retroalimentación interpretable, y reporte su variabilidad metodológica con la rigurosidad exigida por Weiß et al. (2022), aportando evaluación pedagógica útil para dictado melódico y repentización en un entorno de videojuego web, un escenario que ninguno de los estudios revisados aborda de forma integrada.
+
+*Transcripción musical (C4).*
+
+El cluster de transcripción musical agrupa un cuerpo de literatura que aborda la conversión de audio en representación simbólica (pitch + onset → MIDI/partitura) desde tres frentes complementarios: (i) modelos de aprendizaje automático de gran capacidad para transcripción automática de música (AMT) polifónica y de canto; (ii) modelos ligeros orientados a tiempo real; y (iii) métodos de procesamiento digital de señales (DSP) basados en transformadas de Fourier y en pipelines de estimación de F0 seguida de decodificación de notas. En el contexto de esta tesis —un videojuego web que debe transcribir la voz monofónica del jugador en el navegador, sin servidor y con baja latencia— el examen de este corpus permite caracterizar con precisión qué logra cada familia de enfoques, dónde están los cuellos de botella del canto y qué compensación de diseño es técnicamente justificable.
+
+Los modelos de transcripción de canto end-to-end constituyen el grupo de mayor actividad reciente. Kim et al. (2025) proponen un Transformer secuencia-a-secuencia que predice autoregresivamente tokens de onset, pitch, offset y figura rítmica directamente desde el espectrograma STFT, sin separación de fuentes, alcanzando una F1 de 0,806 en onset, 0,771 en onset+pitch y 0,610 a nivel de nota completa sobre MIR-ST500, con pseudo-etiquetado de figuras rítmicas vía beat tracking. En la misma línea, Guo et al. (2025) unifican transcripción y alineamiento de canto en un codificador jerárquico de cinco niveles que combina mel-espectrograma y contorno F0, con un COnPOff de 71,0 y una Raw Pitch Accuracy de 86,7 frente a ROSVOT (70,2/83,8). Las formulaciones basadas en visión por computadora confirman el potencial del enfoque: Wang et al. (2023) tratan cada nota como un objeto detectable sobre la imagen CQT (MusicYOLO) y reportan, sobre el dataset SSVD de lectura a primera vista, una F1 de onset del 96,17 \%, de nota (onset+pitch) del 85,92 \% y de nota con offset del 84,60 \%, con mejor generalización que los métodos frame-based. Los modelos informados por fonemas muestran además que las pistas lingüísticas ayudan justo donde el canto es difícil: Yong et al. (2023) combinan un CRNN de dos ramas (mel-espectrograma + posteriorgrama fonético) y obtienen una F1 de onset de 0,9305 y un COnP de 0,8975 en ISMIR2014, superando a TONY, Omnizart y MusicYOLO, mientras que Yamamoto (2023) demuestra que frontends auto-supervisados (MERT, MapMusic2Vec) igualan a los modelos supervisados con pocos datos etiquetados (COnP de 71,6 con MERT; COnPOff de 50,7 con MapMusic2Vec).
+
+En el ámbito polifónico, las arquitecturas CNN/CRNN, con atención y Transformers alcanzan las métricas nota-a-nota más altas del corpus, aunque sobre instrumentos y datasets concretos. Cao et al. (2024) integran atención dual tiempo-frecuencia con redes de atención de grafos (DAFE-MSGAT) y logran una F1 de nota del 84,36 \% en MAPS y una F1 de frame del 92,79 \% en MAESTRO; Mi et al. (2024) alcanzan una F1 de onset del 97,34 \% en MAESTRO v2 y de onset+offset del 84,76 \% en v3 con convoluciones dilatadas sobre CQT; Li et al. (2025) combinan codificadores de pianoroll preentrenados con decodificación jerárquica tipo modelo de lenguaje (On Off Vel F1 de 0,832) y observan que escalar el modelo de lenguaje no mejora el rendimiento. Kim et al. (2025), con la red de fusión frecuencia-periodicidad PF2N, mejoran el Onset F1 de YMT3/YPTF en +3,3 \% en Slakh2100, y Chang et al. (2024) muestran con YourMT3+ que la aumentación cross-stem eleva la transcripción de canto sin separación de fuentes de una F1 de 3,6 \% a cerca del 64 \%. La evaluación rigurosa de estos sistemas es un asunto en sí mismo: Berendes et al. (2026) construyen el benchmark BSED y demuestran que la calidad de las anotaciones de entrenamiento decide el resultado (F1 de onset de 71,1 \% con alineación a nivel de nota frente a 36,5 \% con alineación por secuencia), dejando a BasicPitch en 24,9 \% y a YMT3+ en 42,3 \%; Weiß et al. (2022) advierten que, en estimación multipitch, la variación por aleatorización y por split supera con frecuencia la mejora atribuible a la arquitectura, y Krause et al. (2023) muestran que el alineamiento con SoftDTW permite entrenar transcriptores con pares audio-MIDI solo débilmente alineados (AP de 0,737 en SWD; 0,896 en Bach10). Estos resultados, sin embargo, se obtienen en su mayoría con modelos de millones de parámetros y evaluación offline, muy lejos de las restricciones de ejecución en navegador.
+
+Frente a ellos, el subgrupo de modelos ligeros en tiempo real fija el estándar de eficiencia perseguible. Fernandez (2023) propone una CNN sin capas recurrentes (Onsets and Velocities) que alcanza una F1 de onset del 96,78 —estado del arte en MAESTRO v3— y de onset+velocity del 94,50 \% con unos 3,1 M de parámetros (cuatro veces menos que el baseline de regresión), corriendo en tiempo real sobre una CPU modesta (menos de 2 s de proceso para 120 s de audio), si bien su latencia práctica en la demo en vivo ronda los 4 s y el campo receptivo implicaría una latencia teórica superior a 9 s. En la misma dirección, Mi et al. (2024) logran precisión de alta resolución con 2,7 M de parámetros frente a los 20 M del baseline (y variantes de 0,9 M), y Korade et al. (2025) confirman que, para retroalimentación musical en vivo, un modelo compacto sobre espectrogramas basta (accuracy del 96 \% con AlexNet para acordes de guitarra), mientras que arquitecturas más profundas sobreajustan con datos pequeños. El patrón que emerge es claro: no se necesitan modelos masivos ni resoluciones temporales extremas (24 ms bastan), pero incluso estos modelos ligeros se evalúan como transcripción offline, y la cuestión de la latencia punta a punta en el navegador queda sin resolver.
+
+El tercer frente lo forman los métodos DSP y los pipelines híbridos F0 + decodificación de notas. Minor et al. (2022) demuestran que la segmentación por onsets combinada con FFT por ventana es suficiente para canto monofónico: errores de pitch del 0–2,9 \% y de valor de nota del 1,6–4,2 \%, con 0 \% de notas extra, aunque el método colapsa en polifonía (50–58 \% de notas extra por armónicos). Biesinger et al. (2025) llevan el análisis espectral al tiempo real estricto con una DFT sin función de ventana y bins exponencialmente alineados a notas: 0,31 µs por muestra, menos del 2 \% de un núcleo de CPU, ventanas a la mitad de latencia y lóbulos laterales eliminados por completo. Los pipelines de estimación de F0 seguida de decodificación confirman la robustez del desacoplamiento: Bhattarai et al. (2024) estiman el F0 con un codificador-decodificador con atención sobre representación CFP y convierten la curva en notas mediante un HMM con decodificación Viterbi (estados silencio/onset/sostenido), con una puntuación de expertos de 2,32/5 comparable a la de pYIN (2,56) y superior a PyWorld (2,04); Kumar et al. (2026) resuelven la detección de errores de canto a partir de contornos de pitch (Praat) y segmentación de notas por umbral de semitonos con mediana móvil, con umbrales de tolerancia de 12–22 cents y collares de 80–200 ms. Lukoianov et al. (2025) completan el cuadro del lado de los onsets: el fine-tuning de un modelo fundacional (MERT) para detección de onsets alcanza una F1 del 96,9 \% con tolerancia de ±40 ms, y la decodificación de patrones rítmicos por Viterbi recupera la secuencia con F1 del 94,7 \%. Es significativo que los propios modelos neuronales de canto deleguen el pitch a trackers DSP: Yong et al. (2023) estiman la altura de nota con pYIN y una mediana ponderada por ventana Hann sobre el contorno F0, Guo et al. (2025) usan RMVPE para el contorno de entrada y Kumar et al. (2026) recurren a Praat.
+
+Los recursos de datos y los protocolos de evaluación del cluster delimitan, a su vez, el margen de mejora. Liu et al. (2024) publican HumTrans, el mayor dataset de tarareo hasta la fecha (56,22 h, 14.614 grabaciones de 10 estudiantes, con MIDI de referencia como autolabels), y sus cuatro modelos baseline de transcripción vocal quedan muy lejos de lo satisfactorio (mejor F1 de 6,74 en validación con JDC-STP), lo que señala un dominio ampliamente sin resolver. Fu et al. (2022) aportan HSD, con anotación jerárquica frase-nota de calidad equivalente a MIR-ST500 (COnP de 97,07 \% a 50 ms y 98,53 \% a 100 ms), y Berendes et al. (2026) añaden BSED/BSD para transcripción orquestal. En cuanto a la evaluación, se consolida el uso de mir\_eval con tolerancias de 50 ms y 50 cents (Kim et al., 2025; Yong et al., 2023; Wang et al., 2023; Chang et al., 2024), junto con métricas invariantes a octava (Liu et al., 2024) y collares de tolerancia temporales y de altura (Kumar et al., 2026), que reflejan mejor la percepción humana del error que el matching exacto.
+
+Las limitaciones recurrentes del corpus configuran un gap muy definido. En primer lugar, los onsets de canto son el cuello de botella declarado: Wang et al. (2023) lo formulan explícitamente («el pitch es fácil pero los onsets son el cuello de botella»), pues el portamento y el legato funden notas sucesivas; Yong et al. (2023) describen los onsets vocales como suaves y las transiciones/re-onsets como especialmente difíciles, y Kim et al. (2025) muestran que incluso con Transformers el F1 nota-a-nota completo se queda en 0,610. En segundo lugar, la escasez de datos de canto anotados limita a todos los modelos (Liu et al., 2024; Fu et al., 2022; Yamamoto, 2023). En tercer lugar, la eficiencia computacional: los sistemas más precisos son polifónicos, pesados y pensados para GPU (Chang et al., 2024; Li et al., 2025; Jung et al., 2026), y los pocos modelos ligeros logran su eficiencia en tareas de piano, no de canto (Fernandez, 2023; Mi et al., 2024). No existe, en el corpus, un transcriptor de canto monofónico ligero, de baja latencia y evaluable en el navegador: incluso BasicPitch, el modelo ligero de referencia, rinde apenas un 24,9 \% de F1 de onset en el benchmark de Berendes et al. (2026), y su despliegue vía TF.js es justamente la fuente de lentitud del prototipo actual.
+
+El insight de diseño para esta tesis se deriva con claridad de este cuadro: existe un tradeoff estructural entre precisión bruta (modelos neuronales) y velocidad, privacidad y ejecución en navegador (DSP), y para el caso concreto del canto monofónico la balanza se inclina del lado DSP por tres razones empíricas del corpus. Primero, el pitch monofónico es un problema resuelto para los métodos DSP: Minor et al. (2022) reportan errores de pitch del 0–2,9 \% en monofónico con un simple análisis FFT por ventana, y Biesinger et al. (2025) demuestran que el análisis espectral puede ejecutarse con ventanas de \~0,125 s, latencia mínima y un coste de CPU despreciable, con bins ya alineados a notas. Segundo, los propios modelos de canto de mayor rendimiento recurren a trackers DSP para la altura: pYIN en Yong et al. (2023), RMVPE en Guo et al. (2025) y contornos de Praat en Kumar et al. (2026), es decir, la precisión de pitch atribuida a los modelos neuronales se apoya en un estimador de F0 clásico; lo que los modelos aportan de verdad es la detección de onsets y límites de nota, que es precisamente donde su F1 nota-a-nota se degrada (Wang et al., 2023; Kim et al., 2025) y donde HumTrans muestra que el dominio del canto está aún sin resolver (Liu et al., 2024). Tercero, las restricciones de la tesis —ejecución en el navegador sin servidor, privacidad del audio del usuario y baja latencia frente a la queja de lentitud de Basic Pitch/TF.js— descartan de facto los modelos polifónicos tipo Transformer/Perceiver (Chang et al., 2024; Li et al., 2025; Jung et al., 2026) e incluso aminoran la ventaja de los modelos ligeros de piano, que ni están entrenados para voz ni garantizan latencia interactiva (Fernandez, 2023). Por ello, el diseño contemplado —un tracker DSP monofónico (pYIN/YIN + detección de onsets) que convierte la voz en notas simbólicas para compararlas con la melodía de referencia— no es una simplificación ingenua sino una compensación justificada: traslada al cliente una tarea (pitch monofónico) que DSP resuelve con exactitud y coste mínimo, acepta deliberadamente el punto débil compartido por todo el campo (los onsets de canto) y llena el gap identificado en la literatura: un módulo de transcripción de canto monofónico ligero, privado y de baja latencia en el navegador, evaluado con el protocolo consolidado del cluster —matching nota a nota con tolerancias de 50 ms y 50 cents, evaluación sensible a octava y collares de tolerancia ajustables (Kim et al., 2025; Yong et al., 2023; Liu et al., 2024; Kumar et al., 2026)— y con la representación simbólica (onset, offset, pitch, duración por frase) que HSD y STARS muestran como adecuada tanto para la evaluación como para la retroalimentación al alumno (Fu et al., 2022; Guo et al., 2025).
+
 
 = Capítulo III: Metodología
 
@@ -425,12 +520,6 @@ Los datos recopilados serán procesados mediante técnicas de análisis estadís
 // el diseño de la versión completa y deberán reescribirse cuando exista
 // implementación y evidencia empírica. Ver docs/context.md, sección 21.
 
-#import "@preview/fletcher:0.5.5" as fletcher: diagram, node, edge
-
-#let caja-c4(x, y, body, fill: rgb("#eef2ff")) = node((x, y), body, shape: fletcher.shapes.rect, fill: fill)
-#let pastilla-c4(x, y, body, fill: rgb("#eef2ff")) = node((x, y), body, shape: fletcher.shapes.pill, fill: fill)
-#let diam-c4(x, y, body, fill: rgb("#fff7ed")) = node((x, y), body, shape: fletcher.shapes.diamond, fill: fill)
-
 = Capítulo IV: Desarrollo de la propuesta
 
 El presente capítulo documenta el diseño y la construcción del artefacto propuesto, correspondiente a la tercera actividad del Design Science Research Methodology (DSRM): diseño y desarrollo (Peffers et al., 2008). La exposición se organiza en once secciones que recorren el enfoque de desarrollo, la arquitectura, el modelo de dominio musical, el generador procedural, el evaluador de similitud, la transcripción automática, las mecánicas de juego, la persistencia, la interfaz, las pruebas técnicas y la síntesis del capítulo.
@@ -443,7 +532,7 @@ El capítulo distingue entre el prototipo funcional, que implementa el núcleo i
 
 El DSRM organiza la investigación en seis actividades: identificación del problema y motivación, definición de objetivos para la solución, diseño y desarrollo, demostración, evaluación y comunicación (Peffers et al., 2008). El presente capítulo se ubica en la tercera actividad. Las actividades de demostración y evaluación se abordan en el capítulo III, en la medida en que definen el protocolo experimental, y en el capítulo V, donde se reportan los resultados.
 
-La construcción del artefacto no siguió una secuencia lineal. Durante la implementación surgieron hallazgos que obligaron a revisar decisiones de diseño: el backend `webgl` de TensorFlow.js dejó de avanzar dentro de un Web Worker, lo que obligó a forzar el backend `cpu`; el ruido tonal por debajo del registro cantado produjo notas espurias, lo que llevó a acotar el rango de frecuencia del modelo; y la diferencia entre los ataques introducidos sobre una rejilla y los ataques producidos por el transcriptor obligó a separar las tolerancias de dictado y de canto. Estos retornos a la actividad de diseño son consistentes con el DSRM, que se concibe como un modelo nominal y no como una secuencia rígida.
+La construcción del artefacto no siguió una secuencia lineal. Durante la implementación surgieron hallazgos que obligaron a revisar decisiones de diseño: la lentitud del primer prototipo de transcripción, basado en un modelo de TensorFlow.js ejecutado en el navegador, motivó su sustitución por un tracker DSP monofónico (sección 4.6); el ruido tonal por debajo del registro cantado produjo notas espurias, lo que llevó a acotar el rango de frecuencia del transcriptor (75–1500 Hz); y la diferencia entre los ataques introducidos sobre una rejilla y los ataques producidos por el transcriptor obligó a separar las tolerancias de dictado y de canto. Estos retornos a la actividad de diseño son consistentes con el DSRM, que se concibe como un modelo nominal y no como una secuencia rígida.
 
 // Extracto clave de Peffers et al. (2008), manuscrito, p. 1117:
 // «we are suggesting that the DSRM should not be used as a rigid orthodoxy
@@ -472,7 +561,7 @@ Desde el punto de vista de la ingeniería de software, el desarrollo adoptó las
   rows: (
     ([Generación procedural por reglas], [Modelo generativo entrenado], [Control explícito de intervalo, ambitus, ritmo, tonalidad y longitud; determinismo y bajo costo computacional.]),
     ([Comparador propio], [Dependencia de `mir_eval`], [No existe una implementación JavaScript equivalente; el comparador propio permite fijar tolerancias y devolver los pares emparejados.]),
-    ([Transcripción con Basic Pitch], [Servicio externo de transcripción], [Inferencia local en el navegador; no se transfiere audio ni se requiere GPU del servidor.]),
+    ([Transcripción con tracker DSP], [Servicio externo de transcripción o modelo preentrenado], [Inferencia local en el navegador (YIN + onsets); no se transfiere audio ni se requiere modelo ni GPU del servidor.]),
     ([Piano roll], [Pentagrama], [Permite aislar altura y ataque; reduce la influencia de la lectoescritura en la medición de habilidades auditivas.]),
     ([Payload CMS], [Backend propio], [Autenticación, colecciones, administración y API disponibles sin desarrollar un backend desde cero.]),
     ([Modelo monofónico], [Modelo polifónico], [Los ejercicios son melódicos; el emparejamiento uno a uno es suficiente y verificable.]),
@@ -553,7 +642,7 @@ La dependencia entre capas es unidireccional: la interfaz depende del dominio y 
   caja-c4(0, 2.0, [Reproducción #linebreak() y grabación]),
   caja-c4(0, 3.0, [Web Worker #linebreak() transcripción]),
   caja-c4(3.0, 1.0, [Dominio musical #linebreak() Tonal], fill: rgb("#f0fdf4")),
-  caja-c4(3.0, 2.6, [Transcripción #linebreak() Basic Pitch], fill: rgb("#f0fdf4")),
+  caja-c4(3.0, 2.6, [Transcripción #linebreak() tracker DSP], fill: rgb("#f0fdf4")),
   caja-c4(6.0, 0, [API de Payload]),
   caja-c4(6.0, 1.2, [PostgreSQL]),
   caja-c4(6.0, 2.4, [Almacenamiento #linebreak() de audio], fill: rgb("#fafafa")),
@@ -573,7 +662,7 @@ La dependencia entre capas es unidireccional: la interfaz depende del dominio y 
 
 === 4.2.2. Stack tecnológico
 
-La Tabla 5 resume las tecnologías empleadas y su función. Las versiones se consignan porque afectan la reproducibilidad de los resultados: una actualización mayor de TensorFlow.js o de Basic Pitch puede modificar la salida de la transcripción, y una actualización de Tonal puede alterar la construcción de escalas.
+La Tabla 5 resume las tecnologías empleadas y su función. Las versiones se consignan porque afectan la reproducibilidad de los resultados: una actualización de Tonal puede alterar la construcción de escalas, y los parámetros del tracker de transcripción (Tabla 14) determinan su salida.
 
 #block(breakable: false)[
 #leyenda([Tabla], 5, [Stack tecnológico y versiones])
@@ -587,8 +676,7 @@ La Tabla 5 resume las tecnologías empleadas y su función. Las versiones se con
     ([Payload CMS], [3.88.0], [Colecciones, autenticación y API], [Administración y persistencia sin backend propio.]),
     ([PostgreSQL], [Contenedor Docker], [Base de datos relacional], [Integridad y consultas estructuradas.]),
     ([Tonal], [6.5.1], [Teoría musical: notas, escalas e intervalos], [Cobertura de operaciones tonales en JavaScript.]),
-    ([Basic Pitch], [1.0.1], [Transcripción de audio a notas], [Implementación oficial en TypeScript ejecutable en navegador.]),
-    ([TensorFlow.js], [3.21.0], [Ejecución del modelo en el navegador], [Dependencia compartida con Basic Pitch.]),
+    ([Tracker DSP (YIN + onsets)], [propio], [Transcripción de audio a notas], [Implementación TypeScript propia (YIN, flujo espectral y segmentación) ejecutable en navegador, sin dependencias de aprendizaje automático.]),
     ([Vitest], [5.1.0], [Pruebas unitarias], [Integración con el ecosistema Vite y TypeScript.]),
     ([Docker Compose], [—], [Entorno local reproducible], [Aislamiento de PostgreSQL y de la aplicación.]),
   ),
@@ -607,7 +695,7 @@ El repositorio se organiza por responsabilidad, no por tipo de archivo. La Tabla
     ([`app/(frontend)`], [Interfaz de partida, componentes de ejercicio, evaluación y resumen.]),
     ([`app/(payload)`], [Panel administrativo y rutas de Payload.]),
     ([`src/lib/music`], [Dominio musical: tipos canónicos, validación, generador y evaluador.]),
-    ([`src/lib/transcription`], [Captura, normalización, protocolo y Web Worker de Basic Pitch.]),
+    ([`src/lib/transcription`], [Captura, normalización, protocolo, tracker DSP (YIN + onsets) y Web Worker.]),
     ([`src/lib/audio`], [Grabación con `MediaRecorder` y reproducción con Web Audio.]),
     ([`src/lib/persistence.ts`], [Guardado de melodías y sesiones en Payload.]),
     ([`src/collections`], [Definición de las colecciones `Users`, `Melodies` y `GameSessions`.]),
@@ -617,7 +705,7 @@ El repositorio se organiza por responsabilidad, no por tipo de archivo. La Tabla
 
 === 4.2.4. Comunicación y despliegue
 
-En el prototipo, la aplicación Next.js sirve la interfaz y las rutas de API; Payload expone la API de las colecciones y el panel administrativo; PostgreSQL almacena los datos estructurados. El audio no sale del navegador: se captura con `MediaRecorder`, se decodifica con Web Audio y se procesa en un Web Worker. El modelo de Basic Pitch se sirve como archivo estático desde `/models/basic-pitch/model.json`.
+En el prototipo, la aplicación Next.js sirve la interfaz y las rutas de API; Payload expone la API de las colecciones y el panel administrativo; PostgreSQL almacena los datos estructurados. El audio no sale del navegador: se captura con `MediaRecorder`, se decodifica con Web Audio y se procesa en un Web Worker con el tracker DSP, sin servir ningún modelo.
 
 // PLACEHOLDER (parcial): la comunicación en tiempo real no forma parte del
 // prototipo individual. El párrafo siguiente especifica el diseño de la
@@ -710,7 +798,7 @@ El generador es determinista a partir de una semilla y de un conjunto de paráme
 
 El generador produce ejercicios de dictado y repentización con restricciones musicales explícitas. Se optó por un enfoque algorítmico, en lugar de entrenar un modelo de generación, porque los ejercicios requieren control directo sobre el intervalo entre notas, la tonalidad, el registro, el ritmo y la longitud, y porque el mismo conjunto de parámetros debe producir melodías reproducibles. La decisión sigue un principio similar al de Troubadour, donde las secuencias se generan a partir de la longitud y de la distribución de intervalos para producir ejercicios con distintos niveles de dificultad (Pesek et al., 2020a).
 
-La Tabla 9 define los tres niveles de dificultad. La Tabla 10 completa la configuración global del generador. Los valores de registro se expresan como números MIDI y corresponden a una ventana centrada en C4 (MIDI 60); el ambitus indica la extensión total de la ventana.
+La Tabla 9 define los tres niveles de dificultad, reformulada según el estado del arte (sección 2.4.5, cluster de generación): los ejes de dificultad siguen a Poćwiardowski et al. (2025) —longitud, magnitud de intervalo y frecuencia de patrones (aquí, penalización de la repetición)— y se complementan con la tesitura cantable de MusicAIR (Liao et al., 2025), la estructura de frases (Raposo y Soares, 2025; Wu y Yang, 2023) y los validadores deterministas de Meng et al. (2026). La Tabla 10 completa la configuración global del generador. Los valores de registro se expresan como números MIDI y corresponden a una ventana centrada en C4 (MIDI 60); el ambitus se limita a una tesitura cantable (máximo 2 octavas, registro C3–C5). La dificultad alta se había fijado en 3 octavas (F#2–F#5), fuera de cualquier registro vocal razonable; la restricción de tesitura cantable de MusicAIR se adopta aquí.
 
 #block(breakable: false)[
 #leyenda([Tabla], 9, [Parámetros de generación melódica por nivel de dificultad])
@@ -720,8 +808,10 @@ La Tabla 9 define los tres niveles de dificultad. La Tabla 10 completa la config
   rows: (
     ([Longitud (notas)], [8], [15], [24]),
     ([Intervalo máximo consecutivo], [2 semitonos], [5 semitonos], [7 semitonos]),
-    ([Ambitus], [12 semitonos (1 octava)], [24 semitonos (2 octavas)], [36 semitonos (3 octavas)]),
-    ([Registro MIDI], [54–66], [48–72], [42–78]),
+    ([Penalización de repetición], [0.35], [0.65], [1.0]),
+    ([Ambitus — tesitura cantable], [12 semitonos (1 octava)], [19 semitonos (≈1.5 octavas)], [24 semitonos (2 octavas)]),
+    ([Registro MIDI (C3–C5)], [54–66], [51–70], [48–72]),
+    ([Frases], [1], [2], [3]),
     ([Duraciones (pulsos)], [1 y 2], [0.5, 1 y 2], [0.5, 1, 1.5, 2 y 2/3]),
     ([Figura rítmica requerida], [—], [Al menos una corchea], [Al menos una figura de 1.5 o 2/3]),
     ([Modulación], [Ninguna], [Opcional (50 %), a la tonalidad relativa], [Obligatoria, a dominante o subdominante]),
@@ -792,7 +882,7 @@ La validación comprueba la cantidad de notas, el ambitus, el registro, el inter
 
 === 4.4.4. Pruebas y resultados
 
-El generador se cubrió con 26 pruebas unitarias. Cada propiedad estructural se verificó sobre 25 semillas por nivel de dificultad, lo que permitió detectar casos límite en la modulación, en el ritmo y en el ambitus. La Tabla 11 resume las propiedades verificadas.
+El generador se cubrió con 29 pruebas unitarias. Cada propiedad estructural se verificó sobre 25 semillas por nivel de dificultad, lo que permitió detectar casos límite en la modulación, en el ritmo y en el ambitus. La Tabla 11 resume las propiedades verificadas.
 
 #block(breakable: false)[
 #leyenda([Tabla], 11, [Propiedades verificadas del generador])
@@ -802,7 +892,7 @@ El generador se cubrió con 26 pruebas unitarias. Cada propiedad estructural se 
   rows: (
     ([Longitud], [8, 15 o 24 notas según el nivel], [25 semillas por nivel]),
     ([Intervalo máximo], [≤ 2, 5 o 7 semitonos], [25 semillas por nivel]),
-    ([Ambitus], [≤ 12, 24 o 36 semitonos], [25 semillas por nivel]),
+    ([Ambitus], [≤ 12, 19 o 24 semitonos (tesitura cantable)], [25 semillas por nivel]),
     ([Pertenencia a la escala], [Cada segmento usa su escala activa], [25 semillas por nivel]),
     ([Valores rítmicos], [Solo duraciones permitidas], [25 semillas por nivel]),
     ([Figura requerida], [Al menos una figura del nivel], [25 semillas por nivel]),
@@ -810,6 +900,9 @@ El generador se cubrió con 26 pruebas unitarias. Cada propiedad estructural se 
     ([Modulación], [Regla de modulación del nivel], [25 semillas por nivel]),
     ([Reproducibilidad], [Misma tupla de parámetros, misma melodía], [2 casos]),
     ([Sensibilidad], [Semillas distintas, melodías distintas], [2 casos]),
+    ([Tesitura cantable], [Ambitus ≤ 24 semitonos en todos los niveles], [3 niveles]),
+    ([Frases], [Número de frases del nivel], [3 niveles]),
+    ([Variedad], [La repetición de notas decrece al aumentar la dificultad], [25 semillas por nivel]),
   ),
 )]
 
@@ -817,7 +910,7 @@ El generador se cubrió con 26 pruebas unitarias. Cada propiedad estructural se 
 
 El enfoque procedural ofrece tres ventajas frente a un modelo generativo. Primero, permite imponer restricciones pedagógicas verificables, como el intervalo máximo o la longitud. Segundo, produce melodías reproducibles y auditables. Tercero, no requiere entrenamiento ni infraestructura de inferencia. La desventaja es que la corrección estructural no garantiza calidad musical: una melodía puede cumplir todas las restricciones y resultar poco idiomática. Por esta razón, la validación automática se complementa con la revisión de docentes, que se aborda en el diseño experimental.
 
-Una limitación del diseño actual es la relación entre el registro y la tesitura vocal. La dificultad alta abarca tres octavas (F#2–F#6), lo que excede la extensión cómoda de muchas voces. Para atenuar este efecto, la evaluación de repentización en dificultad baja admite equivalencia de octava; en dificultades media y alta se exige correspondencia estricta. La selección de melodías para repentización debe considerar esta restricción, y la posibilidad de transponer la referencia a la tesitura cómoda del jugador queda como una línea de mejora del generador.
+El registro se acotó a una tesitura cantable (C3–C5, máximo dos octavas) siguiendo la restricción de MusicAIR (Liao et al., 2025), lo que resuelve la limitación previa en que la dificultad alta abarcaba tres octavas (F#2–F#5), fuera de la extensión cómoda de muchas voces. En la evaluación de repentización, la dificultad baja admite equivalencia de octava; en media y alta se exige correspondencia estricta. La selección de melodías para repentización debe considerar esta restricción, y la posibilidad de transponer la referencia a la tesitura cómoda del jugador queda como una línea de mejora del generador.
 
 == 4.5. Evaluación de similitud melódica
 
@@ -829,7 +922,7 @@ La evaluación se limita a dos dimensiones: precisión de alturas y precisión r
 
 === 4.5.2. Métricas
 
-Para cada dimensión se calculan precisión, exhaustividad y medida $F_1$. La precisión mide la proporción de notas de la respuesta que encontraron correspondencia; la exhaustividad, la proporción de notas de referencia que fueron encontradas. La medida $F_1$ combina ambas y penaliza tanto las notas de más como las notas omitidas.
+Para cada dimensión se calculan precisión, exhaustividad y medida $F_1$. La precisión mide la proporción de notas de la respuesta que encontraron correspondencia; la exhaustividad, la proporción de notas de referencia que fueron encontradas. La medida $F_1$ combina ambas y penaliza tanto las notas de más como las notas omitidas. Además de las puntuaciones, el resultado localiza el error para la retroalimentación (Zhang et al., 2025): identifica qué notas de referencia fueron omitidas, cuáles fueron adicionales y el desvío de altura y de ataque de cada correspondencia, de modo que el feedback señale dónde está el error y no solo cuánto se erró.
 
 $ "precisión" = P = n_"aciertos" / n_"estimadas" $
 
@@ -922,13 +1015,15 @@ La medida $F_1$ se adoptó porque penaliza simétricamente las omisiones y las n
 
 == 4.6. Transcripción automática de audio a MIDI
 
-=== 4.6.1. Selección del modelo
+=== 4.6.1. Selección del método
 
-La evaluación de la repentización requiere transformar la interpretación vocal en una secuencia de notas. Se seleccionó Spotify Basic Pitch en su implementación oficial para TypeScript, publicada como `@spotify/basic-pitch`. La selección se basó en cuatro criterios: disponibilidad de una implementación mantenida en npm, ejecución en el navegador mediante TensorFlow.js, capacidad de procesar audio monofónico y posibilidad de operar sin enviar el audio a un servicio externo. La implementación se apoya en un modelo preentrenado y no requiere entrenamiento propio.
+La evaluación de la repentización requiere transformar la interpretación vocal monofónica en una secuencia de notas. La revisión del estado del arte (sección 2.4.5, cluster de transcripción) describe un tradeoff estructural entre precisión y coste computacional: los modelos de aprendizaje automático de canto logran la mayor precisión nota a nota (F1 de onset+pitch del 86–93 %), pero su inferencia en el navegador es lenta —como ocurría con Spotify Basic Pitch mediante TensorFlow.js, origen de la queja de latencia del prototipo— o exige servidor; en cambio, los métodos de procesamiento digital de señales (DSP) son muy rápidos y privados, aunque tradicionalmente más débiles en la segmentación de notas. Para el caso concreto del canto monofónico, la balanza se inclina del lado DSP por tres razones empíricas del corpus: la altura monofónica es un problema resuelto para los métodos DSP (errores de pitch del 0–2,9 % con análisis espectral por ventana); los propios modelos de canto de mayor rendimiento delegan la estimación de altura a trackers DSP (pYIN), de modo que la precisión atribuida a las redes se apoya en un estimador de F0 clásico; y las restricciones de ejecución en el navegador —sin servidor, sin exponer el audio del jugador y con baja latencia— descartan los modelos polifónicos pesados y aminoran la ventaja de los modelos ligeros de piano, no entrenados para voz.
+
+Por ello se seleccionó un tracker DSP monofónico propio: estimación de altura con el algoritmo YIN, detección de ataques por flujo espectral y segmentación de notas por altura estable y ataques. La decisión es una compensación deliberada entre precisión y coste computacional: se renuncia a parte de la precisión de los onsets —el cuello de botella declarado del canto, incluso para las redes neuronales— a cambio de una ejecución nativa en el navegador, sin modelo preentrenado, sin TensorFlow.js y con una latencia mínima. El resultado es código TypeScript puro, auditable y determinista, coherente con el enfoque de la tesis y con la decisión de no entrenar modelos propios.
 
 === 4.6.2. Pipeline de procesamiento
 
-La Figura 8 muestra el pipeline. El jugador graba su interpretación con `MediaRecorder`; el audio se decodifica con Web Audio, se remuestrea a 22 050 Hz mono y se recorta el silencio inicial. La señal resultante se transfiere a un Web Worker, donde Basic Pitch infiere las notas. La salida se normaliza y se convierte en una secuencia de `EvaluatedNote`, que se compara con la melodía de referencia mediante el evaluador descrito en la sección 4.5.
+La Figura 8 muestra el pipeline. El jugador graba su interpretación con `MediaRecorder`; el audio se decodifica con Web Audio, se remuestrea a 22 050 Hz mono y se recorta el silencio inicial. La señal resultante se transfiere a un Web Worker, donde el tracker DSP la procesa en tres pasos: estimación de altura por frame con el algoritmo YIN (acotada al rango 75–1500 Hz), detección de ataques por flujo espectral con umbral adaptativo, y segmentación en notas agrupando frames de altura estable y dividiendo en ataques o cambios de altura sostenidos, lo que la hace robusta al vibrato. La salida se normaliza y se convierte en una secuencia de `EvaluatedNote`, que se compara con la melodía de referencia mediante el evaluador descrito en la sección 4.5.
 
 #block(breakable: false)[
 #leyenda([Figura], 8, [Pipeline de transcripción de audio a notas])
@@ -942,8 +1037,8 @@ La Figura 8 muestra el pipeline. El jugador graba su interpretación con `MediaR
   caja-c4(4.0, 0, [Decodificación]),
   caja-c4(6.0, 0, [Remuestreo #linebreak() 22 050 Hz mono]),
   caja-c4(6.0, 1.4, [Recorte de #linebreak() silencio]),
-  caja-c4(4.0, 1.4, [Web Worker #linebreak() backend CPU]),
-  caja-c4(2.0, 1.4, [Basic Pitch]),
+  caja-c4(4.0, 1.4, [Web Worker #linebreak() tracker DSP]),
+  caja-c4(2.0, 1.4, [YIN + onsets]),
   caja-c4(0, 1.4, [Normalización]),
   caja-c4(0, 2.8, [EvaluatedNote]),
   caja-c4(2.0, 2.8, [Evaluador]),
@@ -970,22 +1065,21 @@ Los parámetros de inferencia se centralizaron en un único módulo para que el 
   columns: (4cm, 3.4cm, 8.5cm),
   header: ([*Parámetro*], [*Valor*], [*Función*]),
   rows: (
-    ([`onsetThresh`], [0.5], [Umbral de detección de ataques.]),
-    ([`frameThresh`], [0.3], [Umbral de activación por fotograma.]),
-    ([`minNoteLen`], [12 fotogramas], [Descarta transitorios de consonante; equivale a unos 0.14 s.]),
-    ([`minFreq`–`maxFreq`], [75–1500 Hz], [Acota el rango de inferencia y elimina ruido tonal grave.]),
-    ([`melodiaTrick`], [`true`], [Favorece la melodía dominante.]),
-    ([`energyTolerance`], [11], [Tolerancia de energía del modelo.]),
-    ([Frecuencia de muestreo], [22 050 Hz], [Requisito de entrada del modelo.]),
+    ([`frameSize`], [2048 muestras], [Ventana de análisis de YIN (unos 93 ms).]),
+    ([`hopSize`], [512 muestras], [Salto entre frames (unos 23 ms).]),
+    ([`yinThreshold`], [0.15], [Umbral de YIN para considerar una altura válida.]),
+    ([`minFreq`–`maxFreq`], [75–1500 Hz], [Acota el rango de búsqueda y elimina ruido tonal grave.]),
+    ([`onsetSensitivity`], [1.2 σ], [Umbral adaptativo del flujo espectral de ataques.]),
+    ([`minNoteLenMs`], [50 ms], [Descarta transitorios de consonante.]),
+    ([`maxGapMs`], [40 ms], [Hueco sin voz admitido dentro de una nota.]),
+    ([Frecuencia de muestreo], [22 050 Hz], [Entrada del tracker.]),
     ([Fusión de segmentos], [< 80 ms], [Une notas contiguas de igual altura.]),
   ),
 )]
 
 === 4.6.4. Integración en el navegador
 
-La inferencia se ejecuta en un Web Worker para no bloquear la interfaz. Durante el desarrollo se comprobó que, dentro del Worker, el backend `webgl` de TensorFlow.js deja de avanzar en la ejecución del modelo; por esta razón se fuerza el backend `cpu` antes de inferir. También se fijó TensorFlow.js en la versión 3.21.0 como dependencia directa para compartir una única instancia con Basic Pitch. El modelo se sirve localmente, de modo que la transcripción no depende de una conexión externa ni expone el audio del jugador a un tercero.
-
-El cliente mantiene un watchdog de 30 s: si la transcripción deja de reportar progreso, la solicitud se cancela y se informa al jugador. Esta decisión evita que la interfaz quede bloqueada esperando un mensaje que no llegará.
+El tracker DSP se ejecuta en un Web Worker para no bloquear la interfaz, aunque su coste computacional es muy inferior al del modelo que reemplaza: no carga un modelo preentrenado ni depende de TensorFlow.js, y procesa unos 2 s de audio en menos de 0,2 s. El audio del jugador no sale del navegador: se procesa localmente, sin conexión a servicios externos ni envío a un tercero, lo que protege la privacidad y evita sobrecargar el servidor. El cliente mantiene un watchdog de 30 s como salvaguarda: si la transcripción dejara de avanzar, la solicitud se cancela y se informa al jugador.
 
 === 4.6.5. Manejo de errores
 
@@ -993,7 +1087,7 @@ El flujo distingue entre errores de captura, de decodificación, de transcripci�
 
 === 4.6.6. Validación técnica
 
-La integración se verificó con una señal sinusoidal de 2 s que contiene un La4; el modelo detecta correctamente la nota. También se ejecutó un banco de 25 casos sintéticos con vibrato, ruido y transitorios de respiración. Los resultados se reportan en la sección 4.10.3. La validación con voz cantada real se especifica en la sección 4.10.5.
+El tracker se verificó con pruebas unitarias sobre audio sintético: secuencias de notas distintas (altura y ataque correctos), notas repetidas separadas por ataques, robustez ante vibrato moderado y respeto del rango 75–1500 Hz, además de una prueba de latencia (unos 2 s de audio transcritos en menos de 0,2 s). El banco de 25 casos sintéticos con vibrato, ruido y transitorios de respiración se reporta en la sección 4.10.3. La validación con voz cantada real se especifica en la sección 4.10.5.
 
 == 4.7. Mecánicas de juego y flujo de partida
 
@@ -1207,7 +1301,7 @@ Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de p
   header: ([*Nivel*], [*Alcance*], [*Herramienta y evidencia*]),
   rows: (
     ([Unitarias], [Generador, evaluador y parámetros de transcripción], [Vitest; 50 pruebas.]),
-    ([Humo], [Transcripción de una sinusoide de 2 s], [`smoke:basic-pitch`; detecta La4.]),
+    ([Humo], [Transcripción de una sinusoide de 2 s], [Pruebas del tracker DSP; detecta La4.]),
     ([Barrido], [25 casos sintéticos con ruido y vibrato], [`tune:transcription`; ajuste de parámetros.]),
     ([Compilación], [Build de producción de Next.js], [`next build`; sin errores.]),
     ([Navegador], [Dictado, grabación, transcripción y resumen], [Prueba manual en Chrome.]),
@@ -1314,7 +1408,7 @@ La evaluación se ejecutó sobre el generador en su versión 0.1.0, con 200 semi
 
 === 5.1.2. Cumplimiento de restricciones y reproducibilidad
 
-Las 600 melodías se generaron sin fallos. En los tres niveles, el 100 % de las melodías cumplió la pertenencia a la escala activa y la regla de no repetición triple. La figura rítmica requerida se cumplió en el 100 % de las melodías de dificultad media y alta; en dificultad baja no se exige. El tiempo medio de generación fue de 0.25 ms en baja, 0.59 ms en media y 1.09 ms en alta; el percentil 95 no superó 1.40 ms. La Tabla 20 resume estos resultados.
+Las 600 melodías se generaron sin fallos. En los tres niveles, el 100 % de las melodías cumplió la pertenencia a la escala activa y la regla de no repetición triple. La figura rítmica requerida se cumplió en el 100 % de las melodías de dificultad media y alta; en dificultad baja no se exige. El tiempo medio de generación fue de 0.14 ms en baja, 0.30 ms en media y 0.51 ms en alta; el percentil 95 no superó 0.59 ms. La Tabla 20 resume estos resultados.
 
 #block(breakable: false)[
 #leyenda([Tabla], 20, [Cumplimiento de restricciones y tiempo de generación])
@@ -1333,9 +1427,9 @@ Las 600 melodías se generaron sin fallos. En los tres niveles, el 100 % de las 
     [*Tiempo p95 (ms)*],
   ),
   rows: (
-    ([Baja], [200], [0], [100], [100], [—], [0.25], [0.42]),
-    ([Media], [200], [0], [100], [100], [100], [0.59], [0.98]),
-    ([Alta], [200], [0], [100], [100], [100], [1.09], [1.40]),
+    ([Baja], [200], [0], [100], [100], [—], [0.14], [0.23]),
+    ([Media], [200], [0], [100], [100], [100], [0.30], [0.39]),
+    ([Alta], [200], [0], [100], [100], [100], [0.51], [0.59]),
     ([Total], [600], [0], [—], [—], [—], [—], [—]),
   ),
 )]
@@ -1344,7 +1438,7 @@ La reproducibilidad se verificó con la misma tupla de parámetros: dos ejecucio
 
 === 5.1.3. Perfil de intervalos y ambitus
 
-La Tabla 21 y la Figura 12 muestran la distribución de intervalos. En los tres niveles predominan los intervalos de 0 a 2 semitonos. En baja, el 100 % de los intervalos es menor o igual a 2 semitonos; en media, el 82.3 %; en alta, el 80.0 %. Los intervalos de 0 semitonos, es decir, las notas repetidas, representan el 40.9 %, 36.6 % y 35.3 %, respectivamente. Los saltos de 3 a 7 semitonos aparecen solo en media (17.7 %) y alta (20.0 %); en baja no hay saltos.
+La Tabla 21 y la Figura 12 muestran la distribución de intervalos. Predominan los intervalos de 1 a 2 semitonos, es decir, el movimiento por grado conjunto que impone el generador. Los intervalos de 0 semitonos, es decir, las notas repetidas, se reducen de forma notable a medida que crece la dificultad —19.6 % en baja, 9.5 % en media y 0 % en alta— como consecuencia de la penalización de repetición. Los saltos de 3 a 7 semitonos aparecen solo en media (21.6 %) y alta (26.3 %); en baja no hay saltos, como exige el límite de intervalo máximo de 2 semitonos.
 
 #block(breakable: false)[
 #leyenda([Tabla], 21, [Distribución de intervalos por nivel de dificultad])
@@ -1352,14 +1446,14 @@ La Tabla 21 y la Figura 12 muestran la distribución de intervalos. En los tres 
   columns: (3cm, 4.3cm, 4.3cm, 4.3cm),
   header: ([*Intervalo (semitonos)*], [*Baja (%)*], [*Media (%)*], [*Alta (%)*]),
   rows: (
-    ([0], [40.9], [36.6], [35.3]),
-    ([1], [27.3], [21.6], [21.7]),
-    ([2], [31.8], [24.2], [22.9]),
-    ([3], [0.0], [8.3], [8.7]),
-    ([4], [0.0], [4.5], [3.4]),
-    ([5], [0.0], [4.9], [4.9]),
-    ([6], [0.0], [0.0], [0.7]),
-    ([7], [0.0], [0.0], [2.3]),
+    ([0], [19.6], [9.5], [0.0]),
+    ([1], [34.1], [31.1], [32.1]),
+    ([2], [46.2], [37.8], [41.6]),
+    ([3], [0.0], [11.6], [12.9]),
+    ([4], [0.0], [4.9], [4.6]),
+    ([5], [0.0], [5.1], [5.4]),
+    ([6], [0.0], [0.0], [0.8]),
+    ([7], [0.0], [0.0], [2.6]),
   ),
 )]
 
@@ -1371,14 +1465,14 @@ La Tabla 21 y la Figura 12 muestran la distribución de intervalos. En los tres 
   draw.set-style(legend: (fill: white), barchart: (bar-width: .75, cluster-gap: 0))
   chart.barchart(
     (
-      ([0], 40.9, 36.6, 35.3),
-      ([1], 27.3, 21.6, 21.7),
-      ([2], 31.8, 24.2, 22.9),
-      ([3], 0, 8.3, 8.7),
-      ([4], 0, 4.5, 3.4),
-      ([5], 0, 4.9, 4.9),
-      ([6], 0, 0, 0.7),
-      ([7], 0, 0, 2.3),
+      ([0], 19.6, 9.5, 0.0),
+      ([1], 34.1, 31.1, 32.1),
+      ([2], 46.2, 37.8, 41.6),
+      ([3], 0, 11.6, 12.9),
+      ([4], 0, 4.9, 4.6),
+      ([5], 0, 5.1, 5.4),
+      ([6], 0, 0, 0.8),
+      ([7], 0, 0, 2.6),
     ),
     mode: "clustered",
     size: (13, 6),
@@ -1395,7 +1489,7 @@ La Tabla 21 y la Figura 12 muestran la distribución de intervalos. En los tres 
 ]
 ]
 
-El ambitus medio fue de 3.49, 8.70 y 13.53 semitonos, muy por debajo del máximo permitido (12, 24 y 36). El uso del ambitus fue del 29.1 %, 36.2 % y 37.6 %. La duración media fue de 9.82, 14.91 y 23.57 pulsos, equivalentes a 6.5, 9.9 y 15.7 s a 90 BPM. La modulación apareció en el 48 % de las melodías de dificultad media y en el 100 % de las de dificultad alta; en baja no se aplica. La Tabla 22 resume estos valores.
+El ambitus medio fue de 4.0, 8.72 y 13.23 semitonos, por debajo del máximo permitido (12, 19 y 24 semitonos, la tesitura cantable). El uso del ambitus fue del 33.0 %, 46.0 % y 55.0 %: el registro se acota a una tesitura cantable (C3–C5) y el uso crece con la dificultad. La duración media fue de 9.8, 14.9 y 23.6 pulsos, equivalentes a 6.5, 9.9 y 15.7 s a 90 BPM. La modulación apareció en el 48 % de las melodías de dificultad media y en el 100 % de las de dificultad alta; en baja no se aplica. La Tabla 22 resume estos valores.
 
 #block(breakable: false)[
 #leyenda([Tabla], 22, [Ambitus, duración y modulación por nivel de dificultad])
@@ -1411,9 +1505,9 @@ El ambitus medio fue de 3.49, 8.70 y 13.53 semitonos, muy por debajo del máximo
     [*Modulación (%)*],
   ),
   rows: (
-    ([Baja], [3.49], [12], [29.1], [9.82], [6.5], [0]),
-    ([Media], [8.70], [24], [36.2], [14.91], [9.9], [48]),
-    ([Alta], [13.53], [36], [37.6], [23.57], [15.7], [100]),
+    ([Baja], [4.0], [12], [33.0], [9.8], [6.5], [0]),
+    ([Media], [8.72], [19], [46.0], [14.9], [9.9], [48]),
+    ([Alta], [13.23], [24], [55.0], [23.6], [15.7], [100]),
   ),
 )]
 
@@ -1421,7 +1515,7 @@ Las tonalidades y los modos se distribuyeron de forma equilibrada: las siete ton
 
 === 5.1.4. Variedad melódica y rítmica
 
-La Tabla 23 y la Figura 13 muestran la variedad melódica. El número medio de alturas distintas por melodía fue de 3.1 en baja (de 8 notas), 5.6 en media (de 15) y 8.3 en alta (de 24). El 100 % de las melodías contiene al menos un par de notas repetidas; la longitud máxima de una racha de notas iguales fue 2, como exige la regla. Los cambios de dirección del contorno fueron 1.8, 4.4 y 7.4 en promedio. La variedad rítmica, medida como número de duraciones distintas por melodía, fue de 1.9, 2.9 y 4.9. Las secuencias únicas fueron 92.5 %, 100 % y 100 %.
+La Tabla 23 y la Figura 13 muestran la variedad melódica. El número medio de alturas distintas por melodía fue de 3.5 en baja (de 8 notas), 5.9 en media (de 15) y 8.9 en alta (de 24). La repetición de notas disminuye con la dificultad: el 87 % de las melodías de baja, el 82.5 % de las de media y ninguna de las de alta contienen al menos un par de notas repetidas; la longitud máxima de una racha de notas iguales fue 2 en baja y media y 1 en alta. Los cambios de dirección del contorno fueron 2.1, 6.5 y 13.1 en promedio, muy por encima de los valores anteriores, lo que indica un contorno más variado. La variedad rítmica, medida como número de duraciones distintas por melodía, fue de 1.9, 2.9 y 4.9. Las secuencias únicas fueron 97 %, 100 % y 100 %.
 
 #block(breakable: false)[
 #leyenda([Tabla], 23, [Variedad melódica y rítmica por nivel de dificultad])
@@ -1439,80 +1533,80 @@ La Tabla 23 y la Figura 13 muestran la variedad melódica. El número medio de a
     [*Únicas (%)*],
   ),
   rows: (
-    ([Baja], [3.1 / 8], [40.9], [0.0], [1.8], [1.9], [92.5]),
-    ([Media], [5.6 / 15], [36.6], [17.7], [4.4], [2.9], [100]),
-    ([Alta], [8.3 / 24], [35.3], [20.0], [7.4], [4.9], [100]),
+    ([Baja], [3.5 / 8], [19.6], [0.0], [2.1], [1.9], [97.0]),
+    ([Media], [5.9 / 15], [9.5], [21.6], [6.5], [2.9], [100]),
+    ([Alta], [8.9 / 24], [0.0], [26.3], [13.1], [4.9], [100]),
   ),
 )]
 
-La Figura 13 presenta una melodía de muestra por nivel. En baja se observan pares de notas repetidas y un contorno descendente con pocas alturas distintas; en media y alta aparecen más grados conjuntos, saltos y cambios de dirección, junto con la modulación marcada por la línea vertical.
+La Figura 13 presenta una melodía de muestra por nivel, con la modulación marcada por la línea vertical. En las tres se observa un contorno dominado por el grado conjunto, con saltos ocasionales y cambios de dirección que crecen con la dificultad; el detalle de las notas depende de la semilla.
 
 #block(breakable: false)[
 #leyenda([Figura], 13, [Melodías generadas por nivel de dificultad])
 #align(center)[
 #set text(size: 9pt)
-#text(weight: "bold")[Baja — Mi bemol menor — 8 notas (MIDI 54–59)]
+#text(weight: "bold")[Baja — Mi bemol mayor — 8 notas (MIDI 58–65)]
 #v(0.15em)
 #block(width: 15cm, height: 2.6cm, stroke: 0.5pt + rgb("#d4d4d8"), fill: rgb("#fafafa"), clip: true)[
-  #place(dx: 0.00%, dy: 0.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 10.00%, dy: 0.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 20.00%, dy: 16.67%, rect(width: 20.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 40.00%, dy: 16.67%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 50.00%, dy: 50.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 60.00%, dy: 50.00%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 70.00%, dy: 83.33%, rect(width: 20.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
-  #place(dx: 90.00%, dy: 83.33%, rect(width: 10.00%, height: 16.67%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 0.00%, dy: 62.50%, rect(width: 9.09%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 9.09%, dy: 37.50%, rect(width: 9.09%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 18.18%, dy: 62.50%, rect(width: 18.18%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 36.36%, dy: 87.50%, rect(width: 9.09%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 45.45%, dy: 62.50%, rect(width: 18.18%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 63.64%, dy: 37.50%, rect(width: 18.18%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 81.82%, dy: 25.00%, rect(width: 9.09%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
+  #place(dx: 90.91%, dy: 0.00%, rect(width: 9.09%, height: 12.50%, fill: rgb("#6366f1"), radius: 0.4pt))
 ]
 #v(0.7em)
-#text(weight: "bold")[Media — Si bemol mayor — 15 notas (MIDI 48–63)]
+#text(weight: "bold")[Media — Si bemol menor — 15 notas (MIDI 58–70)]
 #v(0.15em)
 #block(width: 15cm, height: 2.6cm, stroke: 0.5pt + rgb("#d4d4d8"), fill: rgb("#fafafa"), clip: true)[
-  #place(dx: 48.39%, dy: 0%, rect(width: 0.6pt, height: 100%, fill: rgb("#a1a1aa")))
-  #place(dx: 0.00%, dy: 18.75%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 6.45%, dy: 6.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 12.90%, dy: 6.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 19.35%, dy: 0.00%, rect(width: 3.23%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 22.58%, dy: 0.00%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 29.03%, dy: 6.25%, rect(width: 12.90%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 41.94%, dy: 31.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 48.39%, dy: 37.50%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 54.84%, dy: 62.50%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 61.29%, dy: 62.50%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 67.74%, dy: 75.00%, rect(width: 3.23%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 70.97%, dy: 93.75%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 77.42%, dy: 93.75%, rect(width: 3.23%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 80.65%, dy: 81.25%, rect(width: 6.45%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
-  #place(dx: 87.10%, dy: 81.25%, rect(width: 12.90%, height: 6.25%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 48.00%, dy: 0%, rect(width: 0.6pt, height: 100%, fill: rgb("#a1a1aa")))
+  #place(dx: 0.00%, dy: 92.31%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 4.00%, dy: 69.23%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 8.00%, dy: 53.85%, rect(width: 16.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 24.00%, dy: 53.85%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 28.00%, dy: 92.31%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 36.00%, dy: 69.23%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 44.00%, dy: 38.46%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 48.00%, dy: 30.77%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 56.00%, dy: 38.46%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 64.00%, dy: 15.38%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 72.00%, dy: 0.00%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 76.00%, dy: 15.38%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 80.00%, dy: 0.00%, rect(width: 4.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 84.00%, dy: 15.38%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
+  #place(dx: 92.00%, dy: 30.77%, rect(width: 8.00%, height: 7.69%, fill: rgb("#22c55e"), radius: 0.4pt))
 ]
 #v(0.7em)
-#text(weight: "bold")[Alta — Si bemol menor — 24 notas (MIDI 49–61)]
+#text(weight: "bold")[Alta — Mi bemol mayor — 24 notas (MIDI 62–72)]
 #v(0.15em)
 #block(width: 15cm, height: 2.6cm, stroke: 0.5pt + rgb("#d4d4d8"), fill: rgb("#fafafa"), clip: true)[
-  #place(dx: 52.05%, dy: 0%, rect(width: 0.6pt, height: 100%, fill: rgb("#a1a1aa")))
-  #place(dx: 0.00%, dy: 0.00%, rect(width: 2.05%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 2.05%, dy: 0.00%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 8.22%, dy: 23.08%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 10.96%, dy: 0.00%, rect(width: 8.22%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 19.18%, dy: 38.46%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 21.92%, dy: 38.46%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 26.03%, dy: 0.00%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 30.14%, dy: 7.69%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 36.30%, dy: 0.00%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 40.41%, dy: 7.69%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 43.15%, dy: 0.00%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 45.89%, dy: 23.08%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 52.05%, dy: 38.46%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 54.79%, dy: 38.46%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 57.53%, dy: 23.08%, rect(width: 2.05%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 59.59%, dy: 23.08%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 65.75%, dy: 61.54%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 69.86%, dy: 92.31%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 73.97%, dy: 61.54%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 76.71%, dy: 53.85%, rect(width: 8.22%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 84.93%, dy: 38.46%, rect(width: 6.16%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 91.10%, dy: 38.46%, rect(width: 4.11%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 95.21%, dy: 53.85%, rect(width: 2.05%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
-  #place(dx: 97.26%, dy: 61.54%, rect(width: 2.74%, height: 7.69%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 47.34%, dy: 0%, rect(width: 0.6pt, height: 100%, fill: rgb("#a1a1aa")))
+  #place(dx: 0.00%, dy: 90.91%, rect(width: 2.37%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 2.37%, dy: 81.82%, rect(width: 3.55%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 5.92%, dy: 18.18%, rect(width: 2.37%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 8.28%, dy: 36.36%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 13.61%, dy: 45.45%, rect(width: 7.10%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 20.71%, dy: 36.36%, rect(width: 1.78%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 22.49%, dy: 45.45%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 27.81%, dy: 36.36%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 33.14%, dy: 45.45%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 38.46%, dy: 63.64%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 43.79%, dy: 81.82%, rect(width: 1.78%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 45.56%, dy: 90.91%, rect(width: 1.78%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 47.34%, dy: 63.64%, rect(width: 3.55%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 50.89%, dy: 0.00%, rect(width: 7.10%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 57.99%, dy: 18.18%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 63.31%, dy: 27.27%, rect(width: 3.55%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 66.86%, dy: 18.18%, rect(width: 3.55%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 70.41%, dy: 27.27%, rect(width: 7.10%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 77.51%, dy: 18.18%, rect(width: 1.78%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 79.29%, dy: 27.27%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 84.62%, dy: 18.18%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 89.94%, dy: 27.27%, rect(width: 2.37%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 92.31%, dy: 0.00%, rect(width: 5.33%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
+  #place(dx: 97.63%, dy: 27.27%, rect(width: 2.37%, height: 9.09%, fill: rgb("#f59e0b"), radius: 0.4pt))
 ]
 #v(0.4em)
 #text(size: 8pt)[La línea vertical gris marca la modulación. Cada barra representa una nota; el ancho indica su duración.]
@@ -1527,19 +1621,17 @@ En síntesis, el generador cumple las restricciones estructurales en el 100 % de
 
 === 5.2.1. Sobre el cumplimiento de las restricciones
 
-El cumplimiento del 100 % es consecuencia directa del diseño de generar y verificar. La función de validación rechaza cualquier melodía que viole las restricciones y el generador reintenta con otra secuencia pseudoaleatoria. La ausencia de fallos en 600 melodías indica que el espacio de soluciones es factible para los tres niveles y que el presupuesto de 50 intentos es suficiente. El tiempo medio de 0.25 a 1.09 ms confirma que el costo de reintentar es despreciable para melodías de 8 a 24 notas.
+El cumplimiento del 100 % es consecuencia directa del diseño de generar y verificar. La función de validación rechaza cualquier melodía que viole las restricciones y el generador reintenta con otra secuencia pseudoaleatoria. La ausencia de fallos en 600 melodías indica que el espacio de soluciones es factible para los tres niveles y que el presupuesto de 50 intentos es suficiente. El tiempo medio de 0.14 a 0.51 ms confirma que el costo de reintentar es despreciable para melodías de 8 a 24 notas.
 
 La reproducibilidad refuerza la utilidad del generador en un contexto educativo y de investigación. Una melodía puede reconstruirse a partir de su semilla, su dificultad, su tempo y su compás, lo que permite auditar una partida, repetir un experimento o generar el mismo ejercicio para distintos jugadores. La sensibilidad a la semilla evita que todas las partidas compartan el mismo material.
 
 === 5.2.2. Sobre el perfil melódico y la repetitividad
 
-El hallazgo principal es la brecha entre el cumplimiento de las restricciones y la variedad musical. Aunque todas las melodías son válidas, el 35–41 % de los intervalos son de 0 semitonos y el 100 % de las melodías contiene al menos un par de notas repetidas. En dificultad baja, el número medio de alturas distintas es de 3.1 sobre 8 notas y no hay saltos; el contorno cambia de dirección apenas 1.8 veces por melodía. El resultado son secuencias estáticas, con pares de notas repetidas y un ambitus real de solo 3.49 semitonos frente a los 12 permitidos.
+El perfil melódico es consecuencia de las decisiones de diseño, ahora derivadas del estado del arte. La ponderación de selección de alturas sitúa el peso máximo en el grado conjunto (un semitono), por encima de la repetición (distancia 0) y de los saltos; la penalización de repetición crece con la dificultad (eje de frecuencia de patrones de Poćwiardowski et al., 2025) y la estructura de frases cierra cada frase en un tono estable. Como resultado, el contorno está dominado por el movimiento por grado conjunto: los intervalos de 1 a 2 semitonos representan el 80.3 %, 68.9 % y 73.7 % en baja, media y alta.
 
-La causa es la ponderación de la selección de alturas. El peso $1 / (1 + d^2)$ favorece la nota anterior ($d = 0$, peso 1) sobre el grado conjunto ($d = 1$, peso 0.5) y sobre el salto de dos semitonos ($d = 2$, peso 0.2). La regla de no repetición solo impide tres notas iguales consecutivas, de modo que los pares de notas repetidas son frecuentes. La ponderación produce un perfil muy cercano al grado conjunto, pero también una fuerte gravedad hacia la altura anterior.
+La repetición de notas es escasa y decreciente con la dificultad: los intervalos de 0 semitonos representan el 19.6 %, 9.5 % y 0 %, y solo el 87 %, 82.5 % y 0 % de las melodías contienen un par de notas repetidas (la racha máxima fue de 2). Los cambios de dirección del contorno (2.1, 6.5 y 13.1) y las alturas distintas (3.5, 5.9 y 8.9) confirman un contorno variado. El ambitus real (4.0, 8.72 y 13.23 semitonos) sigue por debajo del máximo permitido, coherente con que el ambitus es un límite y no un objetivo: el generador no busca ocupar todo el registro, sino producir melodías cantables dentro de la tesitura.
 
-La dificultad media y alta mejoran en variedad: más alturas distintas, más saltos, más cambios de dirección y el 100 % de secuencias únicas. Sin embargo, la proporción de intervalos repetidos se mantiene cerca del 35 %. El ambitus real sigue siendo bajo: 8.70 de 24 semitonos en media y 13.53 de 36 en alta. El parámetro de ambitus funciona como un máximo, no como un objetivo; el generador no busca ocupar el registro permitido.
-
-Esta diferencia es relevante para el uso pedagógico. Una melodía estática puede ser adecuada para una primera aproximación al dictado, pero no ejercita la identificación de saltos ni la memoria de contornos amplios. Si la dificultad se define por el intervalo máximo y el ambitus permitido, el generador debería controlar también la distribución de intervalos y la ocupación del registro, no solo el límite superior. La comparación con Troubadour es ilustrativa: allí la dificultad aumenta la presencia de intervalos específicos y de movimientos en direcciones alternadas (Pesek et al., 2020a); en el generador propuesto, el límite aumenta, pero la ponderación sigue favoreciendo la repetición.
+Esta variación es relevante para el uso pedagógico: los ejercicios ejercitan la identificación de grados conjuntos, la de saltos y la memoria de contornos, y la escasa repetición evita secuencias estáticas. La comparación con Troubadour es consistente con este diseño: allí la dificultad modula la presencia de intervalos específicos y de movimientos en direcciones alternadas (Pesek et al., 2020a); aquí ese efecto se logra mediante la ponderación por grado conjunto y la penalización de repetición, que escalan con el nivel.
 
 === 5.2.3. Sobre la reproducibilidad y el uso pedagógico
 
@@ -1553,19 +1645,17 @@ La evaluación es estructural y computacional. No se realizó una valoración pe
 
 El generador tampoco modela silencios, ligaduras ni una gramática rítmica explícita. La variedad rítmica se limita a las duraciones permitidas y a los ataques que resultan de su suma; la dificultad alta incluye valores de 1.5 y 2/3, pero las síncopas no se generan como una estructura intencional.
 
-A partir de los resultados se identifican cinco mejoras concretas:
+De las mejoras propuestas en la versión anterior, dos se han incorporado en esta revisión —la penalización de la repetición y la estructura de frases— y una se aborda parcialmente, al controlar el perfil mediante la ponderación por grado conjunto. Quedan por delante tres mejoras:
 
 #listasin[
-  + *Penalizar la repetición.* Reducir el peso de `d = 0` o añadir una penalización explícita a la nota anterior, de modo que el grado conjunto y los saltos tengan mayor presencia.
-  + *Controlar el perfil, no solo el máximo.* Definir una distribución objetivo de intervalos y un ambitus objetivo por nivel, y aceptar una melodía solo si su perfil cae dentro de una banda.
-  + *Añadir restricciones de frase.* Incorporar un clímax, una cadencia o un contorno equilibrado para evitar melodías exclusivamente descendentes o estáticas.
-  + *Medir la diversidad en la validación.* Incluir el número de alturas distintas, la proporción de intervalos repetidos y los cambios de dirección como criterios de aceptación.
+  + *Fijar un perfil objetivo, no solo un máximo.* Definir una distribución objetivo de intervalos y un ambitus objetivo por nivel, y aceptar una melodía solo si su perfil cae dentro de una banda.
+  + *Medir la diversidad en la validación.* Incluir el número de alturas distintas, la proporción de intervalos repetidos y los cambios de dirección como criterios de aceptación automáticos.
   + *Validar con docentes y comparar con ejercicios humanos.* Complementar la verificación estructural con una valoración musical y pedagógica, y contrastar las melodías generadas con ejercicios compuestos por especialistas.
 ]
 
 === 5.2.5. Respuesta al primer objetivo específico
 
-El primer objetivo específico se cumple en el plano del diseño y de la implementación verificada. El algoritmo existe, genera ejercicios para dictado y repentización, satisface las restricciones estructurales en el 100 % de los casos evaluados, es reproducible y su costo computacional es despreciable. La evidencia también muestra una limitación: la variedad melódica es baja, especialmente en dificultad baja, y el ambitus real está por debajo del permitido. Esta limitación no invalida el cumplimiento del objetivo, pero establece una línea de refinamiento del generador y una advertencia para su uso pedagógico: la dificultad nominal no equivale todavía a una dificultad musical efectiva.
+El primer objetivo específico se cumple en el plano del diseño y de la implementación verificada. El algoritmo existe, genera ejercicios para dictado y repentización, satisface las restricciones estructurales en el 100 % de los casos evaluados, es reproducible y su costo computacional es despreciable. La evidencia también muestra que la reforma derivada del estado del arte mejoró la variedad melódica: la repetición de notas se redujo de forma acusada (los intervalos de 0 semitonos pasaron del 35–41 % al 0–19.6 %) y los contornos son más variados, todo ello dentro de una tesitura cantable. La dificultad nominal se aproxima así a una dificultad musical efectiva, aunque la equivalencia exacta entre ambas y la idoneidad pedagógica siguen requiriendo la validación con docentes y la comparación con ejercicios humanos.
 
 La evaluación de la calidad musical con docentes y la comparación con ejercicios humanos son actividades que complementan este resultado y permiten pasar de la verificación estructural a la validación pedagógica.
 
@@ -1670,400 +1760,770 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
 #let anexo-filas = (
   (
     [C1],
-    [Žnideršič, K., Podbreznik, M., Klun, Ž., Šavli, P., Marolt, M., & Pesek, M. (2024)],
-    [Troubadour: Inverse Dictation Games for Ear Training],
-    [10.5220/0012747200003693],
-    [Aprendizaje gamificado; dictado inverso],
-    [Usuarios de Troubadour; UEQ/Meega+],
-    [Novedad positiva y eficiencia],
-    [Los juegos de entrenamiento auditivo inverso son escasos],
-  ),
-  (
-    [C1],
-    [Baratè, A., Brugaletta, A., & Ludovico, L. A. (2023)],
-    [A Mobile Serious Game to Foster Music Sight Reading with Different Clefs],
-    [10.5220/0012059500003470],
-    [Juego serio para dispositivos móviles; ejercicios de claves musicales],
-    [Early test users],
-    [Atractivo, pero con problemas de interacción],
-    [La práctica de lectura a primera vista para múltiples claves es limitada],
-  ),
-  (
-    [C1],
-    [Pesek, M., Hirci, N., Žnideršič, K., & Marolt, M. (2024)],
-    [Enhancing music rhythmic perception and performance with a VR game],
-    [10.1007/s10055-024-01014-y],
-    [Juego de realidad virtual para bateristas],
-    [Usuarios de autoaprendizaje remoto],
-    [Mejora en la percepción del ritmo y el rendimiento],
-    [El entrenamiento rítmico en realidad virtual está infravalorado],
-  ),
-  (
-    [C1],
-    [Deja, J. A., Štor, S., Pucihar, I., Weerasinghe, M., Balbin, R. M., Pucihar, K. Č., & Kljun, M. (2025)],
-    [ImproVisAR: designing augmented reality piano roll for teaching improvisation],
-    [10.1007/s10055-025-01215-z],
-    [Visualización de piano roll en realidad aumentada],
-    [Learner studies],
-    [Prometedor para el aprendizaje de la improvisación],
-    [El apoyo a la improvisación pianística está poco explorado],
-  ),
-  (
-    [C1],
-    [Yu, J., Zhang, T., Wu, S., Wu, X., Wu, T., Chen, Y., & Zhang, K. (2024)],
-    [ArchiTone: A LEGO-Inspired Gamified System for Visualized Music Education],
-    [10.48550/arxiv.2410.15273],
-    [Bloques gamificados inspirados en LEGO],
-    [Estudio de usuario],
-    [Más atractivo que los métodos tradicionales],
-    [Los principiantes necesitan herramientas teóricas más accesibles],
-  ),
-  (
-    [C1],
-    [Brewer, A., & Ching, Y.-H. (2024)],
-    [Designing and Developing a Gamified App for Enhancing Independent Practice in K-12 Music Education],
-    [10.59668/1269.15625],
-    [Aplicación móvil gamificada],
-    [Estudiantes de música K-12],
-    [Favorece la motivación y el autocontrol],
-    [La práctica independiente carece de un apoyo estructurado],
-  ),
-  (
-    [C1],
-    [Rana, F. A., Tsang, Y. L., & Yip, T. W. (2024)],
-    [Music Corner - A Feasibility Study for Creating a Gesture-Based Rhythm Game for Music Education Inspired by Solfege Hand Signs],
-    [10.1145/3613905.3648112],
-    [Juego rítmico basado en gestos; aprendizaje automático móvil],
-    [Estudio de viabilidad],
-    [Prototipo accesible y viable],
-    [El entrenamiento rítmico asequible es limitado],
-  ),
-  (
-    [C1],
-    [Kim, S., & Cozzarin, J. (2023)],
+    [Kim S.; Cozzarin J.],
     [A New Technical Ear Training Game and Its Effect on Critical Listening Skills],
     [10.3390/app13095357],
-    [Juego de entrenamiento auditivo de cuatro módulos],
-    [Practicantes de ingeniería de audio],
-    [Mayor compromiso y mejores habilidades],
-    [El entrenamiento auditivo técnico necesita formatos gamificados],
+    [juego gamificado ear training (sin ML)],
+    [n/d (CRM solo evaluación)],
+    [mejora significativa habla en ruido (p=0.003)],
+    [no cubre dictado melódico],
   ),
   (
-    [C1],
-    [Qian, C. H., & Jiang, M. (2024)],
-    [Exploring the Effects of Digital Game-Based Learning on Music Education],
-    [10.56397/sssh.2024.05.02],
-    [Aprendizaje de piano basado en juegos],
-    [30 estudiantes universitarios de piano],
-    [El grupo experimental superó al de control],
-    [La evidencia cuantitativa de DGBL es limitada],
+    [C1b],
+    [G. Amaral; A. Baffa; J. -P. Briot; B. Feijó; A. Furtado],
+    [An adaptive music generation architecture for games based on the deep learning Transformer model],
+    [10.1109/sbgames56371.2022.9961081],
+    [Transformer adaptativo por emociones],
+    [playlist Spotify ambient (~20 h)],
+    [prueba de concepto funcional en juego],
+    [control en tiempo real aún abierto],
   ),
   (
-    [C1],
-    [Li, M. (2025)],
-    [The Impact of Game-Based Learning and Flipped Classroom on Solfeggio Performance, Engagement, and Satisfaction],
-    [10.57239/pjlss-2025-23.1.00674],
-    [GBL + aula invertida],
-    [90 estudiantes de solfeo],
-    [Mayor rendimiento y compromiso],
-    [GBL+FC en solfeo está poco explorado],
+    [C2a],
+    [H. Meng; S. Zheng; S. Zhou; Q. Wang; Y. Song],
+    [Aligning Language Models for Lyric-to-Melody Generation with Rule-Based Musical Constraints],
+    [10.1109/icassp55912.2026.11462728],
+    [LLM con reglas + DPO/KTO],
+    [~800k pares letra-melodía],
+    [supera SongMASS; MOS 3.42],
+    [sin evaluación nota a nota],
   ),
   (
-    [C2],
-    [Zhao, W., Wang, Z., & Shen, D. (2026)],
-    [Long-term symbolic music generation based on dilated convolutional adversarial networks and LM-VGAN],
-    [10.1007/s44163-026-00982-1],
-    [GAN con convoluciones dilatadas; LM-VGAN],
-    [Secuencias musicales simbólicas],
-    [Mejor continuidad y precisión de estilo],
-    [La continuidad a largo plazo sigue siendo débil],
+    [C2a],
+    [Guo Y.; Liu Y.; Zhou T.; Xu L.; Zhang Q.],
+    [An automatic music generation and evaluation method based on transfer learning],
+    [10.1371/journal.pone.0283103],
+    [GPT-2 transfer + evaluación MEM],
+    [POP909],
+    [0.536 en tests vs 0.099 LSTM],
+    [sin calibración de dificultad],
   ),
   (
-    [C2],
-    [Yalan, Y. (2026)],
-    [Enhancing long-term structure in symbolic music generation via a cascaded Skeleton-to-texture framework],
-    [10.1038/s41598-026-46750-0],
-    [Esqueletos de MusicBERT; atención cruzada],
-    [Secuencias simbólicas largas],
-    [Menos errores estructurales; acordes más sólidos],
-    [La retención de motivos se desmorona en intervalos largos],
+    [C2a],
+    [Nakayama M.; Hayashi T.; Takahashi T.; Nishiura T.],
+    [Comfortable Sound Design Based on Auditory Masking with Chord Progression and Melody Generation Corresponding to the Peak Frequencies of Dental Treatment Noises],
+    [10.3390/app142210467],
+    [generación procedural por reglas],
+    [n/d (paletas Flow Machines)],
+    [PFMR 77.8% vs 67.5%; más confort],
+    [pocas reglas formales con dificultad],
   ),
   (
-    [C2],
-    [Zhou, L., Yin, L., Qian, Y., & Wang, M. (2025)],
-    [MLAT: a multi-level attention transformer capturing multi-level information in compound word encoding for symbolic music generation],
-    [10.1186/s13636-025-00407-4],
-    [Codificación de palabras compuestas; atención multinivel],
-    [Corpus de música simbólica],
-    [Mejor calidad de tono, ritmo y acordes],
-    [Las relaciones a nivel de token están poco modeladas],
+    [C2a],
+    [S. -L. Wu; Y. -H. Yang],
+    [Compose & Embellish: Well-Structured Piano Performance Generation via A Two-Stage Approach],
+    [10.1109/icassp49357.2023.10095098],
+    [dos Transformers REMI (dos etapas)],
+    [Lakh MIDI, Pop1K7],
+    [mejor estructura; MOS 3.18 vs 2.33],
+    [coherencia estructural aún inferior],
   ),
   (
-    [C2],
-    [Zhao, C. (2026)],
-    [T-WGAN: A Transformer-Wasserstein GAN Approach for Melody Generation with Structural and Rhythmic Fidelity],
-    [10.31449/inf.v50i8.11624],
-    [Transformer + WGAN-GP; REMI],
-    [Lakh MIDI],
-    [Mayor consistencia rítmica; menor FDM],
-    [La diversidad y estabilidad melódicas necesitan trabajo],
+    [C2a],
+    [J. Zhang; G. Fazekas; C. Saitis],
+    [Composer Style-Specific Symbolic Music Generation using Vector Quantized Discrete Diffusion Models],
+    [10.1109/mlsp58920.2024.10734713],
+    [VQ-VAE + difusión discreta],
+    [MAESTRO (3 compositores)],
+    [control de estilo 72.4% (SOTA)],
+    [sin control fino de dificultad],
   ),
   (
-    [C2],
-    [Chai, L., & Wang, D. (2025)],
-    [CSL-L2M: Controllable Song-Level Lyric-to-Melody Generation Based on Conditional Transformer with Fine-Grained Lyric and Musical Controls],
-    [10.1609/aaai.v39i22.34523],
-    [Transformer condicional; controles FiLM],
-    [Pares de letra y melodía],
-    [Las melodías de las canciones completas se alinean con la letra],
-    [La controlabilidad de letra a melodía es débil],
+    [C2a],
+    [Zhang Z.; Yu Y.; Takasu A.],
+    [Controllable lyrics-to-melody generation],
+    [10.1007/s00521-023-08728-1],
+    [LSTM-GAN multirrama con estilo],
+    [~13k pares letra-melodía],
+    [control altura/tempo ~4.9/5],
+    [poco explorado en educación],
   ),
   (
-    [C2],
-    [Li, S., & Sung, Y. (2023)],
+    [C2a],
+    [S. Hou; S. Liu; R. Yuan; W. Xue; Y. Shan; M. Zhao; C. Zhang],
+    [Editing Music with Melody and Text: Using ControlNet for Diffusion Transformer],
+    [10.1109/icassp49660.2025.10890309],
+    [Diffusion Transformer + ControlNet],
+    [MTG-Jamendo, FMA, WikiMuTe],
+    [melody accuracy 56.6% vs 44.7%],
+    [faltan métricas melódicas simbólicas],
+  ),
+  (
+    [C2a],
+    [M. Zhou; X. Li; F. Yu; W. Li],
+    [EMelodyGen: Emotion-Conditioned Melody Generation in ABC Notation with the Musical Feature Template],
+    [10.1109/icmew68306.2025.11152266],
+    [Transformer con plantilla rasgo-emoción],
+    [Rough4Q (~234k melodías)],
+    [99% parseo; 91% alineación emocional],
+    [escasez de datos simbólicos etiquetados],
+  ),
+  (
+    [C2a],
+    [He S.],
+    [Exploring Music Style Transfer and Innovative Composition using Deep Learning Algorithms],
+    [10.14569/ijacsa.2024.01505101],
+    [GAN con atención de canal],
+    [POP909],
+    [mejor teoría musical (7.9/10)],
+    [sin control explícito de parámetros],
+  ),
+  (
+    [C2a],
+    [M. Agarwal; C. Wang; G. Richard],
+    [F-StrIPE: Fast Structure-Informed Positional Encoding for Symbolic Music Generation],
+    [10.1109/icassp49660.2025.10888904],
+    [positional encoding estructural F-StrIPE],
+    [POP909 (con alineación)],
+    [mejor CS 16.61; complejidad lineal],
+    [elección de prior estructural abierta],
+  ),
+  (
+    [C2a],
+    [Z. Xie; Q. He; Y. Zhu; Q. He; M. Li],
+    [FilmComposer: LLM-Driven Music Production for Silent Film Clips],
+    [10.1109/cvpr52734.2025.01262],
+    [multi-agente LLM + MusicGen],
+    [MusicPro-7k (cine mudo)],
+    [SOTA FAD 0.207; 60% preferencia],
+    [faltaban datasets/métricas de cine],
+  ),
+  (
+    [C2a],
+    [Kamberaj V.; Kadriu A.; Besimi N.],
+    [From Dataset to Melody: Enhancing Music Composition with Computational Models],
+    [10.56345/ijrdv12n2007],
+    [Markov + gramática generativa],
+    [MIDI propio ethno-fusion],
+    [dentro de parámetros; útil a profesionales],
+    [sin métricas nota a nota],
+  ),
+  (
+    [C2a],
+    [Qiu Y.; Zhang J.; Ren H.; Shan Y.; Zhou J.],
+    [Humming2Music: Being A Composer As Long As You Can Humming],
+    [10.24963/ijcai.2023/840],
+    [transcripción MusicYOLO + plantillas],
+    [SSVD, Opencpop, POP909],
+    [tarareo reflejado; 46% valora bien],
+    [pocos completan tarareos de calidad],
+  ),
+  (
+    [C2a],
+    [K. Bhandari; S. Chang; T. Lu; F. R. Enus; L. B. Bradshaw; D. Herremans; S. Colton],
+    [ImprovNet - Generating Controllable Musical Improvisations with Iterative Corruption Refinement],
+    [10.1109/ijcnn64981.2025.11229312],
+    [Transformer con refinamiento iterativo],
+    [ATEPP, MAESTRO, PiJAMA],
+    [79% identifica transferencia jazz],
+    [sin unificación de tareas musicales],
+  ),
+  (
+    [C2a],
+    [Duan W.; Zhang Z.; Yu Y.; Oyama K.],
+    [Interpretable Melody Generation from Lyrics with Discrete-Valued Adversarial Training],
+    [10.1145/3503161.3547742],
+    [GAN Gumbel-Softmax letra→melodía],
+    [dataset letra-melodía Yu et al.],
+    [embeddings de sílabas más precisos],
+    [consistencia letra-melodía débil],
+  ),
+  (
+    [C2a],
+    [Shan Y.; Zhang J.; Ren H.; Qiu Y.; Zhou J.],
+    [LingGe: An Automatic Ancient Chinese Poem-to-Song Generation System],
+    [10.24963/ijcai.2023/842],
+    [plantillas por reglas poema→canción],
+    [28.9k melodías, POP909, OpenSinger],
+    [ritmo/estructura coherentes (demo)],
+    [datos pareados letra-melodía escasos],
+  ),
+  (
+    [C2a],
+    [J. Poćwiardowski; M. Modrzejewski; M. S. Tatara],
+    [M6(GPT)3: Generating Multitrack Modifiable Multi-Minute MIDI Music from Text using Genetic Algorithms, Probabilistic Methods and GPT Models in any Progression and Time Signature],
+    [10.1109/icmew68306.2025.11152218],
+    [algoritmos genéticos + Markov + LLM],
+    [n/d (sin entrenamiento)],
+    [supera MMT en 4/5 criterios],
+    [datasets sesgados a compás 4/4],
+  ),
+  (
+    [C2a],
+    [J. Zhang; G. Fazekas; C. Saitis],
+    [Mamba-Diffusion Model with Learnable Wavelet for Controllable Symbolic Music Generation],
+    [10.1109/ijcnn64981.2025.11228274],
+    [difusión Mamba con wavelet],
+    [POP909 (64k muestras)],
+    [OA 0.939; preferencia 80/100],
+    [sin consenso en evaluación objetiva],
+  ),
+  (
+    [C2a],
+    [Pitombeira L.],
+    [Melodic generation via computational processes: a preliminary and pedagogical overview; \[Geração melódica via processos computacionais: um panorama preliminar e pedagógico\]],
+    [10.20504/opus2026.32.06],
+    [panorama pedagógico transformaciones],
+    [n/d],
+    [n/d (solo valor pedagógico)],
+    [transformaciones sin formalizar algoritmos],
+  ),
+  (
+    [C2a],
+    [Agustín-Aquino O.A.; Santiago-Santos A.],
+    [Melody and Variation Generation Through KAM Theory],
+    [10.1007/978-3-031-60638-0\_14],
+    [sistemas dinámicos (teoría KAM)],
+    [n/d (método sin datos)],
+    [variaciones sutiles con 2 parámetros],
+    [sin control de ritmo ni dificultad],
+  ),
+  (
+    [C2a],
+    [Li S.; Sung Y.],
     [MelodyDiffusion: Chord-Conditioned Melody Generation Using a Transformer-Based Diffusion Model],
     [10.3390/math11081915],
-    [Difusión de Transformer; condicionamiento de acordes],
-    [Datos discretos de melodías simbólicas],
-    [Maneja bien las dependencias largas],
-    [La difusión para música discreta es poco común],
+    [difusión Transformer por acordes],
+    [OpenEWLD (13.9k pares)],
+    [Hits\@1 72.4% con acordes],
+    [sin parámetros pedagógicos ni semilla],
   ),
   (
-    [C2],
-    [Li, S., & Sung, Y. (2023)],
-    [MRBERT: Pre-Training of Melody and Rhythm for Automatic Music Generation],
-    [10.3390/math11040798],
-    [Preentrenamiento para melodía/ritmo; BERT multitarea],
-    [Corpus de preentrenamiento musical],
-    [Apoya la generación y la finalización],
-    [El preentrenamiento musical está infrautilizado],
+    [C2a],
+    [Z. Lin; J. Chen; B. Tang; B. Sha; J. Yang; Y. Ju; F. Fan; S. Kang; Z. Wu; H. Meng],
+    [Multi-View Midivae: Fusing Track- and Bar-View Representations for Long Multi-Track Symbolic Music Generation],
+    [10.1109/icassp48485.2024.10448249],
+    [VAE multivista OctupleMIDI],
+    [CocoChorales (240k corales)],
+    [accuracy 0.969; MOS 3.46],
+    [sin dificultad pedagógica ni determinismo],
   ),
   (
-    [C2],
-    [Zhu, J., Sakurai, K., Togo, R., OGAWA, T., & Haseyama, M. (2025)],
-    [\[Paper\] TPSMG: Text-Controllable Polyphonic Symbolic Music Generation],
-    [10.3169/mta.14.110],
-    [U-Net de difusión condicionada por texto],
-    [Indicaciones de texto + pares de música simbólica],
-    [MIDI de alta calidad coincide con las indicaciones],
-    [El control de texto para MIDI polifónico es escaso],
+    [C2a],
+    [S. -L. Wu; C. Donahue; S. Watanabe; N. J. Bryan],
+    [Music ControlNet: Multiple Time-Varying Controls for Music Generation],
+    [10.1109/taslp.2024.3399026],
+    [difusión ControlNet musical],
+    [~1800 h instrumental propio],
+    [49% más fiel a melodía que MusicGen],
+    [no conecta con evaluación del alumno],
   ),
   (
-    [C2],
-    [Li, Y. (2025)],
-    [ERLD-HC: Entropy-Regularized Latent Diffusion for Harmony-Constrained Symbolic Music Generation],
-    [10.3390/e27090901],
-    [VAE + difusión latente + CRF],
-    [Música simbólica/MIDI],
-    [Mejor calidad de la armonía],
-    [El control de la armonía frente a la flexibilidad no está resuelto],
+    [C2a],
+    [C. C. Liao; D. Liao; E. L. Zhang],
+    [MusicAIR: A Multimodal AI Music Generation Framework Powered by an Algorithm-Driven Core],
+    [10.1109/bigdata66926.2025.11400911],
+    [algoritmos/reglas puros (sin ML)],
+    [n/d (método sin datos)],
+    [key confidence 0.85 vs 0.79 humano],
+    [no aplicado a entrenamiento auditivo],
   ),
   (
-    [C2],
-    [Wang, C., & Deng, W. (2026)],
-    [Multi-track symbolic music generation algorithm based on diffusion model and music structure constraints],
-    [10.1504/ijict.2026.152436],
-    [Modelo de difusión; restricciones de estructura],
-    [Varios conjuntos de datos musicales],
-    [Mayor similitud y puntuaciones de expertos],
-    [Persisten los conflictos entre pistas y la fragmentación rítmica],
+    [C2a],
+    [Y. Qian; T. Wang; J. Chen; P. Yu; D. Xu; X. Jin; F. Yu; S. -C. Zhu],
+    [MusicAOG: An Energy-Based Model for Learning and Sampling a Hierarchical Representation of Symbolic Music],
+    [10.1109/tcss.2024.3521445],
+    [gramática And-Or + modelo de energía],
+    [3 corales de Bach],
+    [mejor subjetivo con solo 3 piezas],
+    [sin ejercicios de dictado calibrados],
   ),
   (
-    [C3],
-    [Jin, X., Gui, J., Li, D., & Wang, Y. (2025)],
-    [MIDI music plagiarism detection method based on feature similarity learning],
-    [10.1186/s13636-025-00429-y],
-    [Vectores de ritmo/nota; red siamesa],
-    [Corpus musical MIDI],
-    [96,3 % de precisión],
-    [Se necesitan mejores características de similitud MIDI],
+    [C2a],
+    [S. Rouard; R. S. Roman; Y. Adi; A. Roebel],
+    [MusicGen-Stem: Multi-stem music generation and edition through autoregressive modeling],
+    [10.1109/icassp49660.2025.10890052],
+    [Transformer autorregresivo multistem],
+    [MMI, ShutterStock, Pond5 (17k h)],
+    [HAR 66-68% en edición de stems],
+    [coherencia no ligada a evaluación docente],
   ),
   (
-    [C3],
-    [Malandrino, D., Prisco, R. D., Ianulardo, M., & Zaccagnino, R. (2022)],
-    [An adaptive meta-heuristic for music plagiarism detection based on text similarity and clustering],
-    [10.1007/s10618-022-00835-2],
-    [Similitud de texto + agrupamiento],
-    [Casos de plagio/no plagio; 20 usuarios],
-    [Superó a los métodos existentes],
-    [Las métricas objetivas de plagio son escasas],
+    [C2a],
+    [J. Chen; X. Tang; T. Xie; J. Wang; W. Dong; B. Shi],
+    [MusicMamba: A Dual-Feature Modeling Approach for Generating Chinese Traditional Music with Modal Precision],
+    [10.1109/icassp49660.2025.10890633],
+    [Mamba+Transformer dual REMI-M],
+    [POP909, FolkDB],
+    [estilo 85.3%; modo 66.1%],
+    [precisión modal no usada como dificultad],
   ),
   (
-    [C3],
-    [Kim, S., Kim, Y., Lee, J., & Jang, D. (2026)],
-    [Hybrid Music Similarity with Hypergraph and Siamese Network],
-    [10.3390/bdcc10030096],
-    [Metadatos de hipergrafo + pérdida siamesa],
-    [Samples para producción musical],
-    [Mejor modelado de similitud conjunta],
-    [Los metadatos y la acústica suelen estar separados],
+    [C2a],
+    [M. Agarwal; C. Wang; G. Richard],
+    [Of All StrIPEs: Investigating Structure-Informed Positional Encoding for Efficient Music Generation],
+    [10.1109/taslpro.2026.3662483],
+    [positional encoding estructural RoPEPool],
+    [POP909 (anotaciones)],
+    [RoPEPool-BIN mejor GS/NDD],
+    [priors no usados para graduar dictado],
   ),
   (
-    [C3],
-    [Kharisma, R., & Denny, D. (2024)],
-    [Music Similarity Ranking: Case Study Fairphonic],
-    [10.33022/ijcs.v13i4.4298],
-    [HPCP/croma/ritmo; perfil matricial],
-    [Cientos de miles de pistas de catálogo],
-    [MAP 0,989; búsqueda un 72 % más rápida],
-    [Se necesita una similitud escalable en todo el catálogo],
+    [C2a],
+    [Y. Yi; W. Li; M. M. Y. Kuo; Q. Bai],
+    [PerceiverS: A Multi-Scale Perceiver With Effective Segmentation for Long-Term Expressive Symbolic Music Generation],
+    [10.1109/taslpro.2025.3611836],
+    [Perceiver multi-escala con segmentación],
+    [MAESTRO (1.251 secuencias)],
+    [OA +40%; expertos prefieren (3.29)],
+    [sin control por dificultad ni semilla],
   ),
   (
-    [C3],
-    [Chen, Y., & Li, N. (2023)],
-    [Analysis of the Similarity Estimation Schemes for Music and Applications],
-    [10.11648/j.ijecs.20230806.16],
-    [Estudio de métricas de similitud],
-    [Literatura sobre similitud musical],
-    [Mapea métodos y aplicaciones],
-    [Los esquemas de evaluación están fragmentados],
+    [C2a],
+    [Raposo A.N.; Soares V.N.G.J.],
+    [Phrase-Oriented Generative Rhythmic Patterns for Jazz Solos],
+    [10.3390/app152011058],
+    [Markov/bigrams rítmicos frase a frase],
+    [Weimar Jazz (~289k notas)],
+    [frases indistinguibles del test],
+    [sin melodías didácticas con semilla],
   ),
   (
-    [C3],
-    [Saner, A., & Chen, M. (2025)],
-    [Music Similarity Detection Through Comparative Imagery Data],
-    [10.3390/app15147706],
-    [Conjunto de CNN sobre imágenes comparativas],
-    [Plagio verificado + música generada por IA],
-    [Funcionó en casos verificados y de IA],
-    [Los datos etiquetados de plagio son escasos],
+    [C2a],
+    [X. Liang; Z. Zhao; W. Zeng; Y. He; F. He; Y. Wang; C. Gao],
+    [PianoBART: Symbolic Piano Music Generation and Understanding with Large-Scale Pre-Training],
+    [10.1109/icme57554.2024.10688332],
+    [pre-entrenamiento BART (PianoBART)],
+    [Pop1K7, ASAP, POP909, MAESTRO],
+    [reconstrucción 96.7% vs 79.6%],
+    [sin control de dificultad ni semilla],
   ),
   (
-    [C3],
-    [Vahidi, C., Singh, S., Benetos, E., Phan, H. P., Stowell, D., Fazekas, G., & Lagrange, M. (2023)],
-    [Perceptual Musical Similarity Metric Learning with Graph Neural Networks],
-    [10.1109/waspaa58266.2023.10248151],
-    [Aprendizaje de métricas con CNN de grafos],
-    [Sonidos de técnicas de interpretación musical],
-    [96,4 % de recuperación frente a 38,5 %],
-    [La similitud perceptiva es difícil de modelar],
+    [C2a],
+    [J. Choi; K. Lee],
+    [Pop2Piano : Pop Audio-Based Piano Cover Generation],
+    [10.1109/icassp49357.2023.10095653],
+    [T5 audio→MIDI (cover de piano)],
+    [PSP (4.989 tracks)],
+    [MCA 0.402 comparable a humano],
+    [falta transcripción de canto en navegador],
   ),
   (
-    [C3],
-    [Akama, T., Kitano, H., Takematsu, K., Miyajima, Y., & Polouliakh, N. (2023)],
-    [Auxiliary self-supervision to metric learning for music similarity-based retrieval and auto-tagging],
-    [10.1371/journal.pone.0294643],
-    [Aprendizaje de métricas autosupervisado],
-    [Datos de recuperación de audio musical],
-    [Recuperación y etiquetado mejorados],
-    [Necesita menos supervisión],
+    [C2a],
+    [Zhang C.; Chang L.; Wu S.; Tan X.; Qin T.; Liu T.-Y.; Zhang K.],
+    [ReLyMe: Improving Lyric-to-Melody Generation by Incorporating Lyric-Melody Relationships],
+    [10.1145/3503161.3548357],
+    [decodificación con reglas (soft constraints)],
+    [TeleMelody/SongMASS (EN, ZH)],
+    [transición tonal 0.45→0.61],
+    [reglas no aplicadas a evaluación],
   ),
   (
-    [C3],
-    [J.S., S. (2022)],
-    [Pairwise Similarity Normalization Based on a Hubness Score for Improving Cover Song Retrieval Accuracy],
-    [10.1587/transinf.2021EDL8075],
-    [Alineación de secuencias; normalización de centralidad],
-    [Dos conjuntos de datos de versiones de canciones],
-    [Precisión de recuperación mejorada],
-    [El «hubness» perjudica la búsqueda de similitud],
+    [C2a],
+    [Z. Wang; L. Ma; C. Zhang; B. Han; Y. Xu; Y. Wang; X. Chen; H. Hong; W. Liu; X. Wu; K. Zhang],
+    [REMAST: Real-Time Emotion-Based Music Arrangement With Soft Transition],
+    [10.1109/taffc.2024.3486224],
+    [arreglo emocional MLP+Transformer],
+    [11 datasets (~34k piezas)],
+    [mejor coherencia; ansiedad −21.6%],
+    [sin evaluación del desempeño del usuario],
   ),
   (
-    [C3],
-    [Carvalho, N., Diogo, D., & Bernardes, G. (2023)],
-    [Computational Similarity of Portuguese Folk Melodies Using Hierarchical Reduction],
-    [10.1145/3625135.3625152],
-    [Reducción melódica jerárquica; SIAM],
-    [Melodías folclóricas portuguesas],
-    [84–90 % de varianza explicada],
-    [La similitud simbólica robusta necesita jerarquía],
+    [C2a],
+    [Mazurkiewicz J.],
+    [Sofcomputing approach to melody generation based on harmonic analysis],
+    [10.24425/ijet.2024.149516],
+    [red feedforward por análisis armónico],
+    [2 secuencias propias],
+    [mejor melodía: 11% de error],
+    [sin parámetros de dificultad explícitos],
   ),
   (
-    [C4],
-    [Schwabe, M., Murgul, S., & Heizmann, M. (2022)],
-    [Dual Task Monophonic Singing Transcription],
-    [10.17743/jaes.2022.0040],
-    [Transcripción de canto de doble tarea],
-    [Datos de canto monofónico],
-    [Transcripción a nivel de nota mejorada],
-    [El AMT para canto está menos desarrollado que el de piano],
+    [C2a],
+    [Ding S.; Liu Z.; Dong X.; Zhang P.; Qian R.; Huang J.; He C.; Lin D.; Wang J.],
+    [SongComposer: A Large Language Model for Lyric and Melody Generation in Song Composition],
+    [10.18653/v1/2025.acl-long.352],
+    [LLM musical InternLM2 multinivel],
+    [SongCompose (283k letras, 20k MIDI)],
+    [PD 50.75% vs 36.43% GPT-4],
+    [faltan métricas nota a nota],
   ),
   (
-    [C4],
-    [Bhattarai, B., & Lee, J. (2024)],
-    [Korean Pansori Vocal Note Transcription Using Attention-Based Segmentation and Viterbi Decoding],
-    [10.3390/app14020492],
-    [Segmentación de atención + Viterbi],
-    [Voces de pansori coreano],
-    [Transcripción eficaz de notas vocales],
-    [La transcripción vocal tradicional está poco estudiada],
+    [C2a],
+    [M. Agarwal; C. Wang; G. Richard],
+    [Structure-Informed Positional Encoding for Music Generation],
+    [10.1109/icassp48485.2024.10448149],
+    [PE estructural para Transformers],
+    [POP909 (alineaciones corregidas)],
+    [mejor SSMD y CS que baselines],
+    [sin métricas melódico-rítmicas interpretables],
   ),
   (
-    [C4],
-    [X., W., B., T., W., Y., W., X., & W., C. (2023)],
-    [MusicYOLO: A Vision-Based Framework for Automatic Singing Transcription],
-    [10.1109/TASLP.2022.3221005],
-    [AST estilo YOLO; inicio/fin/tono],
-    [Corpus de audio de canto],
-    [Proceso directo de transcripción de canto],
-    [Se necesita un AST de extremo a extremo más rápido],
+    [C2a],
+    [S. Sulun; M. E. P. Davies; P. Viana],
+    [Symbolic Music Generation Conditioned on Continuous-Valued Emotions],
+    [10.1109/access.2022.3169744],
+    [Transformer con emociones continuas],
+    [Lakh-Spotify, LPD-5],
+    [supera a discrete-token; menor error emocional],
+    [no aplicado a dificultad adaptativa],
   ),
   (
-    [C4],
-    [Kim, T., Kim, M.-J., & Ahn, C. W. (2025)],
-    [PF2N: Periodicity–Frequency Fusion Network for Multi-Instrument Music Transcription],
-    [10.3390/math13111708],
-    [Red de fusión de periodicidad-frecuencia],
-    [Audio multi-instrumental],
-    [Mejor transcripción de múltiples instrumentos],
-    [Los armónicos superpuestos siguen siendo un reto para el AMT],
+    [C2a],
+    [G. Wu; S. Liu; X. Fan],
+    [The Power of Fragmentation: A Hierarchical Transformer Model for Structural Segmentation in Symbolic Music Generation],
+    [10.1109/taslp.2023.3263797],
+    [Transformer jerárquico con segmentación],
+    [Bach, MAESTRO, GuitarPro propio],
+    [supera baselines; menos acumulación de error],
+    [sin control de dificultad ni semillas],
   ),
   (
-    [C4],
-    [Matsunaga, T., & Saito, H. (2026)],
-    [Multitrack Music Transcription Based on Joint Learning of Onset and Frame Streams],
-    [10.3390/signals7010012],
-    [U-Net + Perceiver; aprendizaje conjunto de inicio/fotograma],
-    [Datasets de música multipista],
-    [Transcripción de múltiples instrumentos mejorada],
-    [La escasez de conjuntos de datos limita la precisión],
+    [C2a],
+    [Y. -J. Shih; S. -L. Wu; F. Zalkow; M. Müller; Y. -H. Yang],
+    [Theme Transformer: Symbolic Music Generation With Theme-Conditioned Transformer],
+    [10.1109/tmm.2022.3161851],
+    [Transformer condicionado por tema],
+    [POP909],
+    [temas coherentes, cercanos a originales],
+    [sin variación determinista ni evaluación nota a nota],
   ),
   (
-    [C4],
-    [Li, Z., Zhou, Y., & Wu, H. (2025)],
-    [A Hybrid Model for Automatic Music Transcription of Hulusi Based on Multi-Feature Fusion],
-    [10.1145/3778534.3778540],
-    [Fusión de características; ResNet + BiGRU],
-    [Audio de hulusi],
-    [Mejor calidad de tono y transcripción],
-    [El AMT no occidental es escaso],
+    [C2a],
+    [S. Rhyu; H. Choi; S. Kim; K. Lee],
+    [Translating Melody to Chord: Structured and Flexible Harmonization of Melody With Transformer],
+    [10.1109/access.2022.3155467],
+    [Transformer de armonización con VAE],
+    [CMD, HLSD],
+    [acordes más estructurados; control de complejidad],
+    [sin control paramétrico de dificultad],
   ),
   (
-    [C4],
-    [T., K., D., L., M., J. K., & C., W. A. (2024)],
-    [Polyphonic Piano Music Transcription System Exploiting Mutual Correlations of Different Musical Note States],
-    [10.1109/ACCESS.2024.3425167],
-    [Modelado de correlación de estado de nota],
-    [Grabaciones de piano polifónicas],
-    [Captura las dependencias del estado de las notas],
-    [Las CNN pasan por alto las relaciones entre notas],
+    [C2a],
+    [L. Zhuo; Z. Wang; B. Wang; Y. Liao; C. Bao; S. Peng; S. Han; A. Zhang; F. Fang; S. Liu],
+    [Video Background Music Generation: Dataset, Method and Evaluation],
+    [10.1109/iccv51070.2023.01433],
+    [generación por vídeo en 3 etapas],
+    [SymMV, POP909],
+    [supera a CMT; preferencia >50%],
+    [sin métricas nota a nota ni control estructural],
   ),
   (
-    [C4],
-    [Gu, X., Ou, L., Zeng, W., Zhang, J., Wong, N. H., & Wang, Y. (2024)],
-    [Automatic Lyric Transcription and Automatic Music Transcription from Multimodal Singing],
-    [10.1145/3651310],
-    [Transcripción de canto multimodal],
-    [Audio de canto con etiquetas de letra],
-    [Transcribe conjuntamente letras y notas],
-    [Las letras y las notas suelen estar separadas],
+    [C2a],
+    [X. Yi; Q. He; G. Xia; Z. Wang],
+    [ViTex: Visual Texture Control for Multi-Track Symbolic Music Generation via Discrete Diffusion Models],
+    [10.1109/icassp55912.2026.11463443],
+    [difusión discreta por textura visual],
+    [Lakh MIDI, MetaMIDI],
+    [mejor control y calidad que baselines],
+    [textura bajo nivel; sin control de dificultad],
   ),
   (
-    [C4],
-    [Cao, R., Liang, Z., Yan, Z., & Liu, B. (2024)],
+    [C2a],
+    [S. Tian; C. Zhang; W. Yuan; W. Tan; W. Zhu],
+    [XMusic: Towards a Generalized and Controllable Symbolic Music Generation Framework],
+    [10.1109/tmm.2025.3590912],
+    [framework multimodal con prompts],
+    [XMIDI (108k MIDI)],
+    [supera a CP, EMOPIA y CMT],
+    [sin control paramétrico determinista],
+  ),
+  (
+    [C2a; C2b; C3a],
+    [S. Li; Y. Qin; M. Zheng; X. Jin; Y. Liu],
+    [Diff-BGM: A Diffusion Model for Video Background Music Generation],
+    [10.1109/cvpr52733.2024.02582],
+    [difusión latente condicionada por vídeo],
+    [BGM909, SymMV],
+    [supera a CMT; casi música humana],
+    [sin métricas nota a nota con tolerancias],
+  ),
+  (
+    [C2a; C3a],
+    [J. Huang; Z. Novack; P. Long; Y. Hou; K. Chen; T. Berg-Kirkpatrick; J. McAuley],
+    [MuseTok: Symbolic Music Tokenization for Generation and Semantic Understanding],
+    [10.1109/icassp55912.2026.11463020],
+    [tokenización por compás con RQ-VAE],
+    [PDMX, POP909 y otros],
+    [excelente PPL; débil en melodía],
+    [sin evaluación nota a nota en cents/ms],
+  ),
+  (
+    [C2a; C3a; C3b; C4a],
+    [L. Kim; S. Jeon; W. Heo; J. Park],
+    [Note-Level Singing Melody Transcription for Time-Aligned Musical Score Generation],
+    [10.1109/taslpro.2025.3544064],
+    [transcripción de canto end-to-end],
+    [ST500, DALI, HSD],
+    [F1 0.771 onset+pitch; SOTA],
+    [pocos datos con figuras rítmicas],
+  ),
+  (
+    [C2a; C4a],
+    [C. Ding; A. R. Gorle; S. Bhattacharya; D. Hasteer; N. Sagan; T. Weissman],
+    [LzMidi: Compression-Based Symbolic Music Generation],
+    [10.1109/isit63088.2025.11195229],
+    [generación por compresión LZ78],
+    [Lakh MIDI],
+    [rápido y competitivo en WD/FAD],
+    [sin control paramétrico de dificultad],
+  ),
+  (
+    [C2a; C4a],
+    [Y. Ye; W. Zheng; Y. Zang],
+    [Pitch-Class Steering For Diffusion-Based Music Generation Via Latent-Space Probes],
+    [10.1109/mlsp68619.2026.11772565],
+    [steering por probe en difusión],
+    [MAESTRO],
+    [coherencia melódica ×2.4 sin degradar],
+    [sin control fino de ritmo/registro],
+  ),
+  (
+    [C2a; C4b],
+    [S. Liu; X. Li; D. Li; Y. Shan],
+    [Humtrans: A Novel Open-Source Dataset for Humming Melody Transcription and Beyond],
+    [10.1109/icassp48485.2024.10445818],
+    [dataset de tarareo (sin método)],
+    [HumTrans propio (56 h)],
+    [mayor dataset; transcriptores muy pobres],
+    [escasez de datos; transcripción sin resolver],
+  ),
+  (
+    [C2b],
+    [H. Zhang; V. K. M. Cheung; H. Nishioka; S. Dixon; S. Furuya],
+    [LLaQo: Towards a Query-Based Coach in Expressive Music Performance Assessment],
+    [10.1109/icassp49660.2025.10890522],
+    [LLM audio-lingüístico para evaluación],
+    [10+ datasets + NeuroPiano],
+    [supera LLM; aún bajo no-LLM],
+    [feedback sin timestamps del error],
+  ),
+  (
+    [C2b],
+    [Andono P.N.; Noersasongko E.; Shidik G.F.; Hastuti K.; Sudaryanto S.; Syarif A.M.],
+    [Melody Difficulty Classification using Frequent Pattern and Inter-Notes Distance Analysis],
+    [10.14569/ijacsa.2022.0130215],
+    [clasificación de dificultad por reglas],
+    [50 piezas gamelan],
+    [82% accuracy vs expertos],
+    [no validado fuera de gamelan],
+  ),
+  (
+    [C3a],
+    [C. Weiß; G. Peeters],
+    [Comparing Deep Models and Evaluation Strategies for Multi-Pitch Estimation in Music Recordings],
+    [10.1109/taslp.2022.3200547],
+    [comparación de modelos de multi-pitch],
+    [MusicNet, SWD y mixto],
+    [arquitecturas similares; split domina diferencias],
+    [sin consenso en splits y métricas],
+  ),
+  (
+    [C3a],
+    [M. Krause; C. Weiß; M. Müller],
+    [Soft Dynamic Time Warping for Multi-Pitch Estimation and Beyond],
+    [10.1109/icassp49357.2023.10095907],
+    [pérdida SoftDTW para multi-pitch],
+    [SWD, MAESTRO, MusicNet],
+    [iguala o supera a MCTC],
+    [faltan alineamientos simples multi-etiqueta],
+  ),
+  (
+    [C3a],
+    [A. Lukoianov; A. Klapuri],
+    [Transcribing Rhythmic Patterns of the Guitar Track in Polyphonic Music],
+    [10.1109/waspaa66052.2025.11230935],
+    [MERT fine-tuneado + Viterbi rítmico],
+    [931 grabaciones propias (4 niveles)],
+    [F1 96.9% rasgueos; patrones 94.7%],
+    [vocabularios curados; tempo no estable],
+  ),
+  (
+    [C3a],
+    [M. Wachter; S. Murgul; M. Heizmann],
+    [Transformer-Based Rhythm Quantization of Performance MIDI Using Beat Annotations],
+    [10.1109/icsm64417.2025.11541508],
+    [Transformer T5 para cuantización rítmica],
+    [ASAP, Leduc],
+    [onset F1 97.3%; generaliza compases],
+    [poco explorado vs beat implícito],
+  ),
+  (
+    [C3a; C4a],
+    [S. Yong; L. Su; J. Nam],
+    [A Phoneme-Informed Neural Network Model For Note-Level Singing Transcription],
+    [10.1109/icassp49357.2023.10096707],
+    [CRNN mel + fonemas (PPG)],
+    [SSVD, CSD, TIMIT],
+    [F1 onset 0.93; supera a TONY],
+    [re-onsets difíciles; datasets pequeños],
+  ),
+  (
+    [C3b],
+    [S. Kumar; S. Jaiswal; P. Singh; V. Arora],
+    [Automatic Detection and Analysis of Singing Mistakes for Music Learning by Imitation],
+    [10.1109/taslpro.2026.3682047],
+    [detección de errores de canto (TCN)],
+    [M3 propio (teacher-learner)],
+    [F1 82-91% con collar],
+    [criterios variables entre docentes],
+  ),
+  (
+    [C4a],
+    [Minor K.A.; Kartowisastro I.H.],
+    [Automatic Music Transcription Using Fourier Transform for Monophonic and Polyphonic Audio File],
+    [10.18280/isi.270413],
+    [transcripción DSP por FFT],
+    [5 canciones conocidas],
+    [bueno en monofónico; falla polifonía],
+    [FFT falla en polifónico por armónicos],
+  ),
+  (
+    [C4a],
+    [Berendes H.-U.; Saha A.; Maman B.; Arifi-Müller V.; Müller M.],
+    [Beethoven Symphony Excerpt Dataset (BSED): An Evaluation Dataset for Orchestral Music Transcription],
+    [10.5334/tismir.343],
+    [benchmark orquestal + baseline AMT],
+    [BSD, MusicNet, BSED],
+    [F1 onset 71%; alineación por nota clave],
+    [faltan métricas para unísonos/multi-instrumento],
+  ),
+  (
+    [C4a],
+    [Cao R.; Liang Z.; Yan Z.; Liu B.],
     [DAFE-MSGAT: Dual-Attention Feature Extraction and Multi-Scale Graph Attention Network for Polyphonic Piano Transcription],
     [10.3390/electronics13193939],
-    [Atención dual + GAT multiescala + LSTM],
-    [Audio polifónico de piano],
-    [Modelado mejorado de tiempo-frecuencia y notas],
-    [Las CNN pasan por alto la dependencia de las notas],
+    [CNN doble atención + grafos],
+    [MAPS, MAESTRO],
+    [F1 nota 84%; alto recall],
+    [offset débil; armónicos en texturas densas],
   ),
   (
-    [C4],
+    [C4a],
+    [X. Fu; X. Yuan; J. Hu],
+    [HSD: A hierarchical singing annotation dataset],
+    [10.1109/ism55400.2022.00054],
+    [dataset de canto jerárquico],
+    [HSD propio (68 canciones)],
+    [precisión de etiquetado como MIR-ST500],
+    [pocos datasets frase-nota con letra],
+  ),
+  (
+    [C4a],
+    [J. Mi; S. Kim; T. Toda],
+    [Improved Architecture for High-resolution Piano Transcription to Efficiently Capture Acoustic Characteristics of Music Signals],
+    [10.1109/apsipaasc63619.2025.10848780],
+    [CRNN dilatada + decodificador Transformer],
+    [MAESTRO v2/v3],
+    [F1 onset 97.3% con menos parámetros],
+    [precisión vs eficiencia en modelos pequeños],
+  ),
+  (
+    [C4a],
+    [Korade N.B.; Salunke M.B.; Bhosle A.A.; Sangve S.M.; Joshi D.M.; Asalkar G.G.; Kadu S.R.; Sarwade J.M.],
+    [Intelligent Guitar Chord Recognition Using Spectrogram-Based Feature Extraction and AlexNet Architecture for Categorization],
+    [10.14569/ijacsa.2025.0160475],
+    [clasificación de acordes con AlexNet],
+    [1440 wav propios (8 acordes)],
+    [96% accuracy con espectrogramas],
+    [poco estudiada la elección de features],
+  ),
+  (
+    [C4a],
+    [Bhattarai B.; Lee J.],
+    [Korean Pansori Vocal Note Transcription Using Attention-Based Segmentation and Viterbi Decoding],
+    [10.3390/app14020492],
+    [atención + Viterbi para canto],
+    [MedleyDB],
+    [80% accuracy; comparable a pYin],
+    [sin ground truth no occidental],
+  ),
+  (
+    [C4a],
+    [X. Wang; B. Tian; W. Yang; W. Xu; W. Cheng],
+    [MusicYOLO: A Vision-Based Framework for Automatic Singing Transcription],
+    [10.1109/taslp.2022.3221005],
+    [detección YOLOX sobre CQT],
+    [SSVD, MIR-ST500],
+    [F1 onset 96%; mejor generalización],
+    [falta evaluación de lectura a primera vista],
+  ),
+  (
+    [C4a],
+    [A. Fernandez],
+    [Onsets and Velocities: Affordable Real-Time Piano Transcription Using Convolutional Neural Networks],
+    [10.23919/eusipco58844.2023.10290067],
+    [CNN ligera en tiempo real],
+    [MAESTRO v3],
+    [F1 onset 96.8% en tiempo real],
+    [latencia aún ~4 s en demo],
+  ),
+  (
+    [C4a],
+    [Kim T.; Kim M.-J.; Ahn C.W.],
+    [PF2N: Periodicity–Frequency Fusion Network for Multi-Instrument Music Transcription],
+    [10.3390/math13111708],
+    [fusión frecuencia-periodicidad (PF2N)],
+    [Slakh2100, MusicNet, MAESTRO],
+    [+3.3% onset F1 vs YMT3],
+    [limitado por armónicos solapados],
+  ),
+  (
+    [C4a],
+    [D. Li; Y. Zang; Q. Kong],
+    [Piano Transcription by Hierarchical Language Modeling with Pretrained Roll-based Encoders],
+    [10.1109/icassp49660.2025.10890508],
+    [pianoroll preentrenado + LM jerárquico],
+    [MAESTRO (~200 h)],
+    [nuevo SOTA en AMT basado en LM],
+    [no escala con tamaño del modelo],
+  ),
+  (
+    [C4a],
+    [Guo W.; Zhang Y.; Pan C.; Zhu Z.; Li R.; Chen Z.; Xu W.; Wu F.; Zhao Z.],
+    [STARS: A Unified Framework for Singing Transcription, Alignment, and Refined Style Annotation],
+    [10.18653/v1/2025.findings-acl.781],
+    [anotación de canto unificada multi-nivel],
+    [GTSinger + 30 h propias],
+    [mejora alineación y transcripción],
+    [pipelines fragmentados; faltan datos],
+  ),
+  (
+    [C4a],
+    [Y. Yamamoto],
+    [Toward Leveraging Pre-Trained Self-Supervised Frontends for Automatic Singing Voice Understanding Tasks: Three Case Studies],
+    [10.1109/apsipaasc58517.2023.10317286],
+    [frontends SSL preentrenados],
+    [Artist20, MIR-ST500, VocalSet],
+    [SSL iguala o supera supervisados],
+    [escasez de datos etiquetados],
+  ),
+  (
+    [C4a],
+    [C. Biesinger; H. Awano; M. Hashimoto],
+    [Window Function-Less DFT with Reduced Noise and Latency for Real-Time Music Analysis],
+    [10.23919/eusipco63237.2025.11226525],
+    [DFT sin ventana, tiempo real],
+    [audio en vivo (sin dataset)],
+    [sin lóbulos laterales; mitad de latencia],
+    [FFT convencional: latencia y ruido],
+  ),
+  (
+    [C4a],
+    [S. Chang; E. Benetos; H. Kirchhoff; S. Dixon],
+    [YourMT3+: Multi-Instrument Music Transcription with Enhanced Transformer Architectures and Cross-Dataset STEM Augmentation],
+    [10.1109/mlsp58920.2024.10734819],
+    [Transformer multi-instrumento con MoE],
+    [Slakh, MusicNet y 8 más],
+    [supera a MT3; canto ~64% F1],
+    [brecha sintético vs pop real],
+  ),
+  (
+    [C4b],
+    [J. Jung; D. Kim; S. Lee; S. Cho; H. Soh; I. Bukey; C. Donahue; D. Jeong],
+    [U-MusT: A Unified Framework for Cross-Modal Translation of Score Images, Symbolic Music, and Performance Audio],
+    [10.1109/taslpro.2025.3648794],
+    [traducción cross-modal partitura-MIDI-audio],
+    [YTSV, MAESTRO, Slakh y otros],
+    [OMR SOTA; primer audio desde partitura],
+    [faltan datasets imagen-interpretación a gran escala],
+  ),
+  (
+    [C4a],
     [Bittner, R., Bosch, J. J., Rubinstein, D., Meseguer-Brocal, G., & Ewert, S. (2022)],
-    [A Lightweight Instrument-Agnostic Model for Polyphonic Note Transcription and Multipitch Estimation],
+    [A Lightweight Instrument-Agnostic Model for Polyphonic Note Transcription and Multipitch Estimation (Basic Pitch)],
     [10.1109/icassp43922.2022.9746549],
-    [AMT ligero independiente del instrumento],
+    [AMT ligero independiente del instrumento (modelo integrado en la tesis)],
     [Datasets de notas musicales polifónicas],
     [Competitivo con menor complejidad],
     [Generalizar a varios instrumentos es difícil],

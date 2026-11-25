@@ -8,6 +8,10 @@ export interface Score {
 
 export interface MatchingResult extends Score {
   matchedPairs: [number, number][];
+  // Localización de errores para el feedback (Zhang et al., 2025): índices de las
+  // notas de referencia omitidas y de las notas estimadas adicionales.
+  missedReferenceIndices: number[];
+  extraEstimatedIndices: number[];
 }
 
 export interface EvaluationTolerances {
@@ -98,9 +102,17 @@ const evaluateDimension = (
     estimated.map((estimatedNote) => compatible(referenceNote, estimatedNote)),
   );
   const matchedPairs = maximumMatching(compatibility);
+  const matchedReference = new Set(matchedPairs.map(([referenceIndex]) => referenceIndex));
+  const matchedEstimated = new Set(matchedPairs.map(([, estimatedIndex]) => estimatedIndex));
   return {
     ...scoreFromMatches(matchedPairs.length, reference.length, estimated.length),
     matchedPairs,
+    missedReferenceIndices: reference
+      .map((_, index) => index)
+      .filter((index) => !matchedReference.has(index)),
+    extraEstimatedIndices: estimated
+      .map((_, index) => index)
+      .filter((index) => !matchedEstimated.has(index)),
   };
 };
 

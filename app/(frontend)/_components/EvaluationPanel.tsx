@@ -17,6 +17,8 @@ interface EvaluationPanelProps {
   minPitch: number;
   maxPitch: number;
   totalBeats: number;
+  responseMinPitch?: number;
+  responseMaxPitch?: number;
 }
 
 const MATCHED_COLOR = "#10b981";
@@ -33,6 +35,8 @@ export const EvaluationPanel = ({
   minPitch,
   maxPitch,
   totalBeats,
+  responseMinPitch,
+  responseMaxPitch,
 }: EvaluationPanelProps) => {
   const playbackRef = useRef<PlaybackHandle | null>(null);
   const matchedReference = new Set(
@@ -74,8 +78,8 @@ export const EvaluationPanel = ({
         </div>
         <PianoRoll
           notes={response}
-          minPitch={minPitch}
-          maxPitch={maxPitch}
+          minPitch={responseMinPitch ?? minPitch}
+          maxPitch={responseMaxPitch ?? maxPitch}
           totalBeats={totalBeats}
           gridBeats={gridBeats}
           colorForNote={(_, index) =>

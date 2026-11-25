@@ -12,6 +12,7 @@ const SPEC: Record<
     noteCount: number;
     maxIntervalSemitones: number;
     ambitusSemitones: number;
+    phraseCount: number;
     rhythmDurations: number[];
     requiredRhythmFigures: number[];
     modulation: "none" | "optional" | "required";
@@ -21,6 +22,7 @@ const SPEC: Record<
     noteCount: 8,
     maxIntervalSemitones: 2,
     ambitusSemitones: 12,
+    phraseCount: 1,
     rhythmDurations: [1, 2],
     requiredRhythmFigures: [],
     modulation: "none",
@@ -28,7 +30,8 @@ const SPEC: Record<
   medium: {
     noteCount: 15,
     maxIntervalSemitones: 5,
-    ambitusSemitones: 24,
+    ambitusSemitones: 19,
+    phraseCount: 2,
     rhythmDurations: [0.5, 1, 2],
     requiredRhythmFigures: [0.5],
     modulation: "optional",
@@ -36,7 +39,8 @@ const SPEC: Record<
   high: {
     noteCount: 24,
     maxIntervalSemitones: 7,
-    ambitusSemitones: 36,
+    ambitusSemitones: 24,
+    phraseCount: 3,
     rhythmDurations: [0.5, 1, 1.5, 2, 2 / 3],
     requiredRhythmFigures: [1.5, 2 / 3],
     modulation: "required",
@@ -163,5 +167,40 @@ describe("reproducibilidad del generador", () => {
     const first = generateMelody({ difficulty: "high", seed: "una" });
     const second = generateMelody({ difficulty: "high", seed: "otra" });
     expect(second.notes).not.toEqual(first.notes);
+  });
+});
+
+describe("propiedades derivadas del estado del arte", () => {
+  it("la tesitura es cantable en todos los niveles (máximo 24 semitonos)", () => {
+    for (const difficulty of difficulties) {
+      const melody = generateMelody({ difficulty, seed: "tesitura" });
+      const pitches = melody.notes.map((note) => note.midiPitch);
+      const ambitus = Math.max(...pitches) - Math.min(...pitches);
+      expect(ambitus).toBeLessThanOrEqual(24);
+      expect(SPEC[difficulty].ambitusSemitones).toBeLessThanOrEqual(24);
+    }
+  });
+
+  it("estructura la melodía en el número de frases del nivel", () => {
+    for (const difficulty of difficulties) {
+      const melody = generateMelody({ difficulty, seed: "frases" });
+      expect(melody.phrases?.length).toBe(SPEC[difficulty].phraseCount);
+    }
+  });
+
+  it("reduce la repetición de notas (intervalos en cero) al aumentar la dificultad", () => {
+    const repeatedPitchRate = (difficulty: Difficulty): number => {
+      let repeated = 0;
+      let total = 0;
+      for (const seed of SEEDS) {
+        const melody = generateMelody({ difficulty, seed });
+        for (let i = 1; i < melody.notes.length; i += 1) {
+          total += 1;
+          if (melody.notes[i].midiPitch === melody.notes[i - 1].midiPitch) repeated += 1;
+        }
+      }
+      return repeated / Math.max(1, total);
+    };
+    expect(repeatedPitchRate("high")).toBeLessThan(repeatedPitchRate("low"));
   });
 });

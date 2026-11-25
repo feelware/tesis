@@ -114,6 +114,15 @@ describe("analizador de similitud", () => {
     expect(result.overall).toBe(0);
   });
 
+  it("localiza las notas omitidas y adicionales para el feedback", () => {
+    const reference = [note(60, 0), note(62, 0.5), note(64, 1)];
+    const estimated = [note(60, 0), note(67, 0.5)];
+    const result = evaluateSimilarity(reference, estimated);
+    expect(result.pitch.missedReferenceIndices).toEqual([1, 2]);
+    expect(result.pitch.extraEstimatedIndices).toEqual([1]);
+    expect(result.pitch.matchedPairs).toEqual([[0, 0]]);
+  });
+
   it("considera perfecta la comparación de dos secuencias vacías", () => {
     const result = evaluateSimilarity([], []);
     expect(result.pitch.f1).toBe(1);

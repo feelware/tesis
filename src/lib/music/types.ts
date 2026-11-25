@@ -20,6 +20,7 @@ export interface Melody {
   scale: string;
   notes: NoteEvent[];
   modulations: Modulation[];
+  phrases?: number[];
   difficulty: Difficulty;
   generatorVersion: string;
   seed: string;

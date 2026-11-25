@@ -83,6 +83,23 @@ export const Game = () => {
     };
   }, [round]);
 
+  const responseRollRange = useMemo(() => {
+    const responseNotes = round ? (results[round.index]?.response ?? []) : [];
+    if (responseNotes.length === 0) return rollRange;
+    const pitches = responseNotes.map((note) => note.midiPitch);
+    const lowest = Math.min(...pitches);
+    const highest = Math.max(...pitches);
+    const center = (lowest + highest) / 2;
+    const referenceHalfSpan = (rollRange.maxPitch - rollRange.minPitch) / 2;
+    const sungHalfSpan = (highest - lowest) / 2 + 1;
+    const halfSpan = Math.max(referenceHalfSpan, sungHalfSpan);
+    return {
+      minPitch: Math.round(center - halfSpan),
+      maxPitch: Math.round(center + halfSpan),
+      totalBeats: rollRange.totalBeats,
+    };
+  }, [round, results, rollRange]);
+
   const gridBeats = GRID_BEATS[config?.difficulty ?? "low"];
 
   const scoredResults = Object.values(results);
@@ -269,6 +286,8 @@ export const Game = () => {
             minPitch={rollRange.minPitch}
             maxPitch={rollRange.maxPitch}
             totalBeats={rollRange.totalBeats}
+            responseMinPitch={responseRollRange.minPitch}
+            responseMaxPitch={responseRollRange.maxPitch}
           />
           <button
             className="rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
