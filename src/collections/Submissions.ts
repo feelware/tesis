@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { activityOptions } from "./GameRooms";
+import { fieldAdminAccess } from "@/lib/access";
 
 export const Submissions: CollectionConfig = {
   slug: "submissions",
@@ -14,10 +15,10 @@ export const Submissions: CollectionConfig = {
     ],
   },
   access: {
-    create: () => false,
+    create: fieldAdminAccess,
     read: () => true,
-    update: () => false,
-    delete: () => false,
+    update: fieldAdminAccess,
+    delete: fieldAdminAccess,
   },
   fields: [
     {

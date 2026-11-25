@@ -1,3 +1,4 @@
+import { fieldAdminAccess } from "@/lib/access";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { CollectionConfig } from "payload";
@@ -14,8 +15,8 @@ export const Media: CollectionConfig = {
   access: {
     create: ({ req }) => req.user !== null,
     read: () => true,
-    update: () => false,
-    delete: () => false,
+    update: fieldAdminAccess,
+    delete: fieldAdminAccess,
   },
   upload: {
     staticDir: path.resolve(dirname, "../../media"),

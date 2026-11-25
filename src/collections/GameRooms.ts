@@ -1,3 +1,4 @@
+import { fieldAdminAccess } from "@/lib/access";
 import type { CollectionConfig } from "payload";
 
 export const activityOptions = [
@@ -12,10 +13,10 @@ export const GameRooms: CollectionConfig = {
     defaultColumns: ["code", "status", "currentRound", "createdAt"],
   },
   access: {
-    create: () => false,
+    create: fieldAdminAccess,
     read: () => true,
-    update: () => false,
-    delete: () => false,
+    update: fieldAdminAccess,
+    delete: fieldAdminAccess,
   },
   fields: [
     {
