@@ -18,6 +18,9 @@ build/
 # Modelos copiados desde node_modules
 public/models/
 
+# Grabaciones de audio de las interpretaciones (datos personales)
+media/
+
 # Perfil persistente del navegador para exportación de búsquedas
 .lit-profile/
 

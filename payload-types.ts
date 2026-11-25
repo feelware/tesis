@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     'game-rooms': GameRoom;
     submissions: Submission;
+    media: Media;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     'game-rooms': GameRoomsSelect<false> | GameRoomsSelect<true>;
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -162,6 +164,7 @@ export interface GameRoom {
     firstActivity?: ('dictation' | 'sight_singing') | null;
     roundCount?: number | null;
     tempoBpm?: number | null;
+    showRecordings?: boolean | null;
   };
   participants?:
     | {
@@ -213,9 +216,29 @@ export interface Submission {
     | number
     | boolean
     | null;
+  recording?: (number | null) | Media;
   submittedAt?: string | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -252,6 +275,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'submissions';
         value: number | Submission;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -336,6 +363,7 @@ export interface GameRoomsSelect<T extends boolean = true> {
         firstActivity?: T;
         roundCount?: T;
         tempoBpm?: T;
+        showRecordings?: T;
       };
   participants?:
     | T
@@ -362,9 +390,28 @@ export interface SubmissionsSelect<T extends boolean = true> {
   sourceSubmission?: T;
   response?: T;
   evaluation?: T;
+  recording?: T;
   submittedAt?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -5,16 +5,20 @@ import type { GameRoom, Submission, User } from "@payload-types";
 import { generateMelody, type Melody, type NoteEvent } from "@/lib/music";
 import {
   activityForRound,
+  assembleStrands,
   buildNextRoundSubmissions,
   computeLeaderboard,
   evaluateResponse,
   parseGameSettings,
   parseResponseNotes,
+  type StrandSubmission,
 } from "./rules";
 import type {
   Activity,
+  GalleryData,
   LeaderboardEntry,
   LeaderboardRound,
+  MyRoundRow,
   RoomState,
   RoundState,
   SubmissionInfo,
@@ -341,8 +345,22 @@ export const submitResponse = async (
   user: User,
   roomId: string,
   responseValue: unknown,
+  recordingValue: unknown,
 ): Promise<{ advanced: boolean }> => {
   const notes = parseResponseNotes(responseValue);
+  let recordingId: number | null = null;
+  if (recordingValue !== undefined && recordingValue !== null) {
+    const id = Number(recordingValue);
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new HttpError(400, "la grabación adjunta no es válida");
+    }
+    try {
+      await payload.findByID({ collection: "media", id, depth: 0 });
+    } catch {
+      throw new HttpError(400, "la grabación adjunta no existe");
+    }
+    recordingId = id;
+  }
   return withRoomLock(roomId, async () => {
     const room = await findRoom(payload, roomId);
     if (room.status !== "in_progress") {
@@ -382,6 +400,8 @@ export const submitResponse = async (
         evaluation: evaluation as unknown as Record<string, unknown>,
         status: "done",
         submittedAt: new Date().toISOString(),
+        recording:
+          submission.activity === "sight_singing" ? recordingId : null,
       },
     });
     const done = await payload.count({
@@ -542,4 +562,91 @@ export const readRoomState = async (
     round,
     leaderboard,
   };
+};
+
+export const readGallery = async (
+  payload: Payload,
+  user: User,
+  roomId: string,
+): Promise<GalleryData> => {
+  const room = await findRoom(payload, roomId);
+  const participants = (room.participants ?? [])
+    .slice()
+    .sort((a, b) => a.joinOrder - b.joinOrder);
+  const participantIds = participants.map((item) => idOf(item.user));
+  if (!participantIds.includes(Number(user.id))) {
+    throw new HttpError(403, "no participas en esta sala");
+  }
+  if (room.status !== "finished") {
+    throw new HttpError(400, "la partida aún no ha terminado");
+  }
+  const settings = parseGameSettings(room.settings);
+  const found = await payload.find({
+    collection: "submissions",
+    where: { room: { equals: room.id } },
+    pagination: false,
+    depth: 0,
+  });
+  const docs = found.docs as Submission[];
+  const names = await fetchNames(
+    payload,
+    docs.map((doc) => idOf(doc.player)),
+  );
+  const recordingIds = docs
+    .map((doc) => (doc.recording ? idOf(doc.recording) : null))
+    .filter((id): id is number => id !== null);
+  const media =
+    recordingIds.length > 0
+      ? await payload.find({
+          collection: "media",
+          where: { id: { in: recordingIds } },
+          pagination: false,
+          depth: 0,
+        })
+      : { docs: [] };
+  const urlByMediaId = new Map(
+    media.docs.map((doc) => [Number(doc.id), doc.url ?? null]),
+  );
+  const recordingUrlFor = (doc: Submission): string | null => {
+    if (!settings.showRecordings) return null;
+    if (doc.activity !== "sight_singing" || !doc.recording) return null;
+    return urlByMediaId.get(idOf(doc.recording)) ?? null;
+  };
+  const playerOrder = new Map(
+    participants.map((item, index) => [idOf(item.user), index]),
+  );
+  const strandSubmissions: StrandSubmission[] = docs
+    .map((doc): StrandSubmission => {
+      const playerId = idOf(doc.player);
+      return {
+        id: String(doc.id),
+        sourceSubmissionId: doc.sourceSubmission
+          ? String(idOf(doc.sourceSubmission))
+          : null,
+        roundNumber: doc.roundNumber,
+        playerId: String(playerId),
+        authorName: names.get(playerId) ?? `jugador ${playerId}`,
+        activity: doc.activity,
+        receivedNotes: (doc.receivedMelody as unknown as Melody).notes,
+        responseNotes: (doc.response ?? []) as NoteEvent[],
+        recordingUrl: recordingUrlFor(doc),
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.roundNumber - b.roundNumber ||
+        (playerOrder.get(Number(a.playerId)) ?? 0) -
+          (playerOrder.get(Number(b.playerId)) ?? 0),
+    );
+  const strands = assembleStrands(strandSubmissions);
+  const myRounds: MyRoundRow[] = strandSubmissions
+    .filter((item) => item.playerId === String(user.id))
+    .map((item) => ({
+      roundNumber: item.roundNumber,
+      activity: item.activity,
+      receivedNotes: item.receivedNotes,
+      producedNotes: item.responseNotes,
+      recordingUrl: item.recordingUrl,
+    }));
+  return { showRecordings: settings.showRecordings, strands, myRounds };
 };

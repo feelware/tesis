@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Melody, NoteEvent } from "@/lib/music";
 import {
   activityForRound,
+  assembleStrands,
   buildNextRoundSubmissions,
   computeLeaderboard,
   evaluateResponse,
@@ -180,13 +181,35 @@ describe("parseGameSettings", () => {
         firstActivity: "sight_singing",
         roundCount: 4,
         tempoBpm: 90,
+        showRecordings: false,
       }),
     ).toEqual({
       difficulty: "medium",
       firstActivity: "sight_singing",
       roundCount: 4,
       tempoBpm: 90,
+      showRecordings: false,
     });
+  });
+
+  it("muestra las grabaciones por defecto", () => {
+    expect(
+      parseGameSettings({
+        difficulty: "low",
+        firstActivity: "dictation",
+        roundCount: 2,
+        tempoBpm: 90,
+      }).showRecordings,
+    ).toBe(true);
+    expect(() =>
+      parseGameSettings({
+        difficulty: "low",
+        firstActivity: "dictation",
+        roundCount: 2,
+        tempoBpm: 90,
+        showRecordings: "sí",
+      }),
+    ).toThrow(/showRecordings/);
   });
 
   it("rechaza valores fuera de rango", () => {
@@ -238,6 +261,61 @@ describe("evaluateResponse", () => {
     });
     expect(evaluation.pitch.f1).toBeLessThan(1);
     expect(evaluation.rhythm.f1).toBe(1);
+  });
+});
+
+describe("assembleStrands", () => {
+  const submission = (
+    id: string,
+    sourceSubmissionId: string | null,
+    roundNumber: number,
+    authorName: string,
+    responseNotes: NoteEvent[],
+    recordingUrl: string | null = null,
+  ) => ({
+    id,
+    sourceSubmissionId,
+    roundNumber,
+    playerId: authorName,
+    authorName,
+    activity: "dictation" as const,
+    receivedNotes: [note(60, 0)],
+    responseNotes,
+    recordingUrl,
+  });
+
+  it("arma una cadena por melodía inicial con N+1 mensajes", () => {
+    const strands = assembleStrands([
+      submission("s1", null, 1, "Ana", [note(61, 0)], "/audio/a.webm"),
+      submission("s2", "s1", 2, "Beto", [note(62, 0)]),
+      submission("t1", null, 1, "Beto", [note(70, 0)]),
+      submission("t2", "t1", 2, "Ana", [note(71, 0)]),
+    ]);
+    expect(strands).toHaveLength(2);
+    expect(strands[0].messages).toHaveLength(3);
+    expect(strands[1].messages).toHaveLength(3);
+    const first = strands[0].messages;
+    expect(first[0].isSystem).toBe(true);
+    expect(first[0].authorName).toBe("Sistema");
+    expect(first[0].notes).toEqual([note(60, 0)]);
+    expect(first[1].authorName).toBe("Ana");
+    expect(first[1].roundNumber).toBe(1);
+    expect(first[1].notes).toEqual([note(61, 0)]);
+    expect(first[1].recordingUrl).toBe("/audio/a.webm");
+    expect(first[2].authorName).toBe("Beto");
+    expect(first[2].roundNumber).toBe(2);
+    expect(first[2].notes).toEqual([note(62, 0)]);
+  });
+
+  it("respeta el orden de los envíos de origen", () => {
+    const strands = assembleStrands([
+      submission("t1", null, 1, "Beto", [note(70, 0)]),
+      submission("s1", null, 1, "Ana", [note(61, 0)]),
+    ]);
+    expect(strands.map((strand) => strand.messages[1].authorName)).toEqual([
+      "Beto",
+      "Ana",
+    ]);
   });
 });
 

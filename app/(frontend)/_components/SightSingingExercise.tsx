@@ -17,7 +17,7 @@ interface SightSingingExerciseProps {
   minPitch: number;
   maxPitch: number;
   totalBeats: number;
-  onComplete: (response: NoteEvent[]) => void;
+  onComplete: (response: NoteEvent[], recording: Blob | null) => void;
 }
 
 type ExercisePhase = "idle" | "recording" | "recorded" | "transcribing";
@@ -33,6 +33,7 @@ export const SightSingingExercise = ({
   onComplete,
 }: SightSingingExerciseProps) => {
   const [phase, setPhase] = useState<ExercisePhase>("idle");
+  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
   const [recordedAudio, setRecordedAudio] = useState<AudioBuffer | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +69,7 @@ export const SightSingingExercise = ({
     if (!handle) return;
     const recording = await handle.stop();
     recordingRef.current = null;
+    setRecordingBlob(recording.blob);
     try {
       setRecordedAudio(await decodeAudio(recording.blob));
       setPhase("recorded");
@@ -96,7 +98,7 @@ export const SightSingingExercise = ({
         onsetBeats: (note.onsetSeconds * melody.tempoBpm) / 60,
         durationBeats: (note.durationSeconds * melody.tempoBpm) / 60,
       }));
-      onComplete(responseAsNoteEvents);
+      onComplete(responseAsNoteEvents, recordingBlob);
     } catch (transcriptionError) {
       setError(
         transcriptionError instanceof Error
@@ -112,6 +114,7 @@ export const SightSingingExercise = ({
     recordingRef.current?.cancel();
     recordingRef.current = null;
     playbackRef.current?.stop();
+    setRecordingBlob(null);
     setRecordedAudio(null);
     setError(null);
     setPhase("idle");

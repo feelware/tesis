@@ -74,6 +74,11 @@ export const GameRooms: CollectionConfig = {
           name: "tempoBpm",
           type: "number",
         },
+        {
+          name: "showRecordings",
+          type: "checkbox",
+          defaultValue: true,
+        },
       ],
     },
     {

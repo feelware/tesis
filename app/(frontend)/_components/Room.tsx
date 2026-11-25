@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { RoomState } from "@/lib/game/types";
+import { Gallery } from "./Gallery";
 import { GameRound } from "./GameRound";
-import { Summary } from "./Summary";
 import { WaitingRoom } from "./WaitingRoom";
 
 interface RoomProps {
@@ -82,7 +82,12 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
           onSubmitted={refresh}
         />
       ) : state.room.status === "finished" && state.leaderboard ? (
-        <Summary leaderboard={state.leaderboard} onNewGame={onExit} />
+        <Gallery
+          roomId={roomId}
+          settings={state.room.settings}
+          leaderboard={state.leaderboard}
+          onNewGame={onExit}
+        />
       ) : (
         <p className="text-sm text-zinc-500">Cargando…</p>
       )}

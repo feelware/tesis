@@ -517,6 +517,8 @@ La galería tiene dos finalidades:
 
 Debe permitir consultar resultados por jugador y por partida, y conservar los artefactos necesarios para reconstruir la secuencia.
 
+**Actualización (25-11-2026):** la galería quedó implementada en el prototipo como slideshow tipo chat grupal (una slide por melodía inicial con sus N+1 versiones y el autor de cada una, más una slide final de resultados), con reproducción MIDI de solo lectura y grabaciones de voz condicionadas por la opción `showRecordings` de la configuración. Ver detalle en 15.3.
+
 ### 7.7. Cuentas y aulas
 
 - Habrá cuentas de usuario.
@@ -1030,6 +1032,8 @@ No guardar archivos de audio directamente como blobs grandes dentro de filas Pos
 
 Definir límites de tamaño, duración, retención y eliminación. Obtener consentimiento informado para grabar voz. La voz puede constituir dato personal; restringir acceso, evitar exposición pública por defecto y explicar claramente el uso de las grabaciones.
 
+**Actualización (25-11-2026):** las grabaciones de voz se persisten en el prototipo (colección `Media`, almacenamiento local `media/` gitignored, referenciadas desde `Submissions.recording`); el límite de duración es 30 s por grabación y la conversión audio→MIDI se mantiene en el navegador. Decisión del tesista: el valor para el engagement prevalece sobre la reticencia inicial por privacidad al ser un prototipo de tesis. Siguen pendientes el consentimiento informado, la política de retención/eliminación y el acceso restringido a los archivos (15.3).
+
 ---
 
 ## 12. Requisitos funcionales y no funcionales
@@ -1307,15 +1311,24 @@ Esta sección describe el **segundo incremento** del prototipo (rama `prototipo`
 
 **Verificación del acceso por roles (25-11-2026):** con el campo `role` se añadió una prueba de humo de autorización: registro con `role: "admin"` inyectado queda en `student`, el intento de autoascenso por update deja el rol en `student`, el rol no es visible para el propio estudiante, la lectura de un usuario ajeno y la actualización de un usuario ajeno devuelven 403, y el borrado como admin funciona. Asignación de roles ejecutada con un script puntual del scratchpad (`assign-roles.mts`): `admin@example.com` → `admin` y el resto de los usuarios existentes → `student`.
 
+**Galería final y grabaciones de voz (25-11-2026):** se implementó la galería final tipo "teléfono malogrado" y el almacenamiento de las interpretaciones vocales.
+
+- **Galería como slideshow** (decisión del tesista; sustituye a la vista previa de resultados y a `Summary.tsx`): M slides, una por melodía inicial generada (una por jugador), cada una con el "viaje" completo de esa melodía en formato de chat grupal: N+1 mensajes apilados (N rondas + la versión original del sistema), cada mensaje con su autor en un texto pequeño al costado ("Sistema" o el nombre del jugador, con ronda y actividad) y un piano roll de solo lectura con reproducción/detención. Slide final con el leaderboard (sin rondas de otros jugadores) y "Tus participaciones": N filas × 2 columnas (la melodía recibida a la izquierda, la producida por el jugador a la derecha). Navegación con botones Anterior/Siguiente y un botón "Ver resultados" que salta directo a la slide final.
+- **Grabaciones de voz persistidas** (decisión del tesista): a pesar de la idea inicial de no guardarlas por privacidad, se decidió almacenarlas por su valor para el engagement (escuchar la propia voz) al tratarse de una tesis y no de un producto comercial. Nueva colección `Media` (upload local en `media/`, gitignored) y campo `Submissions.recording`; el envío acepta `recordingId` y la subida se hace por separado (`POST /api/media`) antes del envío; si la subida falla, la respuesta se envía igualmente y la galería muestra el MIDI. La conversión audio→MIDI sigue en el navegador (latencia de red).
+- **Checkbox de configuración** `showRecordings` (default: activo): "Mostrar las grabaciones de voz en la galería final". Desactivado, la galería solo muestra las transcripciones MIDI (motivación: timidez ante las burlas). El filtrado es del lado servidor (`readGallery`).
+- **Cambio en el código:** `src/collections/Media.ts` y campos nuevos (`Submissions.recording`, `GameRooms.settings.showRecordings`); `rules.ts` (`assembleStrands`, `parseGameSettings` con `showRecordings`) con 3 pruebas nuevas (82 en total); `server.ts` (`readGallery`, `submitResponse` con `recordingId`); ruta `GET /api/rooms/[id]/gallery`; componentes `Gallery.tsx` (slideshow), checkbox en `ConfigForm`, `SightSingingExercise` conserva el blob de audio y `GameRound` lo sube y adjunta.
+- **Verificación:** prueba de humo con 38 comprobaciones: partida completa de 2 rondas con grabaciones (subida a `Media`, mensajes N+1 por cadena, mensaje de repenticón con URL de audio accesible, mensaje de dictado sin audio, encadenamiento correcto —la ronda 2 recibe la respuesta del otro jugador—, fila de participaciones con grabación solo en repentización) y segunda partida con `showRecordings: false` (ninguna URL de audio en la galería). Lint y build limpios.
+- **Pendientes de este bloque:** revisión visual de la galería por el tesista; política de consentimiento, retención y eliminación de las grabaciones (11.6); permisos de lectura de `media` (hoy abiertos a nivel de prototipo, como el resto de colecciones).
+
 **Operativa de base de datos (nota para el siguiente agente):** el `push` de esquema de Payload en desarrollo es interactivo si quedan restos de colecciones retiradas (pregunta si los enums/columnas son renombres y se cuelga). Se respaldaron y eliminaron las tablas `melodies`, `game_sessions`, `game_sessions_rounds`, sus enums y las columnas huérfanas de `payload_locked_documents_rels` (respaldo en el scratchpad de la sesión, `backup-collecciones-viejas.sql`; solo contenían datos de pruebas). Para correr `npm run dev` en el host hace falta `docker compose -f compose.yaml -f compose.dev.yaml up -d postgres` (publica el 5432); el README quedó corregido.
 
 **Pendientes tras este incremento:**
 
 1. **Actualizar el capítulo IV** (hecho pendiente por cambio de implementación): 4.7.3 (mecánica multijugador: ya no es solo diseño — hay implementación y pruebas de asignación), 4.7.5, 4.8.2/4.8.3 (colecciones `GameRooms`/`Submissions` sustituyen a `Melodies`/`GameSessions`; tabla 15), 4.8.5, 4.9 (pantallas: auth, lobby, sala de espera, espera entre rondas; ya no existe la pantalla de resultado por ronda), 4.10.5/4.10.6 y 21.5/21.6 (varias "correcciones" de 21.6 quedan desactualizadas).
-2. Decisión del tesista sobre la pantalla de "espera" vs. alguna retroalimentación mínima (RF-20) y sobre la galería final (7.6).
+2. Decisión del tesista sobre la pantalla de "espera" vs. alguna retroalimentación mínima (RF-20). La galería final ya está implementada (25-11-2026, ver arriba); queda abierta cualquier refinamiento de su contenido.
 3. Política de tiempo por ronda y manejo de desconexiones/rezagados para más de 2 jugadores (17.2).
 4. Control de acceso por rol y validación de permisos en Payload (4.8.5): los roles de `users` y su control de acceso ya están implementados (ver arriba); queda pendiente el control de acceso por rol en `game_rooms`/`submissions` — la lectura de `submissions` vía REST sigue abierta (cualquier cliente podría leer respuestas ajenas; irrelevante para la prueba del tesista, pendiente para el estudio) — y la reescritura de 4.8.5 en el capítulo IV.
-5. Persistencia de audio de las interpretaciones + consentimiento y retención (11.6).
+5. Consentimiento, retención y eliminación de las grabaciones de audio (11.6): la persistencia ya está implementada (25-11-2026, ver arriba); falta la política.
 6. Prueba real con dos usuarios en dos navegadores a cargo del tesista (la verificación automatizada cubrió el flujo completo; falta el ensayo humano con micrófono).
 7. Validación de la transcripción con voz cantada real (10.5) y revisión docente de las decisiones musicales (8.4).
 

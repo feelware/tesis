@@ -8,6 +8,7 @@ export interface GameConfig {
   firstActivity: "dictation" | "sight_singing";
   roundCount: number;
   tempoBpm: number;
+  showRecordings: boolean;
 }
 
 interface ConfigFormProps {
@@ -19,6 +20,7 @@ const DEFAULT_CONFIG: GameConfig = {
   firstActivity: "dictation",
   roundCount: 4,
   tempoBpm: 90,
+  showRecordings: true,
 };
 
 export const ConfigForm = ({ onStart }: ConfigFormProps) => {
@@ -98,6 +100,23 @@ export const ConfigForm = ({ onStart }: ConfigFormProps) => {
             setConfig({ ...config, tempoBpm: Number(event.target.value) })
           }
         />
+      </label>
+
+      <label className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={config.showRecordings}
+          onChange={(event) =>
+            setConfig({ ...config, showRecordings: event.target.checked })
+          }
+        />
+        <span className="text-sm text-zinc-700">
+          Mostrar las grabaciones de voz en la galería final
+          <span className="block text-xs text-zinc-500">
+            Si se desactiva, solo se muestran las transcripciones MIDI.
+          </span>
+        </span>
       </label>
 
       <button

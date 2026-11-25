@@ -13,6 +13,7 @@ import {
 } from "@/lib/music";
 import type {
   Activity,
+  GalleryStrand,
   GameSettings,
   LeaderboardEntry,
   LeaderboardRound,
@@ -139,6 +140,7 @@ export const parseResponseNotes = (value: unknown): NoteEvent[] => {
 export const parseGameSettings = (value: unknown): GameSettings => {
   const candidate = (value ?? {}) as Record<string, unknown>;
   const { difficulty, firstActivity, roundCount, tempoBpm } = candidate;
+  const showRecordings = candidate.showRecordings ?? true;
   if (
     difficulty !== "low" &&
     difficulty !== "medium" &&
@@ -163,11 +165,15 @@ export const parseGameSettings = (value: unknown): GameSettings => {
   ) {
     throw new Error("el tempo debe estar entre 60 y 120 BPM");
   }
+  if (typeof showRecordings !== "boolean") {
+    throw new Error("showRecordings debe ser verdadero o falso");
+  }
   return {
     difficulty,
     firstActivity,
     roundCount: roundCount as number,
     tempoBpm: tempoBpm as number,
+    showRecordings,
   };
 };
 
@@ -215,3 +221,59 @@ export const computeLeaderboard = (
       rhythm: mean(player.rounds.map((round) => round.rhythm)),
     }))
     .sort((a, b) => b.overall - a.overall);
+
+export interface StrandSubmission {
+  id: string;
+  sourceSubmissionId: string | null;
+  roundNumber: number;
+  playerId: string;
+  authorName: string;
+  activity: Activity;
+  receivedNotes: NoteEvent[];
+  responseNotes: NoteEvent[];
+  recordingUrl: string | null;
+}
+
+// Reconstruye el "viaje" de cada melodía inicial: la versión original del
+// sistema seguida de la producción de cada ronda, siguiendo la cadena
+// sourceSubmission. El orden de las cadenas respeta el orden de los envíos.
+export const assembleStrands = (
+  submissions: StrandSubmission[],
+): GalleryStrand[] => {
+  const childBySource = new Map<string, StrandSubmission>();
+  for (const submission of submissions) {
+    if (submission.sourceSubmissionId !== null) {
+      childBySource.set(submission.sourceSubmissionId, submission);
+    }
+  }
+  return submissions
+    .filter((submission) => submission.sourceSubmissionId === null)
+    .map((head) => {
+      const chain: StrandSubmission[] = [];
+      let current: StrandSubmission | undefined = head;
+      while (current) {
+        chain.push(current);
+        current = childBySource.get(current.id);
+      }
+      return {
+        messages: [
+          {
+            authorName: "Sistema",
+            isSystem: true,
+            roundNumber: null,
+            activity: null,
+            notes: head.receivedNotes,
+            recordingUrl: null,
+          },
+          ...chain.map((item) => ({
+            authorName: item.authorName,
+            isSystem: false,
+            roundNumber: item.roundNumber,
+            activity: item.activity,
+            notes: item.responseNotes,
+            recordingUrl: item.recordingUrl,
+          })),
+        ],
+      };
+    });
+};

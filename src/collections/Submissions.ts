@@ -78,6 +78,11 @@ export const Submissions: CollectionConfig = {
       type: "json",
     },
     {
+      name: "recording",
+      type: "relationship",
+      relationTo: "media",
+    },
+    {
       name: "submittedAt",
       type: "date",
     },

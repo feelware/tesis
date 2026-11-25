@@ -56,16 +56,40 @@ export const GameRound = ({
 
   const gridBeats = GRID_BEATS[settings?.difficulty ?? "low"];
 
-  const submit = async (response: NoteEvent[]) => {
+  const submit = async (response: NoteEvent[], recording: Blob | null = null) => {
     if (phase !== "playing") return;
     setPhase("submitting");
     setSendError(null);
     try {
+      let recordingId: number | null = null;
+      if (recording) {
+        // La grabación se sube por separado; si falla, se envía igualmente la
+        // transcripción y la galería muestra el MIDI.
+        try {
+          const form = new FormData();
+          const extension = recording.type.includes("mp4") ? "mp4" : "webm";
+          form.append("file", recording, `recording.${extension}`);
+          form.append("alt", "Interpretación vocal");
+          const upload = await fetch("/api/media", {
+            method: "POST",
+            credentials: "include",
+            body: form,
+          });
+          if (upload.ok) {
+            const body = (await upload.json()) as { doc?: { id?: number } };
+            if (typeof body.doc?.id === "number") {
+              recordingId = body.doc.id;
+            }
+          }
+        } catch {
+          recordingId = null;
+        }
+      }
       const result = await fetch(`/api/rooms/${roomId}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ response }),
+        body: JSON.stringify({ response, recordingId }),
       });
       const body = (await result.json().catch(() => ({}))) as {
         error?: string;
@@ -151,7 +175,7 @@ export const GameRound = ({
           minPitch={rollRange.minPitch}
           maxPitch={rollRange.maxPitch}
           totalBeats={rollRange.totalBeats}
-          onComplete={(response) => void submit(response)}
+          onComplete={(response, recording) => void submit(response, recording)}
         />
       )}
     </div>

@@ -14,6 +14,7 @@ export interface GameSettings {
   firstActivity: Activity;
   roundCount: number;
   tempoBpm: number;
+  showRecordings: boolean;
 }
 
 export interface ParticipantInfo {
@@ -75,4 +76,31 @@ export interface RoomState {
   me: { userId: string; name: string };
   round: RoundState | null;
   leaderboard: LeaderboardEntry[] | null;
+}
+
+export interface GalleryMessage {
+  authorName: string;
+  isSystem: boolean;
+  roundNumber: number | null;
+  activity: Activity | null;
+  notes: NoteEvent[];
+  recordingUrl: string | null;
+}
+
+export interface GalleryStrand {
+  messages: GalleryMessage[];
+}
+
+export interface MyRoundRow {
+  roundNumber: number;
+  activity: Activity;
+  receivedNotes: NoteEvent[];
+  producedNotes: NoteEvent[];
+  recordingUrl: string | null;
+}
+
+export interface GalleryData {
+  showRecordings: boolean;
+  strands: GalleryStrand[];
+  myRounds: MyRoundRow[];
 }
