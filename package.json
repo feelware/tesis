@@ -17,6 +17,7 @@
     "migrate": "payload migrate",
     "migrate:create": "payload migrate:create",
     "migrate:status": "payload migrate:status",
+    "create:admin": "payload run scripts/create-admin.ts",
     "smoke:basic-pitch": "node scripts/smoke-basic-pitch.mjs",
     "tune:transcription": "node scripts/tune-transcription.mjs",
     "lit:fetch": "node scripts/lit-fetch.mjs",

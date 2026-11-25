@@ -1,14 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import {
-  evaluateSimilarity,
-  melodyToEvaluatedNotes,
-  transcriptionTolerances,
-  type EvaluationResult,
-  type Melody,
-  type NoteEvent,
-} from "@/lib/music";
+import { type Melody, type NoteEvent } from "@/lib/music";
 import {
   decodeAudio,
   startRecording,
@@ -24,11 +17,7 @@ interface SightSingingExerciseProps {
   minPitch: number;
   maxPitch: number;
   totalBeats: number;
-  onComplete: (
-    evaluation: EvaluationResult,
-    response: NoteEvent[],
-    recording: Blob | null,
-  ) => void;
+  onComplete: (response: NoteEvent[]) => void;
 }
 
 type ExercisePhase = "idle" | "recording" | "recorded" | "transcribing";
@@ -44,7 +33,6 @@ export const SightSingingExercise = ({
   onComplete,
 }: SightSingingExerciseProps) => {
   const [phase, setPhase] = useState<ExercisePhase>("idle");
-  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
   const [recordedAudio, setRecordedAudio] = useState<AudioBuffer | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +68,6 @@ export const SightSingingExercise = ({
     if (!handle) return;
     const recording = await handle.stop();
     recordingRef.current = null;
-    setRecordingBlob(recording.blob);
     try {
       setRecordedAudio(await decodeAudio(recording.blob));
       setPhase("recorded");
@@ -104,17 +91,12 @@ export const SightSingingExercise = ({
         setPhase("recorded");
         return;
       }
-      const evaluation = evaluateSimilarity(
-        melodyToEvaluatedNotes(melody),
-        response,
-        transcriptionTolerances(melody.difficulty),
-      );
       const responseAsNoteEvents: NoteEvent[] = response.map((note) => ({
         midiPitch: note.midiPitch,
         onsetBeats: (note.onsetSeconds * melody.tempoBpm) / 60,
         durationBeats: (note.durationSeconds * melody.tempoBpm) / 60,
       }));
-      onComplete(evaluation, responseAsNoteEvents, recordingBlob);
+      onComplete(responseAsNoteEvents);
     } catch (transcriptionError) {
       setError(
         transcriptionError instanceof Error
@@ -130,7 +112,6 @@ export const SightSingingExercise = ({
     recordingRef.current?.cancel();
     recordingRef.current = null;
     playbackRef.current?.stop();
-    setRecordingBlob(null);
     setRecordedAudio(null);
     setError(null);
     setPhase("idle");
@@ -193,7 +174,7 @@ export const SightSingingExercise = ({
                 className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700"
                 onClick={() => void submit()}
               >
-                Enviar y evaluar
+                Enviar respuesta
               </button>
             </>
           ) : null}

@@ -68,8 +68,8 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
-    melodies: Melody;
-    'game-sessions': GameSession;
+    'game-rooms': GameRoom;
+    submissions: Submission;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,8 +78,8 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
-    melodies: MelodiesSelect<false> | MelodiesSelect<true>;
-    'game-sessions': GameSessionsSelect<false> | GameSessionsSelect<true>;
+    'game-rooms': GameRoomsSelect<false> | GameRoomsSelect<true>;
+    submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -126,6 +126,7 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name?: string | null;
+  role: 'student' | 'professor' | 'admin';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -147,11 +148,43 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "melodies".
+ * via the `definition` "game-rooms".
  */
-export interface Melody {
+export interface GameRoom {
   id: number;
-  symbolicData:
+  code: string;
+  host: number | User;
+  status: 'waiting' | 'in_progress' | 'finished';
+  currentRound: number;
+  sessionSeed?: string | null;
+  settings?: {
+    difficulty?: ('low' | 'medium' | 'high') | null;
+    firstActivity?: ('dictation' | 'sight_singing') | null;
+    roundCount?: number | null;
+    tempoBpm?: number | null;
+  };
+  participants?:
+    | {
+        user: number | User;
+        joinOrder: number;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "submissions".
+ */
+export interface Submission {
+  id: number;
+  room: number | GameRoom;
+  roundNumber: number;
+  player: number | User;
+  activity: 'dictation' | 'sight_singing';
+  status: 'pending' | 'done';
+  receivedMelody:
     | {
         [k: string]: unknown;
       }
@@ -160,46 +193,27 @@ export interface Melody {
     | number
     | boolean
     | null;
-  seed: string;
-  difficulty: 'low' | 'medium' | 'high';
-  tempoBpm: number;
-  generatorVersion?: string | null;
-  key?: string | null;
-  scale?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "game-sessions".
- */
-export interface GameSession {
-  id: number;
-  sessionSeed: string;
-  difficulty: 'low' | 'medium' | 'high';
-  firstActivity: 'dictation' | 'sight_singing';
-  tempoBpm: number;
-  averageScore?: number | null;
-  rounds?:
+  receivedFrom?: (number | null) | User;
+  sourceSubmission?: (number | null) | Submission;
+  response?:
     | {
-        roundNumber: number;
-        activity: 'dictation' | 'sight_singing';
-        melody?: (number | null) | Melody;
-        response?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        pitchScore?: number | null;
-        rhythmScore?: number | null;
-        overallScore?: number | null;
-        id?: string | null;
-      }[]
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
     | null;
+  evaluation?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  submittedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -232,12 +246,12 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
-        relationTo: 'melodies';
-        value: number | Melody;
+        relationTo: 'game-rooms';
+        value: number | GameRoom;
       } | null)
     | ({
-        relationTo: 'game-sessions';
-        value: number | GameSession;
+        relationTo: 'submissions';
+        value: number | Submission;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -287,6 +301,7 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -306,41 +321,48 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "melodies_select".
+ * via the `definition` "game-rooms_select".
  */
-export interface MelodiesSelect<T extends boolean = true> {
-  symbolicData?: T;
-  seed?: T;
-  difficulty?: T;
-  tempoBpm?: T;
-  generatorVersion?: T;
-  key?: T;
-  scale?: T;
+export interface GameRoomsSelect<T extends boolean = true> {
+  code?: T;
+  host?: T;
+  status?: T;
+  currentRound?: T;
+  sessionSeed?: T;
+  settings?:
+    | T
+    | {
+        difficulty?: T;
+        firstActivity?: T;
+        roundCount?: T;
+        tempoBpm?: T;
+      };
+  participants?:
+    | T
+    | {
+        user?: T;
+        joinOrder?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "game-sessions_select".
+ * via the `definition` "submissions_select".
  */
-export interface GameSessionsSelect<T extends boolean = true> {
-  sessionSeed?: T;
-  difficulty?: T;
-  firstActivity?: T;
-  tempoBpm?: T;
-  averageScore?: T;
-  rounds?:
-    | T
-    | {
-        roundNumber?: T;
-        activity?: T;
-        melody?: T;
-        response?: T;
-        pitchScore?: T;
-        rhythmScore?: T;
-        overallScore?: T;
-        id?: T;
-      };
+export interface SubmissionsSelect<T extends boolean = true> {
+  room?: T;
+  roundNumber?: T;
+  player?: T;
+  activity?: T;
+  status?: T;
+  receivedMelody?: T;
+  receivedFrom?: T;
+  sourceSubmission?: T;
+  response?: T;
+  evaluation?: T;
+  submittedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

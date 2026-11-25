@@ -1,4 +1,4 @@
-import { Game } from "./_components/Game";
+import { App } from "./_components/App";
 
 export default function HomePage() {
   return (
@@ -6,7 +6,7 @@ export default function HomePage() {
       <h1 className="mb-8 text-3xl font-bold">
         Prototipo — Entrenamiento auditivo
       </h1>
-      <Game />
+      <App />
     </main>
   );
 }

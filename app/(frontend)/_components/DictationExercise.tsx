@@ -1,15 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import {
-  beatsToSeconds,
-  evaluateSimilarity,
-  melodyToEvaluatedNotes,
-  type EvaluatedNote,
-  type EvaluationResult,
-  type Melody,
-  type NoteEvent,
-} from "@/lib/music";
+import { type Melody, type NoteEvent } from "@/lib/music";
 import { playNotes, type PlaybackHandle } from "@/lib/audio/playback";
 import { PianoRoll } from "./PianoRoll";
 
@@ -19,7 +11,7 @@ interface DictationExerciseProps {
   minPitch: number;
   maxPitch: number;
   totalBeats: number;
-  onComplete: (evaluation: EvaluationResult, response: NoteEvent[]) => void;
+  onComplete: (response: NoteEvent[]) => void;
 }
 
 export const DictationExercise = ({
@@ -47,16 +39,7 @@ export const DictationExercise = ({
   };
 
   const submit = () => {
-    const response: EvaluatedNote[] = notes.map((note) => ({
-      midiPitch: note.midiPitch,
-      onsetSeconds: beatsToSeconds(note.onsetBeats, melody.tempoBpm),
-      durationSeconds: beatsToSeconds(note.durationBeats, melody.tempoBpm),
-    }));
-    const evaluation = evaluateSimilarity(
-      melodyToEvaluatedNotes(melody),
-      response,
-    );
-    onComplete(evaluation, notes);
+    onComplete(notes);
   };
 
   return (

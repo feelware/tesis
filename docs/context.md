@@ -2,9 +2,9 @@
 
 **Proyecto:** Tesis – videojuego web multijugador para entrenamiento auditivo  
 **Fecha de consolidación:** 3 de noviembre de 2026  
-**Última actualización:** 24 de noviembre de 2026  
-**Idioma principal de trabajo:** español  
-**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente. La revisión del estado del arte se encuentra en marcha conforme a PRISMA 2020 (ver sección 6.5): búsqueda ejecutada en cuatro fuentes, cadenas restringidas, etapa 3 de screening completada y **etapa 4 (texto completo) completada** (76 incluidos de los 448; ver sección 6.5).
+**Última actualización:** 25 de noviembre de 2026
+**Idioma principal de trabajo:** español
+**Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). Desde el 25-11-2026 el prototipo es **multijugador**: cuentas de usuario, salas por código y rondas encadenadas (la salida de cada jugador es la entrada de otro en la ronda siguiente), verificado con una partida simulada de dos usuarios (ver sección 15.3). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente. La revisión del estado del arte se encuentra en marcha conforme a PRISMA 2020 (ver sección 6.5): búsqueda ejecutada en cuatro fuentes, cadenas restringidas, etapa 3 de screening completada y **etapa 4 (texto completo) completada** (76 incluidos de los 448; ver sección 6.5).
 
 > Este documento sirve como contexto persistente para otro LLM que apoyará tanto la redacción académica de la tesis como el diseño e implementación de la codebase. Debe leerse como una especificación de trabajo viva. Distingue entre decisiones confirmadas, propuestas técnicas por validar y cuestiones todavía abiertas. No presentes como implementado, probado o validado aquello que aún no se ha desarrollado. **Cada interacción significativa con un agente que cause una modificación en el proyecto debe actualizarse en este documento**, con los datos relevantes para que otro agente pueda continuar el trabajo: qué se hizo, qué se decidió, qué cambió en el código o en los documentos y qué queda pendiente.
 
@@ -473,6 +473,8 @@ Debe definirse con precisión qué objeto se transfiere:
 
 La intención expresada por el tesista es que las rondas de dictado posteriores utilicen melodías interpretadas por otros jugadores en la ronda anterior y que cada jugador interprete en repentización una melodía transcrita por otro jugador en la ronda anterior. La implementación debe preservar esa cadena y su trazabilidad.
 
+Precisión del material transferido (pedido del tesista, 25-11-2026; implementado en 15.3): en las rondas de dictado posteriores a la primera, el jugador **escucha la melodía MIDI que el navegador reproduce a partir de la transcripción AMT** de la interpretación del jugador anterior (no el audio de su canto). En las rondas de repentización, el jugador **visualiza la transcripción simbólica** producida por otro jugador en la ronda anterior y la interpreta. En ambos casos el objeto transferido es la producción simbólica final de la ronda anterior (transcripción del estudiante en dictado; transcripción AMT en repentización), y ningún jugador recibe la producción propia.
+
 ### 7.4. Dificultad
 
 La dificultad no aumenta automáticamente durante la partida. Se configura antes de empezar y depende de la complejidad de las melodías iniciales generadas por el sistema. Las rondas posteriores pueden contener respuestas imperfectas o transformaciones, pero no cambian dinámicamente el perfil de dificultad.
@@ -845,6 +847,8 @@ Alternativa: Socket.IO con un servidor Node persistente. Da mayor control y evit
 
 **Recomendación:** construir un pequeño spike técnico con Ably primero. No enviar datos musicales pesados por el canal realtime. Usar el canal para eventos de juego y enviar audio/MIDI mediante almacenamiento/HTTP; los eventos transportan identificadores y metadatos.
 
+**Decisión del prototipo (25-11-2026):** la sincronización del prototipo multijugador se implementó por **sondeo (polling)** de ~1.2 s contra PostgreSQL vía Payload, sin proveedor externo (ver 15.3): es la alternativa más sencilla de integrar para la prueba con dos usuarios, no exige cuentas ni claves de terceros y conserva al backend como autoridad (13.1). No se descartan Ably ni Socket.IO para la versión completa; el spike de Ably sigue pendiente y la sustitución del transporte no afectaría a las reglas de juego (están en `src/lib/game/rules.ts` y en los endpoints, no en la capa de comunicación).
+
 ### 11.3. Separación lógica de componentes
 
 Arquitectura sugerida:
@@ -909,7 +913,7 @@ Modelo conceptual sugerido; no es un esquema final obligatorio:
 - id
 - displayName
 - email/identificador de autenticación
-- role (`student`, `teacher`, `admin`)
+- role (`student`, `professor`, `admin`)
 - createdAt
 
 **Classrooms**
@@ -1261,6 +1265,56 @@ Contenido del prototipo, verificado con build limpia, 50 pruebas unitarias y pru
 
 Pendientes del prototipo: prueba interactiva en navegador con micrófono real, validación de la transcripción con voz cantada real, persistencia de las grabaciones de audio (junto con consentimiento y retención), y revisión con docentes de las decisiones musicales provisionales del apartado 8.4.
 
+### 15.3. Estado multijugador del prototipo (25-11-2026)
+
+Esta sección describe el **segundo incremento** del prototipo (rama `prototipo`): modo multijugador con usuarios, que sustituye a la partida individual descrita en 15.2 (ese texto se conserva como antecedente de la Fase 3; las colecciones `Melodies`/`GameSessions` y `src/lib/persistence.ts` ya no existen).
+
+**Lo implementado y verificado:**
+
+1. **Usuarios y autenticación:** registro e inicio de sesión con la autenticación de Payload (cookie httpOnly `payload-token`), panel de sesión y cierre de sesión en la interfaz. Dos navegadores distintos tienen sesiones independientes.
+2. **Salas por código:** crear sala (código de 6 caracteres, sin caracteres ambiguos), unirse por código (idempotente, tolera minúsculas), lista de participantes en vivo (sondeo), anfitrión configura la partida (dificultad, primera actividad, rondas 2–8, tempo 60–120) e inicia. Mínimo 2 jugadores para iniciar; solo el anfitrión inicia.
+3. **Rondas encadenadas (la mecánica central):**
+   - La ronda 1 reparte una melodía generada distinta por jugador (semillas `{sessionSeed}-p{i}`).
+   - En la ronda k ≥ 2 cada jugador recibe la **respuesta del jugador anterior en la rotación**: `sourceIndex = (i - 1 + N) % N` (con 2 jugadores, siempre el otro; nunca uno recibe su propia producción).
+   - La salida de una ronda es la entrada de la siguiente en su forma simbólica final: para una ronda de dictado, la transcripción del estudiante; para una ronda de repentización, la transcripción AMT de su canto.
+   - Presentación según la actividad recibida: dictado reproduce la melodía recibida como MIDI en el navegador; repentización la muestra en el piano roll.
+   - Las actividades alternan por ronda a partir de `firstActivity` (dictado ↔ repentización).
+   - La evaluación de cada respuesta se calcula **en el servidor** contra la melodía recibida (ronda 1: la generada), con las tolerancias existentes (dictado 50 ms; canto 150 ms y equivalencia de octava en dificultad baja). El cliente solo envía las notas de su respuesta.
+4. **Avance de ronda:** cuando todos los participantes han enviado su respuesta, el servidor evalúa, construye las asignaciones de la ronda siguiente (con `sourceSubmission` para trazabilidad) y avanza; en la última ronda se cierra la partida y se calcula el leaderboard (promedio de precisión general, con desglose de alturas y ritmo).
+5. **Sin pantallas de resultado por ronda** (decisión del tesista): tras enviar, el jugador ve una pantalla de espera con el estado de envío de los demás; los resultados se muestran solo al final (tabla de clasificación + rondas de cada jugador). La "galería con el viaje de cada melodía" sigue sin implementarse y su decisión está abierta (ver 7.6).
+6. **Persistencia:** colecciones `GameRooms` (código, anfitrión, estado, configuración, semilla, participantes) y `Submissions` (una fila por jugador y ronda con `receivedMelody` autocontenido —incluye semilla y versión del generador—, `receivedFrom`, `sourceSubmission`, respuesta, evaluación y estado). Toda la cadena puede reconstruirse.
+
+**Decisiones tomadas por el agente (25-11-2026), a validación del tesista:**
+
+- **Sincronización por sondeo (polling) de ~1.2 s** contra la base vía Payload, sin proveedor realtime externo: es la alternativa más sencilla de integrar (decisión pendiente en 11.2), sin cuentas externas ni servidor de sockets, y mantiene al backend como autoridad (13.1). Ably y Socket.IO siguen siendo las opciones de la versión completa (ver 11.2).
+- **Sin cronómetro por ronda y avance por envío de todos** (esperar a que todos acaben): política adecuada para la prueba con 2 usuarios. Para más jugadores quedan abiertas las preguntas que señaló el tesista: si poner cronómetro tipo Gartic Phone, cuánto esperar a los rezagados y qué hacer con desconexiones (ver 17.2).
+- **Interpretación de la mecánica:** el flujo pedido ("si se empieza por dictado, las melodías transcritas son mostradas a los estudiantes para que las transcriban en la segunda ronda") se implementó según la alternancia ya fijada en 7.2/7.3 y RF-16: la segunda ronda es de **repentización** y las melodías recibidas se **muestran para interpretarlas** (el verbo "transcriban" del pedido se leyó como errata de "interpreten/canten", coherente con "mostradas" y con el caso paralelo de repentización→dictado). Confirmar con el tesista; el cambio de alternancia se reduce a `activityForRound` en `src/lib/game/rules.ts`.
+- **Mínimo 2 jugadores** para iniciar (mantiene el invariante "nadie recibe su propia melodía"); sin máximo por ahora.
+- **Acceso de las colecciones:** lectura abierta y escritura bloqueada vía REST (las mutaciones pasan por los endpoints de juego, que validan las reglas). Los permisos por rol siguen siendo pendiente de la versión completa (4.8.5).
+
+**Qué cambió en el código:**
+
+- Nuevos: `src/lib/game/` (`types.ts`, `rules.ts` con las reglas puras y `rules.test.ts` con 19 pruebas, `server.ts` con la orquestación), `app/api/rooms/` (crear, unirse, estado, iniciar, enviar), `src/collections/GameRooms.ts`, `src/collections/Submissions.ts`, componentes `App`, `AuthPanel`, `Lobby`, `Room`, `WaitingRoom`, `GameRound`, `Summary`.
+- Eliminados: `src/collections/Melodies.ts`, `src/collections/GameSessions.ts`, `src/lib/persistence.ts`, `app/(frontend)/_components/Game.tsx` (partida individual) y `EvaluationPanel.tsx` (pantalla de resultado por ronda).
+- Modificados: `Users.ts` (acceso explícito; registro abierto), `DictationExercise`/`SightSingingExercise` (devuelven solo la respuesta; la evaluación se hace en el servidor), `page.tsx`, README (puesta en marcha con `compose.dev.yaml` y prueba de dos usuarios).
+- `payload-types.ts` regenerado (`GameRoom`, `Submission`).
+- Utilidad `scripts/create-admin.ts` (`npm run create:admin`, vía `payload run`): crea un usuario del panel de administración con credenciales genéricas (`admin@example.com` / `admin123`, sobreescribibles con `ADMIN_EMAIL`/`ADMIN_PASSWORD`) y rol `admin`; es idempotente (no duplica si el usuario ya existe).
+- Campo `role` en `users` (25-11-2026): `select` obligatorio con valores `student`, `professor` y `admin` (11.5 decía `teacher`; se adoptó `professor` por decisión del tesista) y `defaultValue: "student"`. Helpers de control de acceso tomados del proyecto de referencia `~/dev/docestantes`: `src/lib/user.ts` (`Role`, `isAdmin`, `isProfessor`) y `src/lib/access.ts` (`collectionAdminAccess`, `fieldAdminAccess`, `fieldProfessorAccess`). Reglas: panel `/admin` para admin y profesor; lectura de un usuario solo para él mismo o para admin/profesor (el rol no es legible para estudiantes); registro abierto pero el rol se fuerza a `student` al registrarse (el field access `create`/`update` del rol es solo-admin y el `defaultValue` se aplica después de que Payload elimina el valor no permitido); actualización solo del propio usuario o por admin; borrado solo admin.
+
+**Verificación (25-11-2026):** 79 pruebas unitarias pasan (60 previas + 19 nuevas de reglas de juego); `npm run lint` sin errores; `npm run build` limpio; prueba de humo de la API con dos usuarios reales (22 comprobaciones: registro, login con cookie, sala por código, inicio solo por anfitrión, melodías distintas en ronda 1, encadenamiento exacto ronda 1→2 en ambos sentidos, bloqueo de doble envío, no fuga de respuestas ajenas antes de tiempo, cierre y leaderboard); verificación en navegador con `agent-browser` (registro por formulario, lobby, sala de espera como anfitrión y como invitado, inicio y renderizado de la ronda 1 en dos sesiones, pantalla de espera tras enviar). Con el campo `role` se añadió una prueba de humo de autorización: registro con `role: "admin"` inyectado queda en `student`, el intento de autoascenso por update deja el rol en `student`, el rol no es visible para el propio estudiante, la lectura de un usuario ajeno y la actualización de un usuario ajeno devuelven 403, y el borrado como admin funciona. Asignación de roles ejecutada con un script puntual del scratchpad (`assign-roles.mts`): `admin@example.com` → `admin` y el resto de los usuarios existentes → `student`.
+
+**Operativa de base de datos (nota para el siguiente agente):** el `push` de esquema de Payload en desarrollo es interactivo si quedan restos de colecciones retiradas (pregunta si los enums/columnas son renombres y se cuelga). Se respaldaron y eliminaron las tablas `melodies`, `game_sessions`, `game_sessions_rounds`, sus enums y las columnas huérfanas de `payload_locked_documents_rels` (respaldo en el scratchpad de la sesión, `backup-collecciones-viejas.sql`; solo contenían datos de pruebas). Para correr `npm run dev` en el host hace falta `docker compose -f compose.yaml -f compose.dev.yaml up -d postgres` (publica el 5432); el README quedó corregido.
+
+**Pendientes tras este incremento:**
+
+1. **Actualizar el capítulo IV** (hecho pendiente por cambio de implementación): 4.7.3 (mecánica multijugador: ya no es solo diseño — hay implementación y pruebas de asignación), 4.7.5, 4.8.2/4.8.3 (colecciones `GameRooms`/`Submissions` sustituyen a `Melodies`/`GameSessions`; tabla 15), 4.8.5, 4.9 (pantallas: auth, lobby, sala de espera, espera entre rondas; ya no existe la pantalla de resultado por ronda), 4.10.5/4.10.6 y 21.5/21.6 (varias "correcciones" de 21.6 quedan desactualizadas).
+2. Decisión del tesista sobre la pantalla de "espera" vs. alguna retroalimentación mínima (RF-20) y sobre la galería final (7.6).
+3. Política de tiempo por ronda y manejo de desconexiones/rezagados para más de 2 jugadores (17.2).
+4. Control de acceso por rol y validación de permisos en Payload (4.8.5): los roles de `users` y su control de acceso ya están implementados (ver arriba); queda pendiente el control de acceso por rol en `game_rooms`/`submissions` — la lectura de `submissions` vía REST sigue abierta (cualquier cliente podría leer respuestas ajenas; irrelevante para la prueba del tesista, pendiente para el estudio) — y la reescritura de 4.8.5 en el capítulo IV.
+5. Persistencia de audio de las interpretaciones + consentimiento y retención (11.6).
+6. Prueba real con dos usuarios en dos navegadores a cargo del tesista (la verificación automatizada cubrió el flujo completo; falta el ensayo humano con micrófono).
+7. Validación de la transcripción con voz cantada real (10.5) y revisión docente de las decisiones musicales (8.4).
+
 ---
 
 ## 16. Capítulo IV: Desarrollo – orientación de redacción
@@ -1396,6 +1450,8 @@ La organización anterior fue reemplazada por la estructura de once secciones de
 - duración y protocolo de intervención pedagógica;
 - instrumentos de evaluación pretest/postest;
 - tamaño de muestra y análisis estadístico.
+
+**Actualización (25-11-2026), decisión de diseño multijugador del prototipo (ver 15.3):** quedan provisionales o resueltos para la prueba con dos jugadores: número de rondas configurable (2–8); mínimo 2 jugadores por sala (sin máximo definido); asignación por rotación `(i − 1 + N) % N`, que también resuelve el número impar de jugadores y distribuye cada respuesta a un único jugador; sin cronómetro por ronda (la ronda avanza cuando todos envían su respuesta). Siguen abiertos: jugadores ausentes o rezagados, desconexión y reconexión, límites de tiempo por ronda para más jugadores, y el resto de la lista.
 
 ---
 
@@ -1567,6 +1623,8 @@ Las siguientes secciones se redactaron a partir del código, de `package.json`, 
 ### 21.5. Placeholders (diseño; requieren implementación y evidencia)
 
 Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentarios `// PLACEHOLDER`. En la rama `prototipo` se renderizan con normalidad; en `prototipo-no-placeholders` se envolvieron en comentarios de bloque `/* ... */` para generar una versión sin ellos. Su texto está redactado en el mismo registro que una tesis finalizada y no dice "en progreso"; la marca es interna. No deben interpretarse como resultados ejecutados. Cada apartado indica qué evidencia falta para reescribirlo:
+
+**Actualización (25-11-2026):** el incremento multijugador del prototipo (ver 15.3) deja desactualizados varios apartados del capítulo IV (4.7.3, 4.7.5, 4.8.2, 4.8.3, 4.8.5, 4.9, 4.10.5, 4.10.6, la tabla 15 y las "correcciones" de 21.6 sobre persistencia y mecánica). La lista de pendientes de actualización está en 15.3.
 
 - 4.2.4, párrafo de comunicación en tiempo real: definir el proveedor definitivo, la autenticación, los canales y la presencia; documentar límites, privacidad y pruebas de integración. Actualmente se describe el diseño y la comparación entre servicio administrado y servidor WebSocket propio.
 - 4.7.3: mecánica multijugador (salas, códigos, asignación, número impar de jugadores, trazabilidad de la cadena). Reescribir con la implementación y las pruebas de asignación.
