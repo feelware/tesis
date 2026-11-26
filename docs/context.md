@@ -319,7 +319,7 @@ Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit
    - **Etapa 2, prefiltro temático (script):** conservar registros con términos del dominio musical en título, abstract o keywords.
    - **Etapa 3, lectura de título y abstract (agente):** aplicar criterios de inclusión y exclusión, registrando motivo para cada decisión. No se usa cupo por cluster. Se valida una muestra aleatoria con criterio humano del tesista antes de confiar en el filtro.
    - **Etapa 4, texto completo (lectura manual, solo acceso abierto):** para los candidatos de la etapa 3, verificar que el método es replicable. El criterio de acceso cerrado se verifica con la bandera de acceso abierto de Semantic Scholar.
-   Ninguna etapa comienza para un cluster hasta cumplir el punto 6 de la sección 6.5.
+     Ninguna etapa comienza para un cluster hasta cumplir el punto 6 de la sección 6.5.
 
 **Estado de la selección (20-11-2026, sin Springer):**
 
@@ -339,7 +339,7 @@ Pipeline implementado (`scripts/lit-*.mjs`, con `npm run lit:fetch|lit:merge|lit
 - Validación de C1: Troubadour (Pesek et al.) está entre los 4 aprobados de C1, con la cadena restringida.
 - El volumen bajó de 18601 a 656, dentro del objetivo de ≤1000 fijado por el tesista.
 - Corrección de pipeline (23-11-2026): se restauró `matchedPhrasesOf` en `lit-fetch.mjs` (se perdió al borrar OpenAlex), se corrigió el adaptador de ERIC (las comillas de frase anulan la combinación AND; ahora expande frases a palabras con AND, como en IEEE) y se hicieron no bloqueantes la lectura de página y la captura de diagnógico de `lit-browser-export.mjs`, que colgaban la detección de sesión.
-**Etapa 3 completada (23-11-2026):**
+  **Etapa 3 completada (23-11-2026):**
 
 - 656 registros leídos (título y abstract): **448 incluidos**, **208 excluidos**, ninguno sin decidir. Cada fila de `screening/etapa3_lectura_titulo_abstract.csv` lleva `etapa3_incluir` (sí/no) y `etapa3_razonamiento`.
 - Incluidos por cluster: C2a 291, C4a 108, C3a 40, C2b 20, C3b 16, C4b 12, C1b 7, C1 3.
@@ -357,12 +357,14 @@ Objetivo (context.md 6.5): sobre los 448 incluidos en la etapa 3, verificar leye
 - **Comandos:** `npm run lit:fulltext -- resolve` (resuelve OA de los 448 vía S2 batch por DOI + búsqueda por título para no-resueltos); `npm run lit:fulltext -- fetch [--size K]` (descarga el siguiente lote, registra `etapa4_acceso` y aplica la regla de exclusión a las descargas fallidas); `npm run lit:fulltext -- clean` (borra los textos del lote leído). Sin Unpaywall (decisión 23-11-2026).
 
 **Resolución de acceso abierto (resolve, 24-11-2026):** de los 448 incluidos de la etapa 3 (418 con DOI), S2 devuelve:
+
 - **141 con URL de texto completo OA** (GOLD 52, GREEN 58, HYBRID 20, BRONZE 11) → conjunto de lectura de la etapa 4.
 - **246 cerrados** (bandera `isOpenAccess=false` de S2; incluye 1 resuelto por título) → excluidos por acceso cerrado.
 - **61 sin resolver/no OA identificado** (28 sin URL recuperable, 33 con DOI intentados contra doi.org sin éxito) → excluidos como no recuperados. Decisión del tesista (23-11-2026): sin recuperación manual ni Unpaywall; si no se descargan solos, se excluyen.
 - Por cluster (conjunto OA de 141): C2a 86, C4a 39, C3a 11, C2b 6, C3b 5, C4b 4, C1b 3, C1 2.
 
 **Etapa 4 COMPLETA (24-11-2026):** de los 448 incluidos en la etapa 3 →
+
 - **76 incluidos** (texto completo leído, método replicable; ver `etapa4_fulltext.csv`). De ellos, 74 con `etapa4_replicable=sí` y 2 "parcial" (E4-0154 panorama pedagógico; E4-0242 ANN guiada por análisis armónico, reproducibilidad limitada). Por cluster: C2a 50, C4a 19, C3a 8, C2b 3, C3b 2, C4b 2, C1 1, C1b 1.
 - **372 excluidos:** 246 por acceso cerrado (resolución OA de S2) + 126 "informe no recuperado" / "sin acceso abierto directo" (descargas fallidas: landing de editorial, sin URL recuperable, o intentos doi.org sin éxito). Entre los excluidos está Troubadour (E4-0003, Pesek et al.); su contenido queda en `docs/Troubadour.md` como antecedente, pero no como estudio incluido del SOTA.
 - Tasa de descarga automática ~47% de las URLs OA (arXiv, PLOS, MDPI PDF, repositorios); el resto eran landing de editoriales, excluidas como "informe no recuperado".
@@ -372,6 +374,7 @@ Objetivo (context.md 6.5): sobre los 448 incluidos en la etapa 3, verificar leye
 **Decisión del tesista sobre acceso (23-11-2026): no se usa Unpaywall ni recuperación manual.** Se descarta todo estudio del que se adquiera certeza de que no tiene acceso abierto directo (PDF descargable automáticamente desde la URL resuelta). La certeza se adquiere al intentar la descarga en la etapa 4, no antes. Unpaywall queda descartado como herramienta; la opción `--unpaywall` de `resolve` no debe usarse.
 
 **Entregables del estado del arte (24-11-2026):**
+
 - **Textos completos de los 76 incluidos** en markdown: `docs/estado-del-arte/fulltext/E4-XXXX.md` (metadatos + texto con `pdftotext`; E4-0154 sin texto extraíble, solo metadatos). Para que otros agentes los referencien al diseñar el generador y el analizador.
 - **CSV de referencia detallado para agentes:** `docs/estado-del-arte/tabla-sota-referencia.csv` (76 filas × 27 columnas: identidad, técnica, método/algoritmo, representación, parámetros, dataset, código, métricas, resultados, limitaciones, pertinencia por componente (generador/analizador/transcripción/juego), gap y takeaway de diseño, + `fulltext_path`). Generado por extracción sobre los textos completos.
 - **Tabla simplificada en `tesis.typ` (Anexo A):** `anexo-filas` reemplazado con 77 filas (76 incluidos agrupados por cluster + Basic Pitch). Columnas: Cluster | Autores | Título | DOI | Técnicas | Dataset | Resultados | Gap. Las celdas son breves (estilo divulgación). El detalle completo está en el CSV.
@@ -379,6 +382,7 @@ Objetivo (context.md 6.5): sobre los 448 incluidos en la etapa 3, verificar leye
 - **Nota de compilación (resuelta 24-11-2026):** el error de compilación preexistente (`expected path or string, found array` en `cetz/src/canvas.typ`) provenía de `cetz:0.3.2` (arrastrado por `fletcher`), incompatible con Typst 0.15. Se resolvió actualizando el import a `@preview/fletcher:0.5.7`, que usa `cetz:0.3.4` (compatible). `tesis.typ` compila a PDF sin errores (93 páginas).
 
 **Siguientes pasos (para el siguiente agente):**
+
 1. Etapa 4 completada. El ledger `etapa4_fulltext.csv` tiene las 448 decisiones como material de auditoría.
 2. ~~Poblar la tabla de técnicas/resultados/gap~~ — hecho (CSV detallado + Anexo A en tesis.typ).
 3. Decidir sobre Basic Pitch (ver arriba) y explicitar su relación de diseño en la sección de transcripción.
@@ -536,15 +540,15 @@ Debe permitir consultar resultados por jugador y por partida, y conservar los ar
 
 El diseño se ha reformulado a partir del estado del arte (sección 2.4.5, cluster de generación). Los tres primeros parámetros son los ejes de dificultad de Poćwiardowski et al. (2025): longitud, magnitud de intervalo y frecuencia de patrones (aquí, penalización de la repetición). Se complementan con la tesitura cantable (MusicAIR), la estructura de frases (Raposo y Soares; Wu y Yang; Shan et al.), la congruencia tonal y la complejidad rítmica. Los validadores deterministas siguen a Meng et al. (2026).
 
-| Parámetro                                 | Dificultad baja               | Dificultad media   | Dificultad alta     |
-| ----------------------------------------- | ----------------------------- | ------------------ | ------------------- |
-| Longitud (eje: longitud)                  | 8 notas                       | 15 notas           | 24 notas            |
-| Intervalo máximo consecutivo (eje: magnitud de intervalo) | 2 semitonos | 5 semitonos | 7 semitonos |
-| Penalización de repetición (eje: frecuencia de patrones) | 0.35      | 0.65               | 1.0                 |
-| Ambitus — tesitura cantable               | 12 semitonos (1 octava)       | 19 semitonos (≈1.5 octavas) | 24 semitonos (2 octavas) |
-| Estructura de frases                      | 1 frase                       | 2 frases           | 3 frases            |
-| Congruencia tonal                         | Una sola escala               | Posible modulación | Modulación          |
-| Complejidad rítmica                       | Negras/blancas, compás simple | Corcheas           | Síncopas, tresillos |
+| Parámetro                                                 | Dificultad baja               | Dificultad media            | Dificultad alta          |
+| --------------------------------------------------------- | ----------------------------- | --------------------------- | ------------------------ |
+| Longitud (eje: longitud)                                  | 8 notas                       | 15 notas                    | 24 notas                 |
+| Intervalo máximo consecutivo (eje: magnitud de intervalo) | 2 semitonos                   | 5 semitonos                 | 7 semitonos              |
+| Penalización de repetición (eje: frecuencia de patrones)  | 0.35                          | 0.65                        | 1.0                      |
+| Ambitus — tesitura cantable                               | 12 semitonos (1 octava)       | 19 semitonos (≈1.5 octavas) | 24 semitonos (2 octavas) |
+| Estructura de frases                                      | 1 frase                       | 2 frases                    | 3 frases                 |
+| Congruencia tonal                                         | Una sola escala               | Posible modulación          | Modulación               |
+| Complejidad rítmica                                       | Negras/blancas, compás simple | Corcheas                    | Síncopas, tresillos      |
 
 Nota sobre la tesitura (derivada del estado del arte): el ambitus se limita a una tesitura cantable (máximo 2 octavas, registro C3–C5). La dificultad alta se había fijado en 3 octavas (F#2–F#5), fuera de cualquier registro vocal razonable; MusicAIR (Liao et al., 2025) genera dentro de una tesitura cantable cómoda y esa restricción se adopta aquí. Además, el generador prefiere el movimiento por grado conjunto (MusicAIR), penaliza la repetición según el nivel (eje de frecuencia de patrones) y cierra cada frase en un tono estable (tónica o dominante), de modo que aumenta la variedad —el capítulo V documentó baja variedad por exceso de notas repetidas— sin perder coherencia melódica.
 
@@ -1326,25 +1330,27 @@ Esta sección describe el **segundo incremento** del prototipo (rama `prototipo`
 
 **Módulo docente, salones de clase y espectación (25-11-2026):** implementación completa de la lógica de profesores según decisiones confirmadas por el tesista.
 
-*Decisiones confirmadas (25-11-2026, preguntas al tesista):*
+_Decisiones confirmadas (25-11-2026, preguntas al tesista):_
 
 1. **Diagrama de espectación: filas = jugadores** (las participaciones de cada jugador se alinean horizontalmente con su nombre al costado; los edges de cada melodía cruzan de fila en zigzag cuando la melodía pasa al siguiente jugador). Color por melodía original (espectro de hues distribuido entre las M).
 2. **Orden de partidas por métricas:** el puntaje de cada partida es el **promedio de los estudiantes del salón participantes**; con filtro de estudiante, su puntaje individual.
 3. **Clic en partida pasada:** los **estudiantes ven la vista final** (galería + resultados); los **docentes ven las 3 sub-vistas de espectación** (la galería tipo chat se considera más de entretenimiento que analítica).
 4. **Espectación en vivo y en frío:** la vista de espectación funciona en vivo y aunque la partida haya terminado; se accede desde las listas de "Partidas en desarrollo" (en vivo) o desde las partidas pasadas del salón (en frío), no por código.
 
-*Lo implementado:*
+_Lo implementado:_
 
 - **Estudiantes:** pantalla de inicio con "Mis partidas" (historial con fecha, código, rondas, posición y métricas; clic → la vista final bloqueada de esa partida) e "Invitaciones pendientes" (aceptar/rechazar).
-- **Docentes:** pantalla de inicio con "Partidas en desarrollo" (todas las de sus salones, con nombre de salón, código, ronda y jugadores, y botón "Espectar") y "Mis salones de clase" (lista con miembros y pendientes; crear salón). **No pueden jugar** (bloqueado en crear/unirse sala; los admins pueden jugar, enseñar y espectar). Vista de salón: "Partidas en desarrollo" del salón (con botón "Espectar"), "Partidas del salón" (todas las partidas donde jugó al menos un estudiante del salón, con filtro por estudiante —vía `?student=`— y orden por alturas/ritmo/general —`?metric`/`?order`—, mostrando el promedio del salón o el puntaje del estudiante filtrado), "Estudiantes" (ordenable por métricas y partidas jugadas; clic → partidas filtradas por ese estudiante) e "Invitaciones pendientes" con invitación por correo (el correo debe corresponder a un usuario existente; re-invitar tras rechazo vuelve a poner la invitación en pendiente).
-- **Espectación con 3 sub-vistas** (`?spectate=<roomId>&view=general|melody|player`, selección en `?melody=`/`?player=`): (a) *vista general*: diagrama de nodos tipo red neuronal, capas = rondas (columnas), filas = jugadores con su nombre clickeable (→ detalle de jugador), nodos simbólicos (contorno de alturas, sin piano roll completo) con color por melodía original y edges del flujo de cada melodía; clic en nodo → detalle de esa melodía; (b) *detalle por melodía*: el viaje tipo chat con evaluación por mensaje; (c) *detalle por jugador*: filas recibió/produjo por ronda con sub-puntajes. Funciona en vivo (sondeo) y en frío.
+- **Docentes:** pantalla de inicio con "Partidas en desarrollo" (todas las de sus salones, con nombre de salón, código, ronda y jugadores, y botón "Espectar") y "Mis salones de clase" (lista con miembros y pendientes; crear salón). **No pueden jugar** (bloqueado en crear/unirse sala; los admins pueden jugar, enseñar y espectar). Vista de salón: "Partidas en desarrollo" del salón (con botón "Espectar"), "Partidas pasadas" (todas las partidas donde jugó al menos un estudiante del salón, con filtro por estudiante —vía `?student=`— y orden por alturas/ritmo/general —`?metric`/`?order`—, mostrando el promedio del salón o el puntaje del estudiante filtrado), "Estudiantes" (ordenable por métricas y partidas jugadas; clic → partidas filtradas por ese estudiante) e "Invitaciones pendientes" con invitación por correo (el correo debe corresponder a un usuario existente; re-invitar tras rechazo vuelve a poner la invitación en pendiente).
+- **Espectación con 3 sub-vistas** (`?spectate=<roomId>&view=general|melody|player`, selección en `?melody=`/`?player=`): (a) _vista general_: diagrama de nodos tipo red neuronal, capas = rondas (columnas), filas = jugadores con su nombre clickeable (→ detalle de jugador), nodos simbólicos (contorno de alturas, sin piano roll completo) con color por melodía original y edges del flujo de cada melodía; clic en nodo → detalle de esa melodía; (b) _detalle por melodía_: el viaje tipo chat con evaluación por mensaje; (c) _detalle por jugador_: filas recibió/produjo por ronda con sub-puntajes. Funciona en vivo (sondeo) y en frío.
 - **Datos y API:** colecciones `Classrooms` (docente) y `ClassroomInvitations` (estado pending/accepted/rejected; aceptada = miembro) con cascada de borrado; endpoints `GET /api/my/overview` (rol, historial, invitaciones, salones y partidas en vivo), `POST /api/classrooms`, `GET /api/classrooms/[id]` (detalle con partidas en vivo, filtros y orden por query params), `POST /api/classrooms/[id]/invitations`, `POST /api/invitations/[id]` (accept/reject) y `GET /api/rooms/[id]/spectate`. El rol del usuario no es legible por REST (acceso de campo), por lo que el frontend lo obtiene de `my/overview`.
 - **Dominio:** `rules.ts` con `scoreAverages`, `gameSortScore`, `sortScores` y `assembleStrands` enriquecido (autor y evaluación por mensaje, soporte de envíos pendientes para partidas en vivo); 6 pruebas nuevas (88 en total). `teacher.ts` con la orquestación docente. Reglas de React Compiler resueltas (`useSyncExternalStore` para los query params, reproducción MIDI con estado de módulo en `melody-view.tsx` compartido).
 - **Verificación:** prueba de humo con 33 comprobaciones (roles: estudiante sin salones, docente sin juego, estudiante sin espectación; invitaciones con aceptar/rechazar/re-invitar/correo inexistente; detalle de salón con filtro por estudiante usando su puntaje y orden; historial con posición; espectación en vivo con capa 0 y capa 1 con evaluaciones, y en frío con cadenas N+1 completas) y recorrido visual en navegador (inicio docente, vista de salón, diagrama de nodos con zigzag y las 3 sub-vistas con query params). Lint, build y 88 pruebas limpios.
 
-*Pendientes de este bloque:* revisión del tesista; crear usuarios `professor` reales (hoy solo el admin puede promoverlos desde el CMS o por API); política de acceso a `classrooms`/`classroom-invitations` vía REST (mismas restricciones que el resto: mutaciones solo por endpoints); capítulo IV: 4.8.5 (control de acceso por roles, ahora parcialmente implementado) y 4.9 (nuevas pantallas: inicio por rol, salón, espectación) pendientes de redacción.
+_Pendientes de este bloque:_ revisión del tesista; crear usuarios `professor` reales (hoy solo el admin puede promoverlos desde el CMS o por API); política de acceso a `classrooms`/`classroom-invitations` vía REST (mismas restricciones que el resto: mutaciones solo por endpoints); capítulo IV: 4.8.5 (control de acceso por roles, ahora parcialmente implementado) y 4.9 (nuevas pantallas: inicio por rol, salón, espectación) pendientes de redacción.
 
 **Ajuste (25-11-2026):** se retiró el input de "Espectar partida" por código del inicio docente. Las partidas en curso se listan en el inicio del docente (todas las de sus salones, con nombre de salón) y en la vista de cada salón bajo la sección "Partidas en desarrollo", ambas con botón "Espectar" y refresco cada 5 s (en el inicio vía sondeo del overview; en el salón, del detalle). Se eliminó `POST /api/rooms/spectate` (la resolución por código ya no se usa). Verificado con la prueba de humo (35 comprobaciones, incluidas las listas en vivo al iniciar la partida y su vaciado al finalizar) y en navegador (inicio y salón con la partida en vivo y su botón, y acceso directo a la espectación).
+
+**Ajuste (26-11-2026):** la vista de salón ahora presenta sus cuatro secciones ("Partidas en desarrollo", "Partidas pasadas", "Estudiantes", "Invitaciones pendientes") como **tabs** en lugar de apiladas, reutilizando el patrón de pills de la espectación. La tab activa vive en la URL (`?tab=live|games|students|invitations`, default `live`); los `h3` de cada sección se quitaron por redundar con el label de la tab. Al hacer clic en un estudiante se cambia a la tab "Partidas del salón" (donde se ve el filtro por estudiante, que antes quedaba en otra sección apilada). `tab` se añadió a `APP_PARAMS` y se limpia al abrir una partida o volver. Cambios en `ClassroomView.tsx` y `App.tsx`; verificado con lint y `tsc` limpios.
 
 **Operativa de base de datos (nota para el siguiente agente):** el `push` de esquema de Payload en desarrollo es interactivo si quedan restos de colecciones retiradas (pregunta si los enums/columnas son renombres y se cuelga). Se respaldaron y eliminaron las tablas `melodies`, `game_sessions`, `game_sessions_rounds`, sus enums y las columnas huérfanas de `payload_locked_documents_rels` (respaldo en el scratchpad de la sesión, `backup-collecciones-viejas.sql`; solo contenían datos de pruebas). Para correr `npm run dev` en el host hace falta `docker compose -f compose.yaml -f compose.dev.yaml up -d postgres` (publica el 5432); el README quedó corregido.
 

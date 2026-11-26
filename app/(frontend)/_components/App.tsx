@@ -29,6 +29,7 @@ const toAuthUser = (raw: RawUser): AuthUser => ({
 
 const APP_PARAMS = [
   "classroom",
+  "tab",
   "student",
   "metric",
   "order",
@@ -164,6 +165,7 @@ export const App = () => {
           onOpenGame={(id) =>
             setParams({
               classroom: null,
+              tab: null,
               student: null,
               spectate: id,
               view: "general",
