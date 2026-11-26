@@ -17,6 +17,9 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
   const [state, setState] = useState<RoomState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -51,14 +54,36 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
 
   const refresh = () => setTick((value) => value + 1);
 
+  const copyCode = async () => {
+    const code = state?.room.code;
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("error");
+    }
+    setTimeout(() => setCopyStatus("idle"), 2000);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           Sala{" "}
           <code className="rounded bg-zinc-100 px-2 py-1">
             {state?.room.code ?? "…"}
           </code>
+          <button
+            className="rounded border border-zinc-300 px-2 py-1 text-sm font-normal hover:bg-zinc-50"
+            onClick={() => void copyCode()}
+          >
+            {copyStatus === "copied"
+              ? "¡Copiado!"
+              : copyStatus === "error"
+                ? "No se pudo copiar"
+                : "Copiar código"}
+          </button>
         </h2>
         <button
           className="rounded border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-50"
