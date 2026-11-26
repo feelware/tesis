@@ -125,8 +125,8 @@ export const deriveGameHints = (rounds: RoundFeedbackInput[]): string[] => {
 };
 
 const METRIC_LABEL: Record<"pitch" | "rhythm" | "overall", string> = {
-  pitch: "Tus alturas",
-  rhythm: "Tu ritmo",
+  pitch: "Tu precisión de alturas",
+  rhythm: "Tu precisión rítmica",
   overall: "Tu precisión general",
 };
 

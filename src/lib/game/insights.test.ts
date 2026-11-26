@@ -131,8 +131,8 @@ describe("deriveHistoryInsights", () => {
       { pitch: 0.7, rhythm: 0.56, overall: 0.63 },
     ]);
     expect(insights).toHaveLength(3);
-    expect(insights[0]).toContain("Tus alturas ha mejorado");
-    expect(insights[1]).toContain("Tu ritmo se mantiene estable");
+    expect(insights[0]).toContain("Tu precisión de alturas ha mejorado");
+    expect(insights[1]).toContain("Tu precisión rítmica se mantiene estable");
     expect(insights[2]).toContain("Tu precisión general ha mejorado");
   });
 
