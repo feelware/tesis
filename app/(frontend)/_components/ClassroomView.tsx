@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import type { ClassroomDetail, SortOrder } from "@/lib/game/types";
 import { gameSortScore } from "@/lib/game/rules";
 import { percent } from "./melody-view";
+import { Sparkline, trendSeriesOf } from "./Sparkline";
 
 interface ClassroomViewProps {
   classroomId: string;
@@ -362,6 +363,7 @@ export const ClassroomView = ({
                       "General",
                     )}
                   </th>
+                  <th className="p-2">Tendencia</th>
                 </tr>
               </thead>
               <tbody>
@@ -383,6 +385,13 @@ export const ClassroomView = ({
                     <td className="p-2">{percent(item.pitch)}</td>
                     <td className="p-2">{percent(item.rhythm)}</td>
                     <td className="p-2">{percent(item.overall)}</td>
+                    <td className="p-2">
+                      <Sparkline
+                        series={trendSeriesOf(item.trend)}
+                        width={84}
+                        height={24}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

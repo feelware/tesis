@@ -7,6 +7,7 @@ import {
   scoreAverages,
   sortScores,
 } from "./rules";
+import { buildTrendSeries } from "./insights";
 import { HttpError, fetchNames, idOf } from "./server";
 import type {
   ClassroomDetail,
@@ -16,6 +17,7 @@ import type {
   InvitationInfo,
   LiveGameInfo,
   MetricKey,
+  MetricPoint,
   MyGameInfo,
   MyOverview,
   SortOrder,
@@ -440,6 +442,7 @@ export const readClassroomDetail = async (
   const students: ClassroomStudentRow[] = members.map((invitation) => {
     const playerId = idOf(invitation.user);
     const evaluations: EvaluationResult[] = [];
+    const points: MetricPoint[] = [];
     let gamesPlayed = 0;
     for (const room of rooms) {
       const perPlayer = byRoomPlayer.get(Number(room.id)) ?? new Map();
@@ -447,6 +450,7 @@ export const readClassroomDetail = async (
       if (!roomEvaluations) continue;
       gamesPlayed += 1;
       evaluations.push(...roomEvaluations);
+      points.push(scoreAverages(roomEvaluations));
     }
     return {
       userId: String(playerId),
@@ -454,6 +458,8 @@ export const readClassroomDetail = async (
       email: userInfo.get(playerId)?.email ?? "",
       gamesPlayed,
       ...scoreAverages(evaluations),
+      // rooms va del más reciente al más antiguo; la serie es cronológica.
+      trend: buildTrendSeries(points.slice().reverse()),
     };
   });
   const sortedStudents = sortScores(students, studentMetric, studentOrder);

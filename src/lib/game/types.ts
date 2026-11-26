@@ -118,6 +118,18 @@ export interface PlayerScore {
   overall: number;
 }
 
+export interface MetricPoint {
+  pitch: number;
+  rhythm: number;
+  overall: number;
+}
+
+export interface TrendSeries {
+  pitch: number[];
+  rhythm: number[];
+  overall: number[];
+}
+
 export interface ClassroomGameRow {
   roomId: string;
   code: string;
@@ -130,6 +142,7 @@ export interface ClassroomGameRow {
 export interface ClassroomStudentRow extends PlayerScore {
   email: string;
   gamesPlayed: number;
+  trend: TrendSeries;
 }
 
 export interface ClassroomDetail {

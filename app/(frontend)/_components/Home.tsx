@@ -2,8 +2,10 @@
 
 import { useState, type FormEvent } from "react";
 import type { MyOverview } from "@/lib/game/types";
+import { buildTrendSeries } from "@/lib/game/insights";
 import { Lobby } from "./Lobby";
 import { percent } from "./melody-view";
+import { Sparkline, SparklineLegend, trendSeriesOf } from "./Sparkline";
 
 interface HomeProps {
   overview: MyOverview;
@@ -203,7 +205,21 @@ export const Home = ({
                 Aún no has jugado ninguna partida.
               </p>
             ) : (
-              <table className="w-full border-collapse text-left text-sm">
+              <>
+                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-zinc-200 bg-white p-3">
+                  <span className="text-sm font-medium text-zinc-700">
+                    Progreso por partida
+                  </span>
+                  <Sparkline
+                    series={trendSeriesOf(
+                      buildTrendSeries(overview.games.slice().reverse()),
+                    )}
+                    width={180}
+                    height={36}
+                  />
+                  <SparklineLegend />
+                </div>
+                <table className="w-full border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-zinc-300">
                     <th className="p-2">Fecha</th>
@@ -238,7 +254,8 @@ export const Home = ({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </>
             )}
           </div>
           <Lobby onEnter={onEnterRoom} />
