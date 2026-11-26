@@ -2,7 +2,7 @@
 
 **Proyecto:** Tesis – videojuego web multijugador para entrenamiento auditivo  
 **Fecha de consolidación:** 3 de noviembre de 2026  
-**Última actualización:** 25 de noviembre de 2026
+**Última actualización:** 26 de noviembre de 2026
 **Idioma principal de trabajo:** español
 **Estado del desarrollo:** existe un prototipo del videojuego en la rama `prototipo` (Next.js + Payload + PostgreSQL, con generador, analizador y transcripción integrados y verificados). Desde el 25-11-2026 el prototipo es **multijugador**: cuentas de usuario, salas por código y rondas encadenadas (la salida de cada jugador es la entrada de otro en la ronda siguiente), verificado con una partida simulada de dos usuarios (ver sección 15.3). El documento de tesis está migrado a Typst (`docs/tesis/tesis.typ`) con problema y objetivos actualizados. El capítulo IV fue reescrito el 19-11-2026 para reflejar el prototipo y para separar explícitamente lo implementado de lo especificado como diseño (ver sección 21). En la rama `prototipo`, las secciones de diseño de la versión completa se renderizan; en `prototipo-no-placeholders` se comentaron temporalmente. La revisión del estado del arte se encuentra en marcha conforme a PRISMA 2020 (ver sección 6.5): búsqueda ejecutada en cuatro fuentes, cadenas restringidas, etapa 3 de screening completada y **etapa 4 (texto completo) completada** (76 incluidos de los 448; ver sección 6.5).
 
@@ -1356,13 +1356,48 @@ _Pendientes de este bloque:_ revisión del tesista; crear usuarios `professor` r
 
 **Pendientes tras este incremento:**
 
-1. **Actualizar el capítulo IV** (hecho pendiente por cambio de implementación): 4.7.3 (mecánica multijugador: ya no es solo diseño — hay implementación y pruebas de asignación), 4.7.5, 4.8.2/4.8.3 (colecciones `GameRooms`/`Submissions` sustituyen a `Melodies`/`GameSessions`; tabla 15), 4.8.5, 4.9 (pantallas: auth, lobby, sala de espera, espera entre rondas; ya no existe la pantalla de resultado por ronda), 4.10.5/4.10.6 y 21.5/21.6 (varias "correcciones" de 21.6 quedan desactualizadas).
+1. ~~**Actualizar el capítulo IV** (hecho pendiente por cambio de implementación)~~ — **hecho el 26-11-2026**, incluido el módulo docente, las vistas nuevas y las features de feedback (ver el bloque «Insights de literatura y features de feedback» más abajo).
 2. Decisión del tesista sobre la pantalla de "espera" vs. alguna retroalimentación mínima (RF-20). La galería final ya está implementada (25-11-2026, ver arriba); queda abierta cualquier refinamiento de su contenido.
 3. Política de tiempo por ronda y manejo de desconexiones/rezagados para más de 2 jugadores (17.2).
-4. Control de acceso por rol y validación de permisos en Payload (4.8.5): los roles de `users` y su control de acceso ya están implementados (ver arriba); queda pendiente el control de acceso por rol en `game_rooms`/`submissions` — la lectura de `submissions` vía REST sigue abierta (cualquier cliente podría leer respuestas ajenas; irrelevante para la prueba del tesista, pendiente para el estudio) — y la reescritura de 4.8.5 en el capítulo IV.
+4. Control de acceso por rol y validación de permisos en Payload (4.8.5): los roles de `users` y su control de acceso ya están implementados (ver arriba); queda pendiente el control de acceso por rol en `game_rooms`/`submissions` — la lectura de `submissions` vía REST sigue abierta (cualquier cliente podría leer respuestas ajenas; irrelevante para la prueba del tesista, pendiente para el estudio) — ~~y la reescritura de 4.8.5 en el capítulo IV~~ (hecho el 26-11-2026).
 5. Consentimiento, retención y eliminación de las grabaciones de audio (11.6): la persistencia ya está implementada (25-11-2026, ver arriba); falta la política.
 6. Prueba real con dos usuarios en dos navegadores a cargo del tesista (la verificación automatizada cubrió el flujo completo; falta el ensayo humano con micrófono).
 7. Validación de la transcripción con voz cantada real (10.5) y revisión docente de las decisiones musicales (8.4).
+
+**Insights de literatura y features de feedback (26-11-2026):** sesión de análisis del SOTA (clusters C1/C1b/C2b/C3b) y de los antecedentes de `docs/antecedentes` sobre qué estadísticas e insights mostrar a estudiantes y docentes, seguida de la implementación de las features resultantes, de las capturas de toda la UI y de la actualización completa del capítulo IV.
+
+_Decisiones confirmadas por el tesista (preguntas de alcance de la sesión):_
+
+1. Tendencias temporales visibles tanto para el estudiante ("Mis partidas") como para el docente (tabla de estudiantes del salón).
+2. Desglose de errores en la galería y en la espectación, con un componente compartido.
+3. Feedback formativo tanto por partida (galería) como agregado sobre el historial (cuenta del estudiante).
+4. Actualizar en `tesis.typ` todo lo pendiente (incluido el módulo docente) y añadir capturas de pantalla de toda la UI (flujo completo) con `agent-browser`.
+
+_Lo implementado (commits `7afb36b`, `5f8cbd2`, `ee2c9a3`, `80fed53`, `ac2bbad`, `de591e3`):_
+
+- **Tendencias:** `src/lib/game/insights.ts` (`buildTrendSeries`, `sparklinePoints` con dominio fijo [0,1]) + `Sparkline.tsx`; panel "Progreso por partida" con sparklines e insights en `Home` y columna "Tendencia" en `ClassroomView` (serie cronológica por estudiante calculada en `teacher.ts`; nuevo campo `ClassroomStudentRow.trend`).
+- **Desglose de errores:** `src/lib/music/error-report.ts` (`describeEvaluationErrors`: por dimensión, notas omitidas/adicionales con posición y desviación media/máxima de los pares emparejados — semitonios en altura, ms en ataque) + `rules.ts#errorReportFor`; `assembleStrands` adjunta `errorReport` a cada mensaje de cadena y `readGallery` a cada fila de "Tus participaciones" (nuevos campos `GalleryMessage.errorReport` y `MyRoundRow.evaluation/errorReport`). UI: `ErrorBreakdown.tsx` en "Tus participaciones" (galería) y en el detalle por jugador (espectación).
+- **Feedback formativo:** `deriveGameHints` (pistas por partida: dimensión débil, notas omitidas/adicionales, desviación de octava, ataques desplazados) y `deriveHistoryInsights` (tendencia por métrica y dimensión más débil del historial) en `insights.ts`; bloque "Qué trabajar para tu próxima partida" en la galería e insights en "Mis partidas". Umbrales de las reglas = aporte propio (documentado como tal en el capítulo IV).
+- **Pruebas:** 107 unitarias (rules 29, generator 29, analyzer 21, insights 13, dsp-tracker 5, error-report 5, params 4, generator-eval 1); lint, `tsc` y `next build` limpios. Fix: concordancia de las insights ("Tu precisión de alturas/rítmica...").
+
+_Grounding registrado en el capítulo IV (4.5.6, 4.7.3 y 4.9.7, con extractos Typst):_
+
+- Módulo docente y métricas por estudiante: los docentes de Troubadour pidieron supervisar el progreso y ver los tipos de error de los estudiantes (Pesek et al., 2020a, §III-A.1; panel docente §IV-C.2); Fernández (2025) recomienda "incorporar métricas de seguimiento del progreso estudiantil" y Lingjie (2025) concluye que se requieren planes individualizados según necesidades específicas. Comparaciones entre estudiantes reservadas al docente por la privacidad del ranking (Pesek et al., 2020a, §V-C.1: "they did not approve of their scores to be public").
+- Tendencias: curvas de progreso por partida de Troubadour (§V-D: el tiempo por ejercicio disminuía y los puntos por partida aumentaban con el uso) + medias inicio/fin por dimensión (Chen y Li, 2025; Lingjie, 2025). Sparkline de dominio fijo e insights derivados = aporte propio.
+- Desglose de errores: Kumar et al. (2026) (categorías de error del canto y collares de tolerancia) y Kim y Cozzarin (2023) ("the game would show how much of an error was made"). El formato concreto del informe = aporte propio.
+- Feedback formativo: Zhang et al. (2025)/LLaQo ("fall short in educational contexts where formative, detailed and instructional feedback is essential for student development").
+
+_Documentos y capturas:_
+
+- `docs/tesis/tesis.typ`: capítulo IV actualizado por completo (estado de cada apartado en la sección 21 de este documento); compila sin errores (102 páginas). Figuras nuevas 12–19 con capturas; las figuras del capítulo V se renumeraron 12→20 y 13→21 (referencias en texto y en 22.6 actualizadas). Referencias añadidas: Kim y Cozzarin (2023), Kumar et al. (2026), Zhang et al. (2025).
+- `docs/tesis/capturas/`: 20 PNG de toda la UI (acceso, registro, lobby, sala de espera, dictado, espera, repentinización, galería, inicio estudiante, inicio docente, 4 tabs del salón + filtro, 3 sub-vistas de espectación y espectación en vivo), tomadas con `agent-browser` sobre datos de demo generados por un script puntual del scratchpad (`seed.mjs`, no commiteado): usuarios ana/beto/carlos@demo.com (contraseña `demo1234`), docente prof@demo.com, salón "Audición Musical 2026" y partidas terminadas con errores deliberados para que el desglose y las tendencias sean visibles.
+
+_Contradicción detectada (no corregida; requiere decisión del tesista):_ las secciones 10.2–10.5, 15.2 y 17.1 de este documento describen la transcripción con `@spotify/basic-pitch` (Web Worker + TensorFlow.js, backend CPU), pero el commit `b0a6dcd` sustituyó el transcriptor por un **tracker DSP propio** (YIN + onsets, `src/lib/transcription/dsp-tracker.ts`, usado por `transcription.worker.ts`); el capítulo IV ya describe el tracker DSP y no queda ninguna referencia a Basic Pitch en `src/` ni `app/`. El barrido 75–1500 Hz documentado en 17.1 corresponde ahora a `src/lib/transcription/params.ts`. Residuos de Basic Pitch en el repo: la dependencia `@spotify/basic-pitch`, `scripts/copy-basic-pitch-model.mjs` (predev/prebuild), `scripts/smoke-basic-pitch.mjs` y `public/models/basic-pitch`. Propuesta: reescribir esas secciones de context.md al tracker DSP y decidir si se retiran los residuos (y si Basic Pitch se mantiene como excepción del Anexo A, ver 6.5).
+
+_Pendientes tras esta sesión:_
+
+1. Quedan como PLACEHOLDER en el capítulo IV: 4.7.5 (parcial: reglas de abandono, rezagados y tiempos por ronda), 4.8.4 (parcial: consentimiento, retención y eliminación de grabaciones) y 4.10.5 (validación con voz cantada real).
+2. Pendientes sin cambios: control de acceso REST a nivel de colección, prueba humana con dos usuarios y micrófono real, validación musical con docentes, revisión del tesista de las features nuevas y de las capturas, y decisiones abiertas de 17.2.
 
 ---
 
@@ -1624,7 +1659,8 @@ Figuras del capítulo:
 - Figura 8: pipeline de transcripción de audio a notas.
 - Figura 9: flujo de una partida individual.
 - Figura 10: cadena de datos de una partida.
-- Figura 11: flujo de pantallas del videojuego.
+- Figura 11: flujo de pantallas del videojuego (actualizada el 26-11-2026 con las pantallas implementadas: inicio por rol, espera entre rondas, galería y salón/espectación).
+- Figuras 12–19: capturas de la interfaz (`docs/tesis/capturas/`), añadidas el 26-11-2026 en 4.9.7. Por su inserción, las figuras del capítulo V se renumeraron: distribución de intervalos pasó de Figura 12 a Figura 20 y melodías de muestra de Figura 13 a Figura 21.
 
 ### 21.3. Tablas del capítulo
 
@@ -1648,6 +1684,8 @@ Las tablas 3 a 18 continúan la numeración de los capítulos II y III:
 - Tabla 18: resultados del banco sintético de transcripción.
 
 ### 21.4. Redactado con seguridad (verificado contra el código)
+
+**Actualización (26-11-2026):** se reescribieron contra el código actual —y por tanto quedan "redactados con seguridad"— los apartados 4.1.2, 4.1.3, 4.2.3, 4.2.4, 4.2.5, 4.5.5, 4.5.6, 4.7.3, 4.8.1, 4.8.2, 4.8.3, 4.8.5, 4.9.2 a 4.9.7, 4.10.1, 4.10.2, 4.10.4, 4.10.6, 4.10.7 y 4.11. La lista siguiente es el registro del estado anterior (19-11-2026) y sus agrupaciones ya no reflejan exactamente el alcance actual.
 
 Las siguientes secciones se redactaron a partir del código, de `package.json`, de las pruebas y del estado del prototipo documentado en la sección 15.2. No requieren reescritura salvo que cambie la implementación:
 
@@ -1674,6 +1712,8 @@ Las siguientes secciones se redactaron a partir del código, de `package.json`, 
 Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentarios `// PLACEHOLDER`. En la rama `prototipo` se renderizan con normalidad; en `prototipo-no-placeholders` se envolvieron en comentarios de bloque `/* ... */` para generar una versión sin ellos. Su texto está redactado en el mismo registro que una tesis finalizada y no dice "en progreso"; la marca es interna. No deben interpretarse como resultados ejecutados. Cada apartado indica qué evidencia falta para reescribirlo:
 
 **Actualización (25-11-2026):** el incremento multijugador del prototipo (ver 15.3) deja desactualizados varios apartados del capítulo IV (4.7.3, 4.7.5, 4.8.2, 4.8.3, 4.8.5, 4.9, 4.10.5, 4.10.6, la tabla 15 y las "correcciones" de 21.6 sobre persistencia y mecánica). La lista de pendientes de actualización está en 15.3.
+
+**Actualización (26-11-2026):** la reescritura del capítulo IV (ver 15.3, bloque «Insights de literatura y features de feedback») dejó el estado de PLACEHOLDER así: **ya no son PLACEHOLDER** (reescritos con evidencia): 4.2.4, 4.7.3, 4.8.1, 4.8.5, 4.9.7, 4.10.6, 4.10.7 y 4.11; **PLACEHOLDER (parcial)**: 4.7.5 (comportamiento real documentado; reglas de abandono/rezagados/tiempos abiertas) y 4.8.4 (grabaciones persistidas; política de consentimiento/retención pendiente); **PLACEHOLDER sin cambios**: 4.10.5 (validación con voz cantada real). La lista siguiente es el registro histórico del estado anterior.
 
 - 4.2.4, párrafo de comunicación en tiempo real: definir el proveedor definitivo, la autenticación, los canales y la presencia; documentar límites, privacidad y pruebas de integración. Actualmente se describe el diseño y la comparación entre servicio administrado y servidor WebSocket propio.
 - 4.7.3: mecánica multijugador (salas, códigos, asignación, número impar de jugadores, trazabilidad de la cadena). Reescribir con la implementación y las pruebas de asignación.
@@ -1745,7 +1785,7 @@ No se redactó la sección de resultados del evaluador de similitud (segundo obj
 - Misma ruta de código que la aplicación (`generateMelody`).
 - Métricas registradas: éxito, tiempo, intervalos, ambitus, duraciones, tonalidad, escala, modulación, unicidad y variedad.
 
-La evaluación se ejecutó con un test temporal de Vitest el 19-11-2026; el test se retiró después de generar las cifras. Para reproducirla, crear un test o script que genere las 200 semillas por nivel con ese patrón y calcule las mismas métricas. Las cifras no se inventaron: provienen de esa ejecución.
+La evaluación se ejecutó con un test temporal de Vitest el 19-11-2026 (el test se retiró después de generar las cifras) y hoy es reproducible con `src/lib/music/generator-eval.test.ts`, que genera las 200 semillas por nivel con ese patrón y calcula las mismas métricas. Las cifras no se inventaron: provienen de esa ejecución.
 
 ### 22.3. Resultados principales
 
@@ -1780,9 +1820,9 @@ Mejoras propuestas en 5.2.4: penalizar la repetición, controlar el perfil de in
 
 El capítulo sigue la estructura de Freire (2025): 5.1 Resultados y 5.2 Discusión, con subsecciones por componente. No se agregaron fuentes externas nuevas; la discusión cita Pesek et al. (2020a) para comparar con Troubadour.
 
-- **Figura 12:** gráfico de barras agrupadas de la distribución de intervalos. Se generó con `@preview/cetz-plot:0.1.4` y `@preview/cetz:0.5.2`. No se usó `plotst` porque su versión 0.2.0 usa la función `style`, retirada en Typst 0.14, y no compila.
-- **Figura 13:** piano roll de tres melodías de muestra (una por dificultad), dibujado con Typst a partir de las notas generadas con el generador reformado (semillas `figura13-{baja|media|alta}`). La línea vertical gris marca la modulación. Regenerada el 24-11-2026 tras la reforma del generador.
+- **Figura 20 (antes 12; renumerada el 26-11-2026):** gráfico de barras agrupadas de la distribución de intervalos. Se generó con `@preview/cetz-plot:0.1.4` y `@preview/cetz:0.5.2`. No se usó `plotst` porque su versión 0.2.0 usa la función `style`, retirada en Typst 0.14, y no compila.
+- **Figura 21 (antes 13; renumerada el 26-11-2026):** piano roll de tres melodías de muestra (una por dificultad), dibujado con Typst a partir de las notas generadas con el generador reformado (semillas `figura13-{baja|media|alta}`). La línea vertical gris marca la modulación. Regenerada el 24-11-2026 tras la reforma del generador.
 - **Figura 1 (capítulo II):** proceso de búsqueda y selección conforme a PRISMA 2020. Se regeneró el 24-11-2026 como diagrama de Typst (`fletcher`), sustituyendo a `fig1.png` (obsoleto: mostraba la revisión anterior con Springer/OpenAlex y 10 estudios por cluster). Refleja las cifras del SOTA actualizado: 5232 → 4759 únicos → 4599 → 656 → 448 → 76 incluidos.
 - **Tablas 19–23:** configuración, cumplimiento y tiempo, distribución de intervalos, ambitus/duración/modulación y variedad melódica.
 
-Si se agrega la sección del evaluador, usar 5.1.6 y 5.2.6 (o renumerar) y continuar la numeración de tablas y figuras desde 24 y 14, respectivamente.
+Si se agrega la sección del evaluador, usar 5.1.6 y 5.2.6 (o renumerar) y continuar la numeración de tablas y figuras desde 24 y 22, respectivamente.
