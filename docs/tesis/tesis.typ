@@ -540,7 +540,7 @@ La construcción del artefacto no siguió una secuencia lineal. Durante la imple
 
 === 4.1.2. Estrategia de construcción
 
-La construcción se organizó en incrementos verticales. Cada incremento incorporó una capacidad completa —dominio, persistencia, interfaz y pruebas— y mantuvo la aplicación ejecutable. El orden fue el siguiente: primero el dominio musical, después la persistencia, luego la interfaz de dictado, a continuación la transcripción y la interfaz de repentización, y finalmente la integración y el resumen de la partida. Esta secuencia redujo el riesgo de mezclar errores musicales con errores de red, de persistencia o de interfaz.
+La construcción se organizó en incrementos verticales. Cada incremento incorporó una capacidad completa —dominio, persistencia, interfaz y pruebas— y mantuvo la aplicación ejecutable. El orden fue el siguiente: primero el dominio musical, después la persistencia, luego la interfaz de dictado, a continuación la transcripción y la interfaz de repentización, y finalmente la integración y el resumen de la partida. Los incrementos posteriores añadieron el modo multijugador con intercambio encadenado de producciones, la galería final y el módulo docente con salones de clase y espectación. Esta secuencia redujo el riesgo de mezclar errores musicales con errores de red, de persistencia o de interfaz.
 
 Desde el punto de vista de la ingeniería de software, el desarrollo adoptó las siguientes prácticas:
 
@@ -566,12 +566,13 @@ Desde el punto de vista de la ingeniería de software, el desarrollo adoptó las
     ([Payload CMS], [Backend propio], [Autenticación, colecciones, administración y API disponibles sin desarrollar un backend desde cero.]),
     ([Modelo monofónico], [Modelo polifónico], [Los ejercicios son melódicos; el emparejamiento uno a uno es suficiente y verificable.]),
     ([Inferencia en cliente], [Inferencia en servidor], [Menor transferencia de datos personales y menor carga para la aplicación Next.js.]),
+    ([Sincronización por sondeo], [Proveedor de tiempo real administrado o servidor WebSocket propio], [Alternativa más simple para el prototipo, sin servicios externos; el backend sigue siendo la autoridad del estado y la sustitución del transporte no afecta a las reglas de juego.]),
   ),
 )]
 
 === 4.1.3. Alcance y trazabilidad
 
-El prototipo funcional implementa el flujo individual completo: configuración de la partida, generación de melodías, dictado, repentización con transcripción, evaluación por ronda, persistencia de la sesión y resumen. La versión completa añade salas multijugador, intercambio de producciones entre jugadores, galería final, aulas y vista docente. La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
+El prototipo implementa el flujo completo del juego: acceso y cuentas, salas multijugador por código, configuración de la partida, generación de melodías, rondas alternadas de dictado y repentización con transcripción, intercambio encadenado de producciones entre jugadores, evaluación en el servidor, galería final, historial del estudiante y módulo docente con salones de clase, invitaciones y espectación de partidas. Las reglas de abandono y reconexión, la política de retención de grabaciones y el control de acceso a nivel de colección quedan especificados como diseño de la versión completa (secciones 4.7.5, 4.8.4 y 4.8.5). La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
 
 #block(breakable: false)[
 #leyenda([Tabla], 4, [Trazabilidad entre objetivos específicos y secciones del capítulo])
@@ -692,13 +693,14 @@ El repositorio se organiza por responsabilidad, no por tipo de archivo. La Tabla
   columns: (4.2cm, 11.7cm),
   header: ([*Directorio*], [*Responsabilidad*]),
   rows: (
-    ([`app/(frontend)`], [Interfaz de partida, componentes de ejercicio, evaluación y resumen.]),
+    ([`app/(frontend)`], [Interfaz: acceso, lobby, sala, ejercicios, galería, historial y vistas docentes.]),
     ([`app/(payload)`], [Panel administrativo y rutas de Payload.]),
-    ([`src/lib/music`], [Dominio musical: tipos canónicos, validación, generador y evaluador.]),
+    ([`app/api`], [Endpoints de juego, salones e invitaciones con validación en servidor.]),
+    ([`src/lib/music`], [Dominio musical: tipos canónicos, validación, generador, evaluador e informe de errores.]),
+    ([`src/lib/game`], [Reglas de partida, agregación de métricas, feedback, orquestación de servidor y consultas docentes.]),
     ([`src/lib/transcription`], [Captura, normalización, protocolo, tracker DSP (YIN + onsets) y Web Worker.]),
     ([`src/lib/audio`], [Grabación con `MediaRecorder` y reproducción con Web Audio.]),
-    ([`src/lib/persistence.ts`], [Guardado de melodías y sesiones en Payload.]),
-    ([`src/collections`], [Definición de las colecciones `Users`, `Melodies` y `GameSessions`.]),
+    ([`src/collections`], [Colecciones `Users`, `GameRooms`, `Submissions`, `Media`, `Classrooms` y `ClassroomInvitations`.]),
     ([`scripts`], [Pruebas de humo y barrido de parámetros de transcripción.]),
   ),
 )]
@@ -707,11 +709,7 @@ El repositorio se organiza por responsabilidad, no por tipo de archivo. La Tabla
 
 En el prototipo, la aplicación Next.js sirve la interfaz y las rutas de API; Payload expone la API de las colecciones y el panel administrativo; PostgreSQL almacena los datos estructurados. El audio no sale del navegador: se captura con `MediaRecorder`, se decodifica con Web Audio y se procesa en un Web Worker con el tracker DSP, sin servir ningún modelo.
 
-// PLACEHOLDER (parcial): la comunicación en tiempo real no forma parte del
-// prototipo individual. El párrafo siguiente especifica el diseño de la
-// versión completa y deberá reescribirse cuando se implemente y se pruebe.
-
-La versión multijugador requiere un mecanismo de tiempo real para anunciar el inicio y el cierre de las rondas, notificar la recepción de respuestas y mantener sincronizado el estado de la partida. El diseño prioriza un servicio administrado de publicación y suscripción, con canales por sala y presencia, frente a un servidor WebSocket propio. La primera alternativa evita operar conexiones persistentes y delega la reconexión al proveedor; la segunda ofrece mayor control, pero exige mantener un proceso adicional y coordinarlo con Next.js y Payload. El canal de tiempo real transporta únicamente identificadores, estados y avisos de sincronización; las melodías, las respuestas y el audio se transfieren por la API o por almacenamiento de objetos.
+La sincronización multijugador del prototipo se resuelve por sondeo (polling) de aproximadamente 1,2 s contra la base de datos a través de la API de Payload, sin proveedor externo. El backend es la autoridad del estado de la partida (sección 4.7.3); el sondeo solo distribuye cambios a los clientes, de modo que una recarga de página recupera el estado completo y un cliente desconectado no afecta a la partida. Esta es la alternativa más simple de integrar para la escala del prototipo y no exige cuentas ni claves de terceros. La versión completa puede sustituir el transporte por un servicio de publicación y suscripción con canales por sala y presencia, o por un servidor WebSocket propio, sin alterar las reglas de juego, que residen en el dominio y en los endpoints; el canal transportaría únicamente identificadores, estados y avisos de sincronización, mientras que las melodías, las respuestas y el audio se transfieren por la API o por almacenamiento de archivos.
 
 === 4.2.5. Requisitos no funcionales
 
@@ -725,7 +723,7 @@ Los requisitos no funcionales se tradujeron en decisiones concretas de arquitect
   rows: (
     ([Usabilidad], [Piano roll, instrucciones por ronda y feedback inmediato], [Comprensión de la tarea sin conocimientos de notación.]),
     ([Rendimiento], [Inferencia en Web Worker y watchdog de 30 s], [La interfaz no se bloquea durante la transcripción.]),
-    ([Seguridad], [Validación en servidor y control de acceso por rol (diseño)], [Evitar que el cliente altere resultados o consulte datos ajenos.]),
+    ([Seguridad], [Validación en servidor, roles de usuario y control de acceso por campo; mutaciones solo por endpoints de juego], [Evitar que el cliente altere resultados o consulte datos ajenos; pendiente el acceso a nivel de colección.]),
     ([Privacidad], [Procesamiento local del audio y retención definida (diseño)], [Protección de las grabaciones de voz.]),
     ([Trazabilidad], [`sessionSeed`, `roundNumber` y relación melodía-respuesta], [Reconstruir la cadena de una partida.]),
     ([Reproducibilidad], [Semilla, `generatorVersion` y parámetros del modelo], [Repetir una melodía o una inferencia.]),
@@ -988,7 +986,7 @@ La tolerancia de altura de ±0.5 semitonos equivale, en la práctica, a exigir l
 
 === 4.5.5. Casos límite y pruebas
 
-El evaluador se cubrió con 20 pruebas unitarias. La Tabla 13 resume los casos límite y el comportamiento esperado. Además de los casos de la tabla, se verificó que el resultado no dependa del orden de las notas y que los empates se resuelvan de forma uno a uno.
+El evaluador se cubrió con 21 pruebas unitarias. La Tabla 13 resume los casos límite y el comportamiento esperado. Además de los casos de la tabla, se verificó que el resultado no dependa del orden de las notas y que los empates se resuelvan de forma uno a uno.
 
 #block(breakable: false)[
 #leyenda([Tabla], 13, [Casos límite del evaluador de similitud])
@@ -1011,7 +1009,21 @@ El evaluador se cubrió con 20 pruebas unitarias. La Tabla 13 resume los casos l
 
 === 4.5.6. Discusión de decisiones
 
-La medida $F_1$ se adoptó porque penaliza simétricamente las omisiones y las notas de más, a diferencia de una precisión simple. El promedio aritmético de las dos dimensiones es transparente para el jugador y fácil de explicar, aunque no distingue si un error de altura es más grave que un error rítmico. La separación de dimensiones permite que el jugador identifique el tipo de error, y el panel de evaluación muestra ambas puntuaciones además de la global. La decisión de no puntuar la duración de las notas reduce la complejidad del dictado, pero limita la evaluación del ritmo a la ubicación de los ataques.
+La medida $F_1$ se adoptó porque penaliza simétricamente las omisiones y las notas de más, a diferencia de una precisión simple. El promedio aritmético de las dos dimensiones es transparente para el jugador y fácil de explicar, aunque no distingue si un error de altura es más grave que un error rítmico. La separación de dimensiones permite que el jugador identifique el tipo de error, y las vistas de resultados muestran ambas puntuaciones además de la global. La decisión de no puntuar la duración de las notas reduce la complejidad del dictado, pero limita la evaluación del ritmo a la ubicación de los ataques.
+
+Además de las puntuaciones, el resultado de la evaluación incluye un informe de errores derivado de los mismos pares emparejados: por dimensión, las notas de referencia omitidas, las notas estimadas adicionales y la desviación media y máxima de los pares emparejados (semitonios en altura y milisegundos en ataque). Este informe no recalcula la evaluación: la describe para la retroalimentación, de modo que el error se señala en el tiempo y no solo como un puntaje. La localización de errores por categorías y la magnitud del desvío se apoyan en Kumar et al. (2026), que separa las dimensiones de error del canto con collares de tolerancia ajustables, y en Kim y Cozzarin (2023), cuyo juego de entrenamiento auditivo muestra cuánto fue el error para que el jugador pueda re-estrategizar. El desglose se presenta en la sección 4.9.7.
+
+// Extracto clave de Kim y Cozzarin (2023), sección 2 («Design and Development
+// of a New Technical Ear Training Game»):
+// «If the player failed to shoot the target down, the game would show how much
+// of an error was made. This feedback would help the player to learn and
+// re-strategize for the next trial».
+
+// Extracto clave de Kumar et al. (2026), sobre las categorías de error anotadas
+// por los docentes:
+// «the teachers annotate instances of pitch, amplitude, pronunciation, and
+// rhythm errors in learners' [singing]», con detección orientada a «providing
+// detailed corrective feedback to learners».
 
 == 4.6. Transcripción automática de audio a MIDI
 
@@ -1129,10 +1141,19 @@ En el dictado, el jugador puede reproducir la melodía tantas veces como desee a
 
 === 4.7.3. Mecánica multijugador
 
-// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
-// evidencia de implementación y pruebas cuando exista el flujo multijugador.
+La partida multijugador se organiza en salas identificadas por un código de seis caracteres sin caracteres ambiguos. El anfitrión crea la sala, configura la dificultad, la actividad inicial, el número de rondas (entre 2 y 8), el tempo y la visibilidad de las grabaciones, e inicia la partida cuando al menos dos jugadores se han incorporado; solo el anfitrión puede iniciarla. Cada jugador recibe en la ronda 1 una melodía generada con su propia semilla derivada de la semilla de sala, de modo que las melodías iniciales son distintas y la partida es reproducible.
 
-La versión completa organiza la partida en salas creadas manualmente. El creador configura la dificultad, la actividad inicial y el número de rondas; la sala genera un código de acceso y los participantes se incorporan antes de iniciar. Durante la partida, cada respuesta se asigna a otro participante en la ronda siguiente. En una ronda de dictado, el jugador escucha una melodía interpretada por otro participante y la transcribe; en una ronda de repentización, recibe una transcripción realizada por otro participante y la interpreta. El intercambio preserva la trazabilidad: cada respuesta se vincula con su autor, su ronda de origen, su material de referencia y su destinatario. La asignación evita devolver una respuesta a su autor en la misma cadena, salvo que la sala lo permita explícitamente.
+La mecánica central es el intercambio encadenado de producciones musicales entre jugadores. En la ronda $k >= 2$, cada jugador recibe la respuesta del jugador anterior en la rotación, $s(i) = (i - 1 + N) mod N$ donde $i$ es su posición y $N$ el número de jugadores; con esta asignación ningún jugador recibe su propia producción, se resuelve el caso de número impar de jugadores y cada respuesta se entrega a un único destinatario. El objeto transferido es la producción simbólica final de la ronda anterior: en una ronda de dictado, el jugador escucha como MIDI la transcripción que otro jugador realizó de su melodía y la transcribe; en una ronda de repentización, visualiza la transcripción que otro jugador produjo al cantar y la interpreta. Las actividades alternan por ronda a partir de la actividad inicial.
+
+La evaluación de cada respuesta se calcula en el servidor contra la melodía recibida —la generada en la ronda 1 o la producción del jugador anterior— con las tolerancias de la sección 4.5.4; el cliente solo envía las notas de su respuesta. La ronda avanza cuando todos los jugadores han enviado su respuesta: el servidor evalúa, construye las asignaciones de la ronda siguiente y persiste cada envío con su autor, su destinatario, su material de referencia y su envío de origen (sección 4.8.3), de modo que la cadena completa puede reconstruirse. En la última ronda se cierra la partida y se calcula la clasificación. Los resultados de cada ronda no se muestran hasta el final de la partida (decisión de diseño): tras enviar, el jugador ve una pantalla de espera con el estado de envío de los demás participantes.
+
+El modo multijugador de las plataformas de entrenamiento auditivo existentes reparte la misma secuencia a todos los jugadores, que compiten en paralelo (Pesek et al., 2020a). El intercambio encadenado de producciones, en el que la respuesta de un jugador se convierte en el ejercicio del siguiente, es una mecánica propia, inspirada en juegos de teléfono descompuesto, que se plantea como hipótesis de diseño sobre el engagement y debe evaluarse con usuarios.
+
+// Extracto clave de Pesek et al. (2020a), sección «The interval dictation
+// application», sobre el modo multijugador previo:
+// «The interval dictation application can be played in multiplayer mode where
+// two or more players play a single exercise (all players are given the same
+// melodic sequences)».
 
 === 4.7.4. Puntuación y cierre
 
@@ -1144,19 +1165,19 @@ donde $n$ es el número de respuestas puntuadas y $S_i$ es la puntuación global
 
 === 4.7.5. Reglas de recuperación y abandono
 
-// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
-// evidencia de pruebas de reconexión y abandono.
+// PLACEHOLDER (parcial): el prototipo documenta su comportamiento real ante
+// recargas y envíos duplicados; las reglas de abandono y de tiempos por ronda
+// siguen abiertas y deben reescribirse con pruebas de reconexión.
 
-La versión completa define reglas para los casos en que un participante se desconecta, abandona la sala o no envía su respuesta dentro del tiempo de la ronda. Si un jugador se desconecta, la sala conserva su lugar y su respuesta previa; si se reconecta antes del cierre de la ronda, puede continuar. Si no envía una respuesta, la ronda se cierra con las respuestas disponibles y el jugador recibe una ausencia, no una puntuación de cero. Si el anfitrión abandona, la sala elige un nuevo anfitrión o se cierra de forma controlada. El plan de pruebas de la versión completa incluye la verificación de estas reglas mediante pruebas de sincronización y de reconexión antes de la sesión con estudiantes.
+En el prototipo, el estado de la partida reside en el servidor y los clientes lo observan por sondeo, de modo que una recarga de la página o una desconexión temporal no afectan a la partida: el jugador reanuda la vista en el punto en que se encuentra la ronda y su envío previo se conserva. Un jugador no puede enviar dos respuestas en la misma ronda: el segundo envío se rechaza en el servidor. Estas dos reglas se verifican en la prueba de humo de la sección 4.10.6.
+
+Quedan abiertos los casos de un jugador que abandona sin enviar, la tolerancia a rezagados cuando hay más de dos jugadores y los tiempos por ronda. La versión completa definirá si la ronda se cierra con las respuestas disponibles —con ausencia, no con puntuación de cero, para el jugador que no envió—, si se introduce un cronómetro por ronda y qué ocurre si el anfitrión abandona la sala. Estas reglas se verificarán con pruebas de sincronización y de reconexión antes de la sesión con estudiantes.
 
 == 4.8. Persistencia y modelo de datos
 
 === 4.8.1. Modelo conceptual
 
-// PLACEHOLDER: el modelo conceptual corresponde a la versión completa. La
-// implementación actual se describe en 4.8.2.
-
-La versión completa organiza los datos en entidades relacionadas. La Figura 10 muestra la cadena principal de una partida: una sala contiene partidas, una partida contiene rondas, una ronda se asocia con una melodía y con las respuestas de los jugadores, y cada respuesta puede tener una transcripción, un resultado de evaluación y un archivo de audio. Las entidades de usuario, aula y pertenencia se mantienen separadas de la cadena de juego para permitir que un docente consulte los resultados de sus estudiantes sin mezclar los datos de las partidas.
+El modelo implementado organiza los datos en seis colecciones de Payload. La Figura 10 muestra la cadena principal de una partida: una sala de juego contiene los envíos de sus rondas, cada envío referencia la melodía recibida, la respuesta del jugador y el resultado de su evaluación, y puede encadenarse con el envío del que deriva mediante `sourceSubmission`. Las entidades de usuario, salón de clase e invitación se mantienen separadas de la cadena de juego para que un docente consulte los resultados de sus estudiantes sin mezclarlos con los datos de las partidas; las grabaciones de voz se almacenan como archivos y los envíos las referencian.
 
 #block(breakable: false)[
 #leyenda([Figura], 10, [Cadena de datos de una partida])
@@ -1165,60 +1186,57 @@ La versión completa organiza los datos en entidades relacionadas. La Figura 10 
 #diagram(
   node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
   spacing: (1.1cm, 0.8cm),
-  caja-c4(0, 0, [GameRoom #linebreak() id · code · hostId]),
-  caja-c4(0, 1.1, [Game #linebreak() id · roomId · status]),
-  caja-c4(0, 2.2, [Round #linebreak() id · gameId #linebreak() number · type]),
-  caja-c4(2.6, 2.2, [Melody #linebreak() id · seed #linebreak() difficulty]),
-  caja-c4(0, 3.5, [Submission #linebreak() id · roundId #linebreak() playerId · type]),
-  caja-c4(2.6, 3.5, [Transcription #linebreak() id · submissionId #linebreak() modelVersion]),
-  caja-c4(5.0, 3.5, [EvaluationResult #linebreak() submissionId #linebreak() pitch · rhythm · overall]),
-  caja-c4(-2.2, 3.5, [AudioAsset #linebreak() id · submissionId #linebreak() uri]),
-  edge((0,0), (0,1.1), "->"),
-  edge((0,1.1), (0,2.2), "->"),
-  edge((0,2.2), (2.6,2.2), "->", label: [referencia]),
-  edge((0,2.2), (0,3.5), "->"),
-  edge((0,3.5), (2.6,3.5), "->"),
-  edge((0,3.5), (5.0,3.5), "->", bend: -20deg),
-  edge((0,3.5), (-2.2,3.5), "->"),
-  edge((2.6,2.2), (5.0,3.5), "->", stroke: (dash: "dashed"), label: [referencia]),
+  caja-c4(0, 0, [Users #linebreak() id · email · role]),
+  caja-c4(0, 1.6, [Classrooms #linebreak() id · name · teacher]),
+  caja-c4(0, 3.2, [ClassroomInvitations #linebreak() classroom · user #linebreak() status]),
+  caja-c4(3.0, 0, [GameRooms #linebreak() id · code · host #linebreak() settings · participants[]]),
+  caja-c4(3.0, 2.2, [Submissions #linebreak() room · roundNumber · player #linebreak() receivedMelody · response #linebreak() evaluation · sourceSubmission]),
+  caja-c4(6.2, 3.4, [Media #linebreak() id · url]),
+  edge((0,0), (0,1.6), "->", label: [administra]),
+  edge((0,1.6), (0,3.2), "->"),
+  edge((0,0), (3.0,0), "->", label: [juega]),
+  edge((3.0,0), (3.0,2.2), "->", label: [N envíos #linebreak() por ronda]),
+  edge((3.0,2.2), (6.2,3.4), "->", label: [grabación]),
+  edge((0,1.6), (3.0,2.2), "->", stroke: (dash: "dashed"), bend: 15deg, label: [consulta]),
 )
 ]
 ]
 
 === 4.8.2. Implementación en Payload
 
-El prototipo implementa tres colecciones: `Users`, `Melodies` y `GameSessions`. La Tabla 15 describe sus campos. La sesión de juego embebe las rondas en un arreglo, en lugar de modelarlas como una colección independiente, para simplificar la escritura y la lectura durante el prototipo. Esta decisión reduce el número de consultas, pero limita las consultas agregadas y la normalización; la versión completa separa las rondas, las respuestas y los resultados.
+El prototipo implementa seis colecciones: `Users`, `GameRooms`, `Submissions`, `Media`, `Classrooms` y `ClassroomInvitations`. La Tabla 15 describe sus campos principales. Cada envío es una fila por jugador y ronda, con la melodía recibida embebida como JSON autocontenido —incluye semilla y versión del generador—, lo que reduce el número de consultas al reconstruir la partida a costa de duplicar los datos de la melodía entre envíos. El resultado de la evaluación se embebe también como JSON, en su forma completa, con los pares emparejados y las notas omitidas y adicionales que alimentan el informe de errores.
 
 #block(breakable: false)[
 #leyenda([Tabla], 15, [Colecciones implementadas en Payload])
 #apatable(
-  columns: (4.0cm, 5.8cm, 6.1cm),
+  columns: (3.6cm, 6.4cm, 5.9cm),
   header: ([*Colección*], [*Campos*], [*Propósito*]),
   rows: (
-    ([`Users`], [`email`, `name`], [Autenticación y perfil mínimo.]),
-    ([`Melodies`], [`symbolicData`, `seed`, `difficulty`, `tempoBpm`, `generatorVersion`, `key`, `scale`], [Melodías generadas y sus metadatos.]),
-    ([`GameSessions`], [`sessionSeed`, `difficulty`, `firstActivity`, `tempoBpm`, `averageScore`, `rounds[]`], [Sesión, configuración y promedio.]),
-    ([GameSessions #linebreak() (rondas)], [`roundNumber`, `activity`, `melody`, `response`, `pitchScore`, `rhythmScore`, `overallScore`], [Resultado de cada ronda.]),
+    ([`Users`], [`email`, `name`, `role`], [Autenticación, perfil mínimo y rol (`student`, `professor`, `admin`).]),
+    ([`GameRooms`], [`code`, `host`, `status`, `settings`, `participants[]`, `currentRound`, `sessionSeed`], [Sala, configuración, participantes y estado de la partida.]),
+    ([`Submissions`], [`room`, `roundNumber`, `player`, `receivedMelody`, `receivedFrom`, `sourceSubmission`, `response`, `evaluation`, `recording`, `status`], [Un envío por jugador y ronda: material recibido, respuesta, evaluación y trazabilidad.]),
+    ([`Media`], [`url`], [Grabaciones de voz referenciadas desde los envíos.]),
+    ([`Classrooms`], [`name`, `teacher`], [Salones de clase administrados por un docente.]),
+    ([`ClassroomInvitations`], [`classroom`, `user`, `status`, `invitedBy`], [Pertenencia al salón por invitación aceptada; pendientes y rechazadas.]),
   ),
 )]
 
 === 4.8.3. Trazabilidad de la partida
 
-La sesión se identifica con `sessionSeed`; cada ronda se identifica con `roundNumber`; cada melodía se relaciona con la colección `Melodies`; y cada respuesta se almacena en el campo `response` de la ronda. Las puntuaciones de alturas, ritmo y global se almacenan en la misma ronda. Esta estructura permite reconstruir la partida completa a partir de una sesión y sus rondas, y permite verificar que la melodía evaluada corresponde a la melodía generada.
+La trazabilidad se sostiene en tres relaciones de cada envío: `receivedMelody` conserva el material de referencia completo (notas, tempo, semilla y versión del generador), `receivedFrom` identifica al jugador que produjo ese material y `sourceSubmission` apunta al envío del que deriva, de modo que las producciones de una misma melodía inicial forman una cadena reconstruible. La evaluación embebida referencia exactamente las notas que se compararon. El orden de los envíos por sala, ronda y posición de jugador permite reconstruir tanto el viaje de cada melodía como el recorrido de cada jugador; las vistas de galería y de espectación se construyen sobre estas relaciones sin datos derivados adicionales.
 
 === 4.8.4. Archivos de audio y retención
 
-// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
-// evidencia de almacenamiento, consentimiento y retención implementados.
+// PLACEHOLDER (parcial): la persistencia está implementada; la política de
+// consentimiento, retención y eliminación sigue pendiente de definición.
 
-La versión completa conserva las grabaciones originales y las transcripciones. El audio se almacena en un servicio de objetos y la base de datos guarda la referencia y los metadatos; no se almacenan blobs grandes en las filas de PostgreSQL. La retención se define antes de la sesión con estudiantes e incluye el consentimiento informado, el plazo de conservación, el procedimiento de eliminación y las condiciones de acceso. El audio se trata como dato personal y no se expone públicamente por defecto.
+El prototipo conserva las grabaciones de voz: se almacenan como archivos en la colección `Media` (almacenamiento local en el entorno de desarrollo) y el envío las referencia por identificador; si la subida falla, la respuesta se registra igualmente y las vistas muestran la transcripción simbólica. Cada grabación tiene un límite de 30 s, y la configuración de la sala controla si las grabaciones se muestran en la galería, de modo que un docente puede desactivarlas en contextos sensibles a las burlas. La retención debe definirse antes de la sesión con estudiantes e incluir el consentimiento informado, el plazo de conservación, el procedimiento de eliminación y las condiciones de acceso. El audio se trata como dato personal y no se expone públicamente por defecto.
 
 === 4.8.5. Control de acceso
 
-// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con la
-// implementación de access control de Payload y las pruebas de autorización.
+El prototipo define tres roles en `Users`: estudiante, docente y administrador. El rol se fija como estudiante en el registro —el campo de rol solo puede escribirlo un administrador— y determina el alcance de las vistas: el estudiante consulta sus datos y sus partidas; el docente consulta los salones que administra, sus estudiantes y sus partidas; el administrador gestiona usuarios. La lectura de un usuario está limitada al propio usuario, al docente y al administrador, y el rol no es legible para los estudiantes. Estas reglas se implementan con el control de acceso por campo y por colección de Payload y se verifican con una prueba de autorización que incluye el rechazo de la auto-promoción de rol, la lectura y actualización de usuarios ajenos (403) y el borrado reservado al administrador.
 
-La versión completa define tres roles: participante, docente y administrador. El participante consulta sus propios datos y las partidas en las que participa; el docente consulta los estudiantes y los resultados de las aulas que administra; el administrador gestiona usuarios y configuración. Las reglas se definen mediante el control de acceso de Payload y se validan en el servidor, no solo mediante la ocultación de elementos en la interfaz. En el prototipo, las colecciones emplean acceso abierto para facilitar la verificación funcional; esta configuración no se traslada a la versión completa.
+Las consultas de juego y de salones pasan por endpoints propios que validan las reglas en servidor —el docente solo accede al detalle de sus salones, la espectación exige rol docente o administrador y las mutaciones de juego se rechazan fuera de la secuencia de la partida—; el cliente no puede alterar resultados. Queda pendiente restringir la lectura de las colecciones a nivel de API, hoy abierta para facilitar la verificación funcional del prototipo; esta configuración no se traslada a la versión completa.
 
 == 4.9. Interfaz y retroalimentación
 
@@ -1230,7 +1248,7 @@ La representación musical elegida es el piano roll, tanto para el dictado como 
 
 === 4.9.2. Flujo de pantallas
 
-La Figura 11 muestra el flujo de pantallas. Las pantallas sólidas corresponden al prototipo funcional: configuración, dictado, repentización, evaluación y resumen. Las pantallas discontinuas corresponden a la versión completa: acceso, sala de espera, galería final y vista docente.
+La Figura 11 muestra el flujo de pantallas, todas implementadas en el prototipo. Tras el acceso, el inicio presenta el lobby de juego y, según el rol, el historial del estudiante o las vistas docentes. La sala de espera concentra la configuración y la lista de jugadores; durante la partida, las pantallas de dictado y de repentización alternan por ronda y se separan por una pantalla de espera con el estado de envío de los demás jugadores. Al terminar la última ronda se abre la galería final, que también se consulta desde el historial. Los resultados por ronda no tienen pantalla propia: se muestran al final, en la galería.
 
 #block(breakable: false)[
 #leyenda([Figura], 11, [Flujo de pantallas del videojuego])
@@ -1238,38 +1256,39 @@ La Figura 11 muestra el flujo de pantallas. Las pantallas sólidas corresponden 
 #set text(size: 8pt)
 #diagram(
   node-stroke: 0.7pt, edge-stroke: 0.7pt, node-corner-radius: 3pt, mark-scale: 70%,
-  spacing: (0.9cm, 0.8cm),
-  caja-c4(-1.6, 0, [Acceso], fill: rgb("#fafafa")),
-  caja-c4(-1.6, 1.6, [Sala de espera], fill: rgb("#fafafa")),
-  caja-c4(0, 0.8, [Configuración]),
-  caja-c4(1.5, 0, [Dictado]),
-  caja-c4(1.5, 1.6, [Repentización]),
-  caja-c4(3.0, 0.8, [Evaluación]),
-  caja-c4(4.5, 0.8, [Resumen]),
-  caja-c4(6.0, 0, [Galería final], fill: rgb("#fafafa")),
-  caja-c4(6.0, 1.6, [Vista docente], fill: rgb("#fafafa")),
-  edge((-1.6,0), (0,0.8), "->", stroke: (dash: "dashed")),
-  edge((-1.6,1.6), (0,0.8), "->", stroke: (dash: "dashed")),
-  edge((0,0.8), (1.5,0), "->"),
-  edge((0,0.8), (1.5,1.6), "->"),
-  edge((1.5,0), (3.0,0.8), "->"),
-  edge((1.5,1.6), (3.0,0.8), "->"),
-  edge((3.0,0.8), (4.5,0.8), "->"),
-  edge((4.5,0.8), (6.0,0), "->", stroke: (dash: "dashed")),
-  edge((4.5,0.8), (6.0,1.6), "->", stroke: (dash: "dashed")),
+  spacing: (1.0cm, 0.8cm),
+  caja-c4(-1.8, 0.8, [Acceso]),
+  caja-c4(0, 0.8, [Inicio #linebreak() lobby e historial]),
+  caja-c4(2.0, 0, [Sala de espera]),
+  caja-c4(4.2, 0, [Dictado]),
+  caja-c4(4.2, 1.6, [Repentización]),
+  caja-c4(6.4, 0.8, [Espera entre rondas]),
+  caja-c4(8.6, 0.8, [Galería final]),
+  caja-c4(0, 2.8, [Salón y espectación #linebreak() (docente)]),
+  edge((-1.8,0.8), (0,0.8), "->"),
+  edge((0,0.8), (2.0,0), "->", label: [crear #linebreak() o unirse]),
+  edge((2.0,0), (4.2,0), "->"),
+  edge((2.0,0), (4.2,1.6), "->"),
+  edge((4.2,0), (6.4,0.8), "->", label: [enviar]),
+  edge((4.2,1.6), (6.4,0.8), "->", label: [enviar]),
+  edge((6.4,0.8), (4.2,0), "->", bend: 30deg, label: [siguiente ronda]),
+  edge((6.4,0.8), (4.2,1.6), "->", bend: -30deg),
+  edge((6.4,0.8), (8.6,0.8), "->", label: [última ronda]),
+  edge((0,0.8), (8.6,0.8), "->", stroke: (dash: "dashed"), bend: 30deg, label: [mis partidas]),
+  edge((0,0.8), (0,2.8), "->", label: [rol docente]),
 )
 ]
 ]
 
 === 4.9.3. Pantalla de configuración
 
-La pantalla de configuración presenta cuatro controles: dificultad, actividad inicial, número de rondas y tempo. La dificultad se muestra con su número de notas y su intervalo máximo, de modo que el jugador comprenda el efecto de la selección. El número de rondas se ajusta entre 2 y 8 y el tempo entre 60 y 120 BPM. Al iniciar, se genera una semilla de sesión y se construyen todas las rondas.
+La sala de espera concentra la configuración de la partida, con cinco controles: dificultad, actividad inicial, número de rondas, tempo y visibilidad de las grabaciones de voz en la galería. La dificultad se muestra con su número de notas y su intervalo máximo, de modo que el jugador comprenda el efecto de la selección. El número de rondas se ajusta entre 2 y 8 y el tempo entre 60 y 120 BPM. La lista de jugadores y el código de la sala, con botón para copiarlo, completan la pantalla; el anfitrión inicia la partida cuando hay al menos dos jugadores.
 
 === 4.9.4. Pantalla de dictado
 
 La pantalla de dictado reproduce la melodía y muestra un piano roll editable. El jugador coloca una nota por ataque; si coloca otra nota en el mismo ataque, la anterior se reemplaza, de modo que la respuesta es monofónica. La duración de cada nota se fija en un pulso y no es editable: la evaluación rítmica se basa en la ubicación de los ataques, no en la duración. Esta decisión simplifica la entrada y evita penalizar la notación de duraciones, que no forma parte del objetivo del ejercicio.
 
-La rejilla de entrada depende de la dificultad: un pulso en dificultad baja, medio pulso en dificultad media y un sexto de pulso en dificultad alta. El jugador puede reproducir la melodía, detener la reproducción y borrar la respuesta antes de enviarla. Al enviar, el sistema compara la respuesta con la referencia y muestra el panel de evaluación.
+La rejilla de entrada depende de la dificultad: un pulso en dificultad baja, medio pulso en dificultad media y un sexto de pulso en dificultad alta. El jugador puede reproducir la melodía, detener la reproducción y borrar la respuesta antes de enviarla. Al enviar, la respuesta se registra en el servidor, que la evalúa al completarse la ronda; el jugador pasa entonces a la pantalla de espera, donde observa quién ha enviado su respuesta (Figura 14). Los resultados se muestran al final de la partida.
 
 === 4.9.5. Pantalla de repentización
 
@@ -1277,22 +1296,146 @@ La pantalla de repentización muestra la melodía en un piano roll y habilita la
 
 === 4.9.6. Evaluación y resumen
 
-El panel de evaluación muestra tres puntuaciones: alturas, ritmo y global. Debajo, presenta dos piano rolls: la respuesta del jugador y la melodía de referencia. Las notas se colorean en verde cuando encontraron correspondencia, en rojo cuando fueron omitidas y en ámbar cuando son adicionales. El coloreado se basa en la dimensión de alturas; la puntuación rítmica se informa por separado. El resumen final muestra una tabla con las puntuaciones de cada ronda y el promedio de precisión general.
+La evaluación se calcula en el servidor al completarse cada ronda, pero sus resultados se muestran únicamente al final de la partida (decisión de diseño): tras enviar, el jugador solo observa el estado de envío de los demás participantes, lo que evita que la retroalimentación interrumpa el flujo del juego. La galería final reúne los resultados en dos niveles. El primero es el recorrido de cada melodía: una diapositiva por melodía inicial con todas sus versiones encadenadas —la original del sistema y la producción de cada ronda, con su autor—, cada una con su piano roll de solo lectura, su reproducción MIDI y, cuando está habilitada, la grabación de voz correspondiente. El segundo es la diapositiva de resultados: la clasificación de la partida con las puntuaciones de alturas, ritmo y global de cada jugador, y la sección de participaciones propias, con la melodía recibida y la producida en cada ronda, acompañadas del informe de errores de la sección 4.5.6. Debajo, un bloque de pistas resume qué trabajar para la próxima partida (sección 4.9.7).
 
-El uso exclusivo del color para señalar aciertos y errores es una limitación de accesibilidad. La versión completa incorpora formas o etiquetas adicionales para que la información no dependa de la percepción del color. Asimismo, el coloreado por altura puede mostrar en verde una nota con ataque incorrecto; la versión completa distingue ambos tipos de coincidencia.
+El informe de errores es textual y por dimensión —notas omitidas y adicionales con su posición, y desviación media de altura y de ataque—, de modo que la retroalimentación no depende del color; con él se mitiga la limitación de accesibilidad que planteaba el coloreado del piano roll en la versión individual.
 
-=== 4.9.7. Vistas de la versión completa
+=== 4.9.7. Vistas de historial, docentes y de espectación
 
-// PLACEHOLDER: sección de diseño de la versión completa. Reescribir con
-// capturas y pruebas de usabilidad de la galería, el acceso y la vista docente.
+El inicio del estudiante presenta el historial de partidas —fecha, código, rondas, posición y las puntuaciones de alturas, ritmo y global de cada partida, con acceso a la galería correspondiente—, las invitaciones pendientes a salones y el lobby de juego. Sobre la tabla del historial, un panel de progreso muestra la evolución de las tres métricas entre partidas como líneas temporales (sparklines) e insights derivados del historial: la tendencia de cada métrica entre la primera y la última partida y la dimensión más débil del promedio (Figura 16).
 
-La versión completa incorpora el acceso y la sala de espera, la galería final y la vista docente. La galería muestra el recorrido de cada melodía a través de las rondas, permite reproducir las grabaciones y compara la referencia con cada respuesta. La vista docente permite organizar aulas y consultar los resultados de los estudiantes. Estas vistas reutilizan el panel de evaluación y la representación en piano roll, de modo que la experiencia de revisión sea consistente con la de juego.
+El inicio del docente lista las partidas en desarrollo de sus salones, con acceso a la espectación, y sus salones de clase. La vista de salón organiza cuatro secciones en pestañas, cuyo estado se refleja en la URL: partidas en desarrollo, partidas pasadas —filtrables por estudiante y ordenables por alturas, ritmo o global, con el puntaje del estudiante filtrado o el promedio del salón—, estudiantes —ordenable por partidas jugadas y por cada métrica, con su serie temporal de progreso— e invitaciones pendientes, con invitación por correo (Figuras 17 y 18). La espectación, accesible solo para docentes y administradores en vivo o sobre partidas terminadas, ofrece tres sub-vistas: una vista general del intercambio de melodías entre jugadores como diagrama de nodos por rondas, el detalle por melodía con el viaje completo de cada cadena y el detalle por jugador con lo que recibió y produjo en cada ronda, sus sub-puntuaciones y su informe de errores (Figura 19).
+
+El diseño de estas vistas se apoya en los antecedentes revisados. En Troubadour, los docentes solicitaron explícitamente supervisar el progreso de los estudiantes y observar los tipos de error que cometían al resolver los ejercicios, y la plataforma implementó un panel de administración con vistas detalladas de la interacción de cada estudiante (Pesek et al., 2020a); el propio estudio observa que las plataformas comerciales existentes implementaban pocos módulos para crear grupos de estudiantes y monitorear su progreso. Los antecedentes recientes coinciden: el trabajo de Fernández (2025) recomienda incorporar métricas de seguimiento del progreso estudiantil —con amplio respaldo de sus encuestados a medir tiempo de práctica y ejercicios acertados— y Lingjie (2025) concluye que deben elaborarse planes de aprendizaje individualizados a partir de las necesidades específicas de cada estudiante, lo que exige al docente consultar el desempeño por dimensión. La comparación entre estudiantes se mantiene reservada al docente: Troubadour halló que a los estudiantes les gustaba ver que su rendimiento era mejor que el de otros, pero desaprobaban que sus puntuaciones fueran públicas (Pesek et al., 2020a).
+
+// Extracto clave de Pesek et al. (2020a), sección III-A.1 («Teacher's point of
+// view»), sobre las necesidades del docente:
+// «the teachers wished to oversee the students' progress... Moreover, the
+// teachers requested to observe the different types of mistakes the students
+// made and they also proposed to gather more information about the individual
+// student's problems while solving the exercises».
+
+// Extracto clave de Pesek et al. (2020a), sección V-C.1, sobre la privacidad
+// del ranking:
+// «the students liked to see they performed better than others, but they did
+// not approve of their scores to be public».
+
+La tendencia temporal por partida se apoya en el análisis de uso de Troubadour, que siguió el progreso de los estudiantes con curvas por número de partida —el tiempo medio para completar un ejercicio disminuía y los puntos por partida aumentaban con el uso— (Pesek et al., 2020a), y en los estudios cuasi-experimentales del dominio, que comparan medias de inicio y fin por dimensión para medir la mejora (Chen y Li, 2025; Lingjie, 2025). La representación concreta —una línea por métrica con dominio fijo en el rango de las puntuaciones, de modo que los sparklines sean comparables entre estudiantes y vistas— es una decisión propia, igual que la derivación de insights de tendencia y de dimensión débil a partir del historial.
+
+// Extracto clave de Pesek et al. (2020a), sección V-D («Evaluation of engagement
+// through usage data»):
+// «With continued use, the average time needed to complete an exercise gradually
+// decreased, and the average points collected per game increased.»
+
+El bloque de pistas de la galería es feedback formativo, no summative: señala qué trabajar en lugar de solo cuánto se puntuó. El estado del arte es explícito sobre esta distinción: los sistemas de evaluación musical tradicionales se apoyan en métricas cuantitativas que ofrecen feedback summative —puntuaciones o juicios binarios— y fallan en contextos educativos donde el feedback formativo, detallado e instructivo es esencial para el desarrollo del estudiante (Zhang et al., 2025). Las pistas del prototipo se derivan por reglas de las métricas de la partida y del informe de errores: la dimensión más débil de la partida, las notas omitidas o adicionales que tienden a acumularse, la desviación de octava en la repentización y el desplazamiento de ataques. Los umbrales concretos de estas reglas son una decisión propia; la literatura consultada no valida valores específicos.
+
+// Extracto clave de Zhang et al. (2025) —LLaQo—, sección I, sobre el feedback
+// formativo:
+// «traditional systems for music performance assessment have primarily relied on
+// quantitative metrics that provide summative feedback, often in the form of
+// scores or binary judgments. Such approaches... fall short in educational
+// contexts where formative, detailed and instructional feedback is essential for
+// student development».
+
+A continuación se documentan las vistas implementadas con capturas del prototipo en ejecución.
+
+#block(breakable: false)[
+#leyenda([Figura], 12, [Acceso: (a) inicio de sesión y (b) creación de cuenta])
+#align(center)[
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 8pt,
+  image("capturas/01-autenticacion.png", width: 100%),
+  image("capturas/01b-registro.png", width: 100%),
+)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 13, [Lobby de juego y sala de espera con la configuración de la partida])
+#align(center)[
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 8pt,
+  image("capturas/02-lobby.png", width: 100%),
+  image("capturas/03-sala-espera.png", width: 100%),
+)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 14, [Rondas de una partida: (a) dictado, (b) espera entre rondas y (c) repentinización])
+#align(center)[
+#image("capturas/04-dictado.png", width: 78%)
+#image("capturas/05-espera-entre-rondas.png", width: 78%)
+#image("capturas/06-repentinizacion.png", width: 78%)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 15, [Galería final: (a) recorrido de una melodía y (b) resultados con desglose de errores y pistas de mejora])
+#align(center)[
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 8pt,
+  image("capturas/07-galeria-melodia.png", width: 100%),
+  image("capturas/08-galeria-resultados.png", width: 100%),
+)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 16, [Inicio del estudiante: historial de partidas, progreso temporal e insights])
+#align(center)[
+#image("capturas/09-inicio-estudiante.png", width: 90%)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 17, [Vista docente: (a) inicio con partidas en desarrollo y salones, (b) partidas del salón en vivo, (c) partidas pasadas y (d) filtro por estudiante])
+#align(center)[
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 8pt,
+  image("capturas/10-inicio-docente.png", width: 100%),
+  image("capturas/11-salon-partidas-en-vivo.png", width: 100%),
+  image("capturas/12-salon-partidas-pasadas.png", width: 100%),
+  image("capturas/12b-salon-filtro-estudiante.png", width: 100%),
+)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 18, [Vista de salón: (a) estudiantes con métricas y progreso temporal y (b) invitaciones pendientes])
+#align(center)[
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 8pt,
+  image("capturas/13-salon-estudiantes.png", width: 100%),
+  image("capturas/14-salon-invitaciones.png", width: 100%),
+)
+]
+]
+
+#block(breakable: false)[
+#leyenda([Figura], 19, [Espectación: (a) vista general del intercambio, (b) detalle por melodía, (c) detalle por jugador con informe de errores y (d) espectación en vivo])
+#align(center)[
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 8pt,
+  image("capturas/15-espectacion-vista-general.png", width: 100%),
+  image("capturas/16-espectacion-detalle-melodia.png", width: 100%),
+  image("capturas/17-espectacion-detalle-jugador.png", width: 100%),
+  image("capturas/18-espectacion-en-vivo.png", width: 100%),
+)
+]
+]
 
 == 4.10. Integración, pruebas y validación técnica
 
 === 4.10.1. Estrategia de pruebas
 
-Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de parámetros, de compilación y de navegador. La Tabla 16 resume el alcance de cada nivel. Las pruebas unitarias cubren el dominio musical; las de humo y barrido cubren la transcripción; la compilación verifica la integración de Next.js, Payload y TypeScript; y la prueba de navegador verifica el flujo completo de una partida individual.
+Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de parámetros, de compilación y de navegador. La Tabla 16 resume el alcance de cada nivel. Las pruebas unitarias cubren el dominio musical, las reglas de juego y el feedback; las de humo cubren la transcripción y el flujo multijugador completo contra la API; el barrido cubre los parámetros de transcripción; la compilación verifica la integración de Next.js, Payload y TypeScript; y la prueba de navegador verifica el flujo de juego y las vistas docentes.
 
 #block(breakable: false)[
 #leyenda([Tabla], 16, [Estrategia de pruebas])
@@ -1300,17 +1443,17 @@ Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de p
   columns: (3.6cm, 5.8cm, 6.5cm),
   header: ([*Nivel*], [*Alcance*], [*Herramienta y evidencia*]),
   rows: (
-    ([Unitarias], [Generador, evaluador y parámetros de transcripción], [Vitest; 50 pruebas.]),
-    ([Humo], [Transcripción de una sinusoide de 2 s], [Pruebas del tracker DSP; detecta La4.]),
+    ([Unitarias], [Generador, evaluador, informe de errores, reglas de juego, feedback y parámetros de transcripción], [Vitest; 107 pruebas.]),
+    ([Humo], [Transcripción de una sinusoide de 2 s y flujo multijugador contra la API (roles, salas, rondas, invitaciones, espectación)], [Pruebas del tracker DSP y script de humo con 35 comprobaciones.]),
     ([Barrido], [25 casos sintéticos con ruido y vibrato], [`tune:transcription`; ajuste de parámetros.]),
     ([Compilación], [Build de producción de Next.js], [`next build`; sin errores.]),
-    ([Navegador], [Dictado, grabación, transcripción y resumen], [Prueba manual en Chrome.]),
+    ([Navegador], [Flujo multijugador completo, galería, historial y vistas docentes], [Recorrido manual en Chrome con capturas de la Figura 12 a la Figura 19.]),
   ),
 )]
 
 === 4.10.2. Pruebas unitarias
 
-La Tabla 17 resume las 50 pruebas unitarias. El generador concentra 26 pruebas porque cada propiedad estructural se verifica sobre 25 semillas por nivel; el evaluador concentra 20, incluyendo los casos límite de la Tabla 13; y los parámetros de transcripción concentran 4, que verifican el rango de frecuencias y la longitud mínima de nota.
+La Tabla 17 resume las 107 pruebas unitarias. El generador concentra 30 pruebas porque cada propiedad estructural se verifica sobre 25 semillas por nivel y su evaluación reproducible añade una prueba más; el evaluador concentra 21, incluyendo los casos límite de la Tabla 13; las reglas de juego —actividad por ronda, asignación encadenada, evaluación de respuestas, puntuación, ordenaciones y reconstrucción de cadenas— concentran 29; el informe de errores y el feedback del historial concentran 18; y la transcripción concentra 9, entre parámetros de inferencia y pruebas del tracker DSP.
 
 #block(breakable: false)[
 #leyenda([Tabla], 17, [Resultados de las pruebas unitarias])
@@ -1318,10 +1461,12 @@ La Tabla 17 resume las 50 pruebas unitarias. El generador concentra 26 pruebas p
   columns: (4.8cm, 2.8cm, 8.3cm),
   header: ([*Módulo*], [*Pruebas*], [*Cobertura*]),
   rows: (
-    ([Generador], [26], [Propiedades estructurales, modulación y reproducibilidad.]),
-    ([Evaluador], [20], [Emparejamiento, tolerancias y casos límite.]),
-    ([Parámetros de transcripción], [4], [Rango de frecuencias y longitud mínima.]),
-    ([Total], [50], [—]),
+    ([Generador], [30], [Propiedades estructurales, modulación, reproducibilidad y evaluación reproducible del capítulo V.]),
+    ([Evaluador], [21], [Emparejamiento, tolerancias y casos límite.]),
+    ([Reglas de juego], [29], [Rondas, asignación encadenada, puntuación, ordenaciones y cadenas.]),
+    ([Informe de errores y feedback], [18], [Localización de errores, tendencias y pistas de mejora.]),
+    ([Transcripción], [9], [Parámetros de inferencia y tracker DSP.]),
+    ([Total], [107], [—]),
   ),
 )]
 
@@ -1343,9 +1488,9 @@ La transcripción se verificó con una señal sinusoidal y con un banco de 25 ca
 
 Estos resultados provienen de audio sintético y deben confirmarse con voz cantada real. El filtrado por amplitud no se adoptó porque las notas espurias no presentan una amplitud menor que las notas reales; el filtrado por frecuencia sí se adoptó porque elimina el ruido fuera del registro vocal sin afectar las notas del ejercicio.
 
-=== 4.10.4. Integración del flujo individual
+=== 4.10.4. Integración del flujo de juego
 
-La compilación de producción se ejecutó sin errores. En el navegador se verificó el flujo completo: configuración, dictado con piano roll, evaluación con colores, repentización con grabación, transcripción en Worker y resumen con promedio. Se verificó que la transcripción puede ejecutarse dos veces en una misma partida sin bloquear la interfaz. El cliente incorpora un watchdog que cancela una solicitud estancada. La sesión se guarda en Payload al finalizar la partida; si el guardado falla, la interfaz informa del error y conserva los resultados en memoria hasta que el jugador inicia una nueva partida.
+La compilación de producción se ejecutó sin errores. En el navegador se verificó el flujo completo: acceso, sala con configuración, ronda de dictado con piano roll, espera entre rondas, ronda de repentización con grabación, transcripción en Worker y galería final con resultados. Se verificó que la transcripción puede ejecutarse dos veces en una misma partida sin bloquear la interfaz. El cliente incorpora un watchdog que cancela una solicitud estancada. Cada envío se persiste en `Submissions` al completarse la ronda, y las grabaciones en `Media` al enviarse; si la subida de audio falla, la respuesta se registra igualmente y la galería muestra la transcripción simbólica.
 
 === 4.10.5. Validación con voz cantada
 
@@ -1356,18 +1501,17 @@ El protocolo de validación con voz cantada real comprende un conjunto de grabac
 
 === 4.10.6. Pruebas de la versión multijugador
 
-// PLACEHOLDER: pruebas pendientes de la versión completa. Reescribir con
-// resultados de sincronización, reconexión y latencia.
+El flujo multijugador se verificó con una prueba de humo de la API de 35 comprobaciones y con un recorrido en navegador con dos sesiones independientes. La prueba de humo cubre: registro e inicio de sesión con cookie, sala por código, inicio reservado al anfitrión, melodías iniciales distintas por jugador, encadenamiento exacto de la ronda 1 a la 2 en ambos sentidos —cada jugador recibe la respuesta del otro y ninguno la propia—, bloqueo del doble envío en una misma ronda, ausencia de fuga de respuestas ajenas antes de tiempo, cierre de la partida y cálculo de la clasificación. Sobre el módulo docente cubre además la autorización por rol —el estudiante no accede a la espectación ni al detalle de salones ajenos, y el docente no puede jugar—, las invitaciones con aceptar, rechazar y re-invitar, el filtrado por estudiante con su puntaje individual, el historial con posición y la espectación en vivo y en frío con sus tres sub-vistas. Las invariantes de la asignación encadenada, la puntuación y la reconstrucción de cadenas se verifican además en las 29 pruebas unitarias de reglas de juego (Tabla 17).
 
-El plan de pruebas de la versión completa comprende pruebas de sincronización, reconexión y latencia. Las pruebas verifican que todos los participantes observan la misma transición de ronda, que una respuesta se asigna a un único destinatario, que una desconexión no bloquea la partida y que una respuesta tardía no se incorpora a una ronda cerrada. También se mide la latencia de los eventos de sala y se comprueba que el canal de tiempo real no transporta audio ni melodías completas.
+El recorrido en navegador verificó la creación y unión a salas desde dos sesiones, la alternancia de rondas, la pantalla de espera, la galería con grabaciones y el filtrado por configuración, además de las vistas docentes y de espectación en vivo y sobre partidas terminadas. Quedan pendientes las pruebas de reconexión y abandono y la medición de latencia del transporte de sincronización (sección 4.7.5).
 
 === 4.10.7. Limitaciones y amenazas a la validez
 
-La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a pruebas manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo individual; la mecánica multijugador, la galería y la vista docente forman parte de la especificación de la versión completa. El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El feedback por color y el registro de la dificultad alta son limitaciones reconocidas del diseño actual.
+La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a recorridos manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo completo —multijugador, galería, historial y vistas docentes—, pero las reglas de abandono y reconexión, la política de retención de grabaciones y el control de acceso a nivel de colección siguen abiertos (secciones 4.7.5, 4.8.4 y 4.8.5). El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El registro de la dificultad alta y la validez del puntaje compuesto global son limitaciones reconocidas del diseño actual; las reglas del feedback formativo usan umbrales propios que requieren validación con docentes.
 
 == 4.11. Síntesis del capítulo
 
-El prototipo funcional integra un generador procedural determinista, un evaluador de similitud con emparejamiento bipartito, una transcripción de audio en el navegador, una interfaz de dictado y repentización y persistencia en Payload y PostgreSQL. La versión completa añade salas, intercambio, galería, aulas y vista docente. Las pruebas unitarias y el banco sintético evidencian el funcionamiento de los componentes implementados; la efectividad pedagógica se evalúa en el capítulo V.
+El prototipo integra un generador procedural determinista, un evaluador de similitud con emparejamiento bipartito y localización de errores, una transcripción de audio en el navegador, la mecánica multijugador de intercambio encadenado de producciones, la galería final con retroalimentación formativa, el historial del estudiante con tendencias temporales y un módulo docente con salones de clase, métricas por estudiante y espectación de partidas, todo sobre Payload y PostgreSQL. Las pruebas unitarias, las pruebas de humo de la API y el banco sintético de transcripción evidencian el funcionamiento de los componentes implementados; la efectividad pedagógica se evalúa en el capítulo V.
 
 // ============ Capítulo V ============
 // Resultados y discusión del primer objetivo específico: generador procedural.
@@ -1438,7 +1582,7 @@ La reproducibilidad se verificó con la misma tupla de parámetros: dos ejecucio
 
 === 5.1.3. Perfil de intervalos y ambitus
 
-La Tabla 21 y la Figura 12 muestran la distribución de intervalos. Predominan los intervalos de 1 a 2 semitonos, es decir, el movimiento por grado conjunto que impone el generador. Los intervalos de 0 semitonos, es decir, las notas repetidas, se reducen de forma notable a medida que crece la dificultad —19.6 % en baja, 9.5 % en media y 0 % en alta— como consecuencia de la penalización de repetición. Los saltos de 3 a 7 semitonos aparecen solo en media (21.6 %) y alta (26.3 %); en baja no hay saltos, como exige el límite de intervalo máximo de 2 semitonos.
+La Tabla 21 y la Figura 20 muestran la distribución de intervalos. Predominan los intervalos de 1 a 2 semitonos, es decir, el movimiento por grado conjunto que impone el generador. Los intervalos de 0 semitonos, es decir, las notas repetidas, se reducen de forma notable a medida que crece la dificultad —19.6 % en baja, 9.5 % en media y 0 % en alta— como consecuencia de la penalización de repetición. Los saltos de 3 a 7 semitonos aparecen solo en media (21.6 %) y alta (26.3 %); en baja no hay saltos, como exige el límite de intervalo máximo de 2 semitonos.
 
 #block(breakable: false)[
 #leyenda([Tabla], 21, [Distribución de intervalos por nivel de dificultad])
@@ -1458,7 +1602,7 @@ La Tabla 21 y la Figura 12 muestran la distribución de intervalos. Predominan l
 )]
 
 #block(breakable: false)[
-#leyenda([Figura], 12, [Distribución de intervalos por nivel de dificultad])
+#leyenda([Figura], 20, [Distribución de intervalos por nivel de dificultad])
 #align(center)[
 #set text(size: 9pt)
 #canvas({
@@ -1515,7 +1659,7 @@ Las tonalidades y los modos se distribuyeron de forma equilibrada: las siete ton
 
 === 5.1.4. Variedad melódica y rítmica
 
-La Tabla 23 y la Figura 13 muestran la variedad melódica. El número medio de alturas distintas por melodía fue de 3.5 en baja (de 8 notas), 5.9 en media (de 15) y 8.9 en alta (de 24). La repetición de notas disminuye con la dificultad: el 87 % de las melodías de baja, el 82.5 % de las de media y ninguna de las de alta contienen al menos un par de notas repetidas; la longitud máxima de una racha de notas iguales fue 2 en baja y media y 1 en alta. Los cambios de dirección del contorno fueron 2.1, 6.5 y 13.1 en promedio, muy por encima de los valores anteriores, lo que indica un contorno más variado. La variedad rítmica, medida como número de duraciones distintas por melodía, fue de 1.9, 2.9 y 4.9. Las secuencias únicas fueron 97 %, 100 % y 100 %.
+La Tabla 23 y la Figura 21 muestran la variedad melódica. El número medio de alturas distintas por melodía fue de 3.5 en baja (de 8 notas), 5.9 en media (de 15) y 8.9 en alta (de 24). La repetición de notas disminuye con la dificultad: el 87 % de las melodías de baja, el 82.5 % de las de media y ninguna de las de alta contienen al menos un par de notas repetidas; la longitud máxima de una racha de notas iguales fue 2 en baja y media y 1 en alta. Los cambios de dirección del contorno fueron 2.1, 6.5 y 13.1 en promedio, muy por encima de los valores anteriores, lo que indica un contorno más variado. La variedad rítmica, medida como número de duraciones distintas por melodía, fue de 1.9, 2.9 y 4.9. Las secuencias únicas fueron 97 %, 100 % y 100 %.
 
 #block(breakable: false)[
 #leyenda([Tabla], 23, [Variedad melódica y rítmica por nivel de dificultad])
@@ -1539,10 +1683,10 @@ La Tabla 23 y la Figura 13 muestran la variedad melódica. El número medio de a
   ),
 )]
 
-La Figura 13 presenta una melodía de muestra por nivel, con la modulación marcada por la línea vertical. En las tres se observa un contorno dominado por el grado conjunto, con saltos ocasionales y cambios de dirección que crecen con la dificultad; el detalle de las notas depende de la semilla.
+La Figura 21 presenta una melodía de muestra por nivel, con la modulación marcada por la línea vertical. En las tres se observa un contorno dominado por el grado conjunto, con saltos ocasionales y cambios de dirección que crecen con la dificultad; el detalle de las notas depende de la semilla.
 
 #block(breakable: false)[
-#leyenda([Figura], 13, [Melodías generadas por nivel de dificultad])
+#leyenda([Figura], 21, [Melodías generadas por nivel de dificultad])
 #align(center)[
 #set text(size: 9pt)
 #text(weight: "bold")[Baja — Mi bemol mayor — 8 notas (MIDI 58–65)]
@@ -1700,7 +1844,11 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
 
   Kavčič Pucihar, A., Habe, K., Rotar Pance, B., & Laure, M. (2024). The key reasons for dropout in Slovenian music schools – a qualitative study. Frontiers in Psychology, 15, 1385840. https://doi.org/10.3389/fpsyg.2024.1385840
 
+  Kim, S., & Cozzarin, J. (2023). A new technical ear training game and its effect on critical listening skills. Applied Sciences, 13(9), 5357. https://doi.org/10.3390/app13095357
+
   Kleppinger, N. S. V. (2017). Practical and Philosophical Reflections Regarding Aural Skills Assessment. Indiana Theory Review, 33(1-2), 153. https://doi.org/10.2979/inditheorevi.33.1-2.06
+
+  Kumar, S., Jaiswal, S., Singh, P., & Arora, V. (2026). Automatic detection and analysis of singing mistakes for music learning by imitation. IEEE Transactions On Audio, Speech, And Language Processing. https://doi.org/10.1109/taslpro.2026.3682047
 
   Lingjie, A. (2025). Effectiveness Study of Applying Earmaster for Ear Training in Chinese University Students. International Journal Of Sociologies And Anthropologies Science Reviews, 5(2), 29-38. https://doi.org/10.60027/ijsasr.2025.5514
 
@@ -1747,6 +1895,8 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
   Wang, X., & Haris, M. F. B. (2025). AI-Driven Violin Performance Evaluation: A Deep Learning Approach for Automated Assessment and Personalized Feedback in Music Education. En Proceedings of the 2025 International Conference on Generative Artificial Intelligence and Digital Media (pp. 126-132). https://doi.org/10.1145/3734921.3734941
 
   Wristen, B. (2005). Cognition and Motor Execution in Piano Sight-Reading: A Review of Literature. Update Applications Of Research In Music Education, 24(1), 44-56. https://doi.org/10.1177/87551233050240010106
+
+  Zhang, H., Cheung, V. K. M., Nishioka, H., Dixon, S., & Furuya, S. (2025). LLaQo: Towards a query-based coach in expressive music performance assessment. En ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). https://doi.org/10.1109/icassp49660.2025.10890522
 ]
 
 = Anexos
