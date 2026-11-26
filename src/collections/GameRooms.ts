@@ -18,6 +18,17 @@ export const GameRooms: CollectionConfig = {
     update: fieldAdminAccess,
     delete: fieldAdminAccess,
   },
+  hooks: {
+    beforeDelete: [
+      async ({ id, req }) => {
+        await req.payload.delete({
+          collection: "submissions",
+          where: { room: { equals: id } },
+          req,
+        });
+      },
+    ],
+  },
   fields: [
     {
       name: "code",

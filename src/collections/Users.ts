@@ -27,6 +27,41 @@ export const Users: CollectionConfig = {
       (isAdmin(req.user) || String(req.user.id) === String(id)),
     delete: collectionAdminAccess,
   },
+  hooks: {
+    beforeDelete: [
+      async ({ id, req }) => {
+        await req.payload.delete({
+          collection: "game-rooms",
+          where: { host: { equals: id } },
+          req,
+        });
+        await req.payload.delete({
+          collection: "submissions",
+          where: { player: { equals: id } },
+          req,
+        });
+        const rooms = await req.payload.find({
+          collection: "game-rooms",
+          where: { "participants.user": { equals: id } },
+          pagination: false,
+          depth: 0,
+          req,
+        });
+        for (const room of rooms.docs) {
+          const participants = room.participants?.filter((p) => {
+            const u = p.user;
+            return String(typeof u === "object" && u !== null ? u.id : u) !== String(id);
+          });
+          await req.payload.update({
+            collection: "game-rooms",
+            id: room.id,
+            data: { participants },
+            req,
+          });
+        }
+      },
+    ],
+  },
   fields: [
     {
       name: "name",
