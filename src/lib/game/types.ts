@@ -101,6 +101,7 @@ export interface MyRoundRow {
   receivedNotes: NoteEvent[];
   producedNotes: NoteEvent[];
   recordingUrl: string | null;
+  evaluation: EvaluationResult | null;
   errorReport: ErrorReport | null;
 }
 

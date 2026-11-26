@@ -691,6 +691,7 @@ export const readGallery = async (
       receivedNotes: item.receivedNotes,
       producedNotes: item.responseNotes ?? [],
       recordingUrl: item.recordingUrl,
+      evaluation: item.evaluation,
       errorReport:
         item.evaluation === null || item.responseNotes === null
           ? null

@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { MyOverview } from "@/lib/game/types";
-import { buildTrendSeries } from "@/lib/game/insights";
+import { buildTrendSeries, deriveHistoryInsights } from "@/lib/game/insights";
 import { Lobby } from "./Lobby";
 import { percent } from "./melody-view";
 import { Sparkline, SparklineLegend, trendSeriesOf } from "./Sparkline";
@@ -36,6 +36,7 @@ export const Home = ({
   const canTeach =
     overview.role === "professor" || overview.role === "admin";
   const canPlay = overview.role !== "professor";
+  const historyInsights = deriveHistoryInsights(overview.games.slice().reverse());
 
   const respond = async (id: string, action: "accept" | "reject") => {
     setError(null);
@@ -206,18 +207,27 @@ export const Home = ({
               </p>
             ) : (
               <>
-                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-zinc-200 bg-white p-3">
-                  <span className="text-sm font-medium text-zinc-700">
-                    Progreso por partida
-                  </span>
-                  <Sparkline
-                    series={trendSeriesOf(
-                      buildTrendSeries(overview.games.slice().reverse()),
-                    )}
-                    width={180}
-                    height={36}
-                  />
-                  <SparklineLegend />
+                <div className="space-y-2 rounded-lg border border-zinc-200 bg-white p-3">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-sm font-medium text-zinc-700">
+                      Progreso por partida
+                    </span>
+                    <Sparkline
+                      series={trendSeriesOf(
+                        buildTrendSeries(overview.games.slice().reverse()),
+                      )}
+                      width={180}
+                      height={36}
+                    />
+                    <SparklineLegend />
+                  </div>
+                  {historyInsights.length > 0 ? (
+                    <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
+                      {historyInsights.map((insight) => (
+                        <li key={insight}>{insight}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
                 <table className="w-full border-collapse text-left text-sm">
                 <thead>

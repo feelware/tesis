@@ -7,6 +7,7 @@ import type {
   LeaderboardEntry,
   MyRoundRow,
 } from "@/lib/game/types";
+import { deriveGameHints } from "@/lib/game/insights";
 import {
   ACTIVITY_LABEL,
   GRID_BEATS,
@@ -80,6 +81,13 @@ export const Gallery = ({
   const finalIndex = data.strands.length;
   const slideCount = finalIndex + 1;
   const isFinal = slide === finalIndex;
+  const gameHints = deriveGameHints(
+    data.myRounds.map((row) => ({
+      pitch: row.evaluation?.pitch.f1 ?? 0,
+      rhythm: row.evaluation?.rhythm.f1 ?? 0,
+      report: row.errorReport,
+    })),
+  );
 
   return (
     <div className="space-y-6">
@@ -204,6 +212,18 @@ export const Gallery = ({
                 <ErrorBreakdown report={row.errorReport} />
               </div>
             ))}
+            {gameHints.length > 0 ? (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                <p className="text-sm font-medium text-indigo-900">
+                  Qué trabajar para tu próxima partida
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-indigo-900">
+                  {gameHints.map((hint) => (
+                    <li key={hint}>{hint}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <button
