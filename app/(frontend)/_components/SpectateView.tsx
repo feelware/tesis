@@ -17,6 +17,7 @@ import {
   playMelodyMidi,
   stopMelodyMidi,
 } from "./melody-view";
+import { ErrorBreakdown } from "./ErrorBreakdown";
 
 interface SpectateViewProps {
   roomId: string;
@@ -231,6 +232,7 @@ interface PlayerRoundRow {
   producedNotes: NoteEvent[];
   recordingUrl: string | null;
   evaluation: GalleryMessage["evaluation"];
+  errorReport: GalleryMessage["errorReport"];
 }
 
 export const SpectateView = ({
@@ -318,6 +320,7 @@ export const SpectateView = ({
         producedNotes: message.notes,
         recordingUrl: message.recordingUrl,
         evaluation: message.evaluation,
+        errorReport: message.errorReport,
       });
     }
   }
@@ -483,6 +486,7 @@ export const SpectateView = ({
                     />
                   </div>
                 </div>
+                <ErrorBreakdown report={row.errorReport} />
               </div>
             ))
           )}

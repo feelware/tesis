@@ -16,6 +16,7 @@ import {
   playMelodyMidi,
   stopMelodyMidi,
 } from "./melody-view";
+import { ErrorBreakdown } from "./ErrorBreakdown";
 
 interface GalleryProps {
   roomId: string;
@@ -200,6 +201,7 @@ export const Gallery = ({
                     />
                   </div>
                 </div>
+                <ErrorBreakdown report={row.errorReport} />
               </div>
             ))}
           </div>

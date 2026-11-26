@@ -1,5 +1,6 @@
 import type {
   Difficulty,
+  ErrorReport,
   EvaluationResult,
   Melody,
   NoteEvent,
@@ -87,6 +88,7 @@ export interface GalleryMessage {
   notes: NoteEvent[];
   recordingUrl: string | null;
   evaluation: EvaluationResult | null;
+  errorReport: ErrorReport | null;
 }
 
 export interface GalleryStrand {
@@ -99,6 +101,7 @@ export interface MyRoundRow {
   receivedNotes: NoteEvent[];
   producedNotes: NoteEvent[];
   recordingUrl: string | null;
+  errorReport: ErrorReport | null;
 }
 
 export interface GalleryData {

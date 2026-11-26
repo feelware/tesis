@@ -24,3 +24,5 @@ export type {
   Score,
 } from "./analyzer";
 export { DEFAULT_TOLERANCES, TRANSCRIPTION_TOLERANCES, evaluateSimilarity, transcriptionTolerances } from "./analyzer";
+export type { DimensionErrors, ErrorNote, ErrorReport } from "./error-report";
+export { describeEvaluationErrors } from "./error-report";

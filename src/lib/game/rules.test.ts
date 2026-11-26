@@ -282,6 +282,7 @@ describe("assembleStrands", () => {
     playerId: authorName,
     authorName,
     activity: "dictation" as const,
+    tempoBpm: 90,
     receivedNotes: [note(60, 0)],
     responseNotes,
     recordingUrl,
@@ -320,6 +321,27 @@ describe("assembleStrands", () => {
       "Beto",
       "Ana",
     ]);
+  });
+
+  it("adjunta el informe de errores de cada respuesta evaluada", () => {
+    const received = [note(60, 0), note(62, 1)];
+    const response = [note(60, 0), note(71, 1)];
+    const strands = assembleStrands([
+      {
+        ...submission("s1", null, 1, "Ana", response),
+        receivedNotes: received,
+        evaluation: evaluateResponse({
+          receivedMelody: chainMelody(received),
+          response,
+          activity: "dictation",
+        }),
+      },
+    ]);
+    const report = strands[0].messages[1].errorReport;
+    expect(report).not.toBeNull();
+    expect(report?.pitch.missed).toEqual([{ position: 2, midiPitch: 62 }]);
+    expect(report?.pitch.extra).toEqual([{ position: 2, midiPitch: 71 }]);
+    expect(report?.rhythm.missed).toEqual([]);
   });
 });
 

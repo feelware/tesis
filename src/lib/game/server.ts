@@ -9,6 +9,7 @@ import {
   assembleStrands,
   buildNextRoundSubmissions,
   computeLeaderboard,
+  errorReportFor,
   evaluateResponse,
   parseGameSettings,
   parseResponseNotes,
@@ -632,6 +633,7 @@ const loadStrandSubmissions = async (
     .filter((doc) => !doc.sourceSubmission || doc.status === "done")
     .map((doc): StrandSubmission => {
       const playerId = idOf(doc.player);
+      const receivedMelody = doc.receivedMelody as unknown as Melody;
       return {
         id: String(doc.id),
         sourceSubmissionId: doc.sourceSubmission
@@ -641,7 +643,8 @@ const loadStrandSubmissions = async (
         playerId: String(playerId),
         authorName: names.get(playerId) ?? `jugador ${playerId}`,
         activity: doc.activity,
-        receivedNotes: (doc.receivedMelody as unknown as Melody).notes,
+        tempoBpm: receivedMelody.tempoBpm,
+        receivedNotes: receivedMelody.notes,
         responseNotes:
           doc.status === "done" ? ((doc.response ?? []) as NoteEvent[]) : null,
         recordingUrl: recordingUrlFor(doc),
@@ -688,6 +691,15 @@ export const readGallery = async (
       receivedNotes: item.receivedNotes,
       producedNotes: item.responseNotes ?? [],
       recordingUrl: item.recordingUrl,
+      errorReport:
+        item.evaluation === null || item.responseNotes === null
+          ? null
+          : errorReportFor({
+              receivedNotes: item.receivedNotes,
+              responseNotes: item.responseNotes,
+              tempoBpm: item.tempoBpm,
+              evaluation: item.evaluation,
+            }),
     }));
   return { showRecordings: settings.showRecordings, strands, myRounds };
 };

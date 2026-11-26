@@ -1,11 +1,13 @@
 import {
   DEFAULT_TOLERANCES,
   beatsToSeconds,
+  describeEvaluationErrors,
   evaluateSimilarity,
   melodyToEvaluatedNotes,
   transcriptionTolerances,
   validateNote,
   type Difficulty,
+  type ErrorReport,
   type EvaluatedNote,
   type EvaluationResult,
   type Melody,
@@ -180,6 +182,16 @@ export const parseGameSettings = (value: unknown): GameSettings => {
   };
 };
 
+const toEvaluatedNotes = (
+  notes: NoteEvent[],
+  tempoBpm: number,
+): EvaluatedNote[] =>
+  notes.map((note) => ({
+    midiPitch: note.midiPitch,
+    onsetSeconds: beatsToSeconds(note.onsetBeats, tempoBpm),
+    durationSeconds: beatsToSeconds(note.durationBeats, tempoBpm),
+  }));
+
 export const evaluateResponse = (params: {
   receivedMelody: Melody;
   response: NoteEvent[];
@@ -189,20 +201,27 @@ export const evaluateResponse = (params: {
     params.activity === "sight_singing"
       ? transcriptionTolerances(params.receivedMelody.difficulty)
       : DEFAULT_TOLERANCES;
-  const estimated: EvaluatedNote[] = params.response.map((note) => ({
-    midiPitch: note.midiPitch,
-    onsetSeconds: beatsToSeconds(note.onsetBeats, params.receivedMelody.tempoBpm),
-    durationSeconds: beatsToSeconds(
-      note.durationBeats,
-      params.receivedMelody.tempoBpm,
-    ),
-  }));
   return evaluateSimilarity(
     melodyToEvaluatedNotes(params.receivedMelody),
-    estimated,
+    toEvaluatedNotes(params.response, params.receivedMelody.tempoBpm),
     tolerances,
   );
 };
+
+// Localización y magnitud de errores de una respuesta ya evaluada, derivadas
+// de la misma evaluación persistida (pares emparejados, notas omitidas y
+// adicionales). No recalcula la evaluación: solo la describe para el feedback.
+export const errorReportFor = (params: {
+  receivedNotes: NoteEvent[];
+  responseNotes: NoteEvent[];
+  tempoBpm: number;
+  evaluation: EvaluationResult;
+}): ErrorReport =>
+  describeEvaluationErrors(
+    params.evaluation,
+    toEvaluatedNotes(params.receivedNotes, params.tempoBpm),
+    toEvaluatedNotes(params.responseNotes, params.tempoBpm),
+  );
 
 const mean = (values: number[]): number =>
   values.length === 0
@@ -232,6 +251,7 @@ export interface StrandSubmission {
   playerId: string;
   authorName: string;
   activity: Activity;
+  tempoBpm: number;
   receivedNotes: NoteEvent[];
   responseNotes: NoteEvent[] | null;
   recordingUrl: string | null;
@@ -270,6 +290,7 @@ export const assembleStrands = (
             notes: head.receivedNotes,
             recordingUrl: null,
             evaluation: null,
+            errorReport: null,
           },
           ...chain.flatMap((item) =>
             item.responseNotes === null
@@ -284,6 +305,15 @@ export const assembleStrands = (
                     notes: item.responseNotes,
                     recordingUrl: item.recordingUrl,
                     evaluation: item.evaluation,
+                    errorReport:
+                      item.evaluation === null
+                        ? null
+                        : errorReportFor({
+                            receivedNotes: item.receivedNotes,
+                            responseNotes: item.responseNotes,
+                            tempoBpm: item.tempoBpm,
+                            evaluation: item.evaluation,
+                          }),
                   },
                 ],
           ),
