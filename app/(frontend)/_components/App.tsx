@@ -101,6 +101,15 @@ export const App = () => {
     };
   }, []);
 
+  // El inicio del docente muestra partidas en vivo: se refresca periódicamente.
+  useEffect(() => {
+    if (!user || roomId || params.get("spectate") || params.get("classroom")) {
+      return;
+    }
+    const interval = setInterval(() => void loadOverview(), 5000);
+    return () => clearInterval(interval);
+  }, [user, roomId, params, loadOverview]);
+
   const clearViews = useCallback(() => {
     setParams(Object.fromEntries(APP_PARAMS.map((key) => [key, null])));
   }, [setParams]);

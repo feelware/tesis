@@ -134,10 +134,20 @@ export interface ClassroomStudentRow extends PlayerScore {
 
 export interface ClassroomDetail {
   classroom: { id: string; name: string; teacherName: string };
+  liveGames: LiveGameInfo[];
   games: ClassroomGameRow[];
   students: ClassroomStudentRow[];
   invitations: { id: string; name: string; email: string; createdAt: string }[];
   filterStudentId: string | null;
+}
+
+export interface LiveGameInfo {
+  roomId: string;
+  code: string;
+  classroomNames: string[];
+  currentRound: number;
+  roundCount: number;
+  players: string[];
 }
 
 export interface InvitationInfo {
@@ -172,6 +182,7 @@ export interface MyOverview {
   games: MyGameInfo[];
   invitations: InvitationInfo[];
   classrooms: ClassroomInfo[];
+  liveGames: LiveGameInfo[];
 }
 
 export interface SpectateData {

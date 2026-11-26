@@ -14,6 +14,7 @@ import type {
   ClassroomInfo,
   ClassroomStudentRow,
   InvitationInfo,
+  LiveGameInfo,
   MetricKey,
   MyGameInfo,
   MyOverview,
@@ -82,6 +83,76 @@ const fetchUserInfo = async (
       { name: doc.name ?? doc.email, email: doc.email },
     ]),
   );
+};
+
+interface RawLiveGame {
+  roomId: string;
+  code: string;
+  classroomNames: string[];
+  currentRound: number;
+  roundCount: number;
+  playerIds: number[];
+}
+
+// Partidas en curso donde participa al menos un miembro de cada grupo de
+// salones; una partida compartida entre salones aparece una sola vez.
+const findLiveGames = async (
+  payload: Payload,
+  groups: { name: string; memberIds: number[] }[],
+): Promise<RawLiveGame[]> => {
+  const byRoom = new Map<string, RawLiveGame>();
+  for (const { name, memberIds } of groups) {
+    if (memberIds.length === 0) continue;
+    const rooms = await payload.find({
+      collection: "game-rooms",
+      where: {
+        status: { equals: "in_progress" },
+        "participants.user": { in: memberIds },
+      },
+      pagination: false,
+      depth: 0,
+      sort: "-updatedAt",
+    });
+    for (const room of rooms.docs) {
+      const roomId = String(room.id);
+      const entry = byRoom.get(roomId) ?? {
+        roomId,
+        code: room.code,
+        classroomNames: [],
+        currentRound: room.currentRound,
+        roundCount: room.settings?.roundCount ?? 0,
+        playerIds: (room.participants ?? [])
+          .slice()
+          .sort((a, b) => a.joinOrder - b.joinOrder)
+          .map((item) => idOf(item.user)),
+      };
+      if (!entry.classroomNames.includes(name)) {
+        entry.classroomNames.push(name);
+      }
+      byRoom.set(roomId, entry);
+    }
+  }
+  return [...byRoom.values()];
+};
+
+const withPlayerNames = async (
+  payload: Payload,
+  games: RawLiveGame[],
+): Promise<LiveGameInfo[]> => {
+  const names = await fetchNames(
+    payload,
+    games.flatMap((game) => game.playerIds),
+  );
+  return games.map((game) => ({
+    roomId: game.roomId,
+    code: game.code,
+    classroomNames: game.classroomNames,
+    currentRound: game.currentRound,
+    roundCount: game.roundCount,
+    players: game.playerIds.map(
+      (id) => names.get(id) ?? `jugador ${id}`,
+    ),
+  }));
 };
 
 export const readMyOverview = async (
@@ -207,11 +278,29 @@ export const readMyOverview = async (
     };
   });
 
+  const liveGames = await withPlayerNames(
+    payload,
+    await findLiveGames(
+      payload,
+      myClassrooms.docs.map((classroom) => ({
+        name: classroom.name,
+        memberIds: classroomInvitations
+          .filter(
+            (invitation) =>
+              idOf(invitation.classroom) === Number(classroom.id) &&
+              invitation.status === "accepted",
+          )
+          .map((invitation) => idOf(invitation.user)),
+      })),
+    ),
+  );
+
   return {
     role: user.role,
     games,
     invitations: invitationInfos,
     classrooms: classroomInfos,
+    liveGames,
   };
 };
 
@@ -377,6 +466,10 @@ export const readClassroomDetail = async (
         userInfo.get(idOf(classroom.teacher))?.name ??
         `docente ${idOf(classroom.teacher)}`,
     },
+    liveGames: await withPlayerNames(
+      payload,
+      await findLiveGames(payload, [{ name: classroom.name, memberIds }]),
+    ),
     games: sortedGames,
     students: sortedStudents,
     invitations: pending.map((invitation) => ({
@@ -485,22 +578,4 @@ export const respondInvitation = async (
     id: invitation.id,
     data: { status: accept ? "accepted" : "rejected" },
   });
-};
-
-export const resolveSpectateRoom = async (
-  payload: Payload,
-  codeValue: unknown,
-): Promise<{ roomId: string; code: string }> => {
-  const code = String(codeValue ?? "").trim().toUpperCase();
-  const found = await payload.find({
-    collection: "game-rooms",
-    where: { code: { equals: code } },
-    limit: 1,
-    depth: 0,
-  });
-  const room = found.docs[0];
-  if (!room) {
-    throw new HttpError(404, "no existe una sala con ese código");
-  }
-  return { roomId: String(room.id), code: room.code };
 };

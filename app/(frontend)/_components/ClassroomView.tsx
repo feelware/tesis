@@ -68,8 +68,10 @@ export const ClassroomView = ({
       }
     };
     void load();
+    const interval = setInterval(() => void load(), 5000);
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, [classroomId, student, metric, order, studentMetric, studentOrder, tick]);
 
@@ -164,6 +166,40 @@ export const ClassroomView = ({
         >
           ← Volver
         </button>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Partidas en desarrollo</h3>
+        {detail.liveGames.length === 0 ? (
+          <p className="text-sm text-zinc-500">
+            No hay partidas en desarrollo.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {detail.liveGames.map((game) => (
+              <div
+                key={game.roomId}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4"
+              >
+                <div>
+                  <p className="font-medium">
+                    <code className="rounded bg-white px-1">{game.code}</code> —
+                    Ronda {game.currentRound} de {game.roundCount}
+                  </p>
+                  <p className="text-sm text-zinc-600">
+                    {game.players.join(", ")}
+                  </p>
+                </div>
+                <button
+                  className="rounded bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"
+                  onClick={() => onOpenGame(game.roomId)}
+                >
+                  Espectar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">

@@ -28,7 +28,6 @@ export const Home = ({
   onRefresh,
 }: HomeProps) => {
   const [classroomName, setClassroomName] = useState("");
-  const [spectateCode, setSpectateCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -80,34 +79,35 @@ export const Home = ({
     }
   };
 
-  const spectate = async (event: FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/rooms/spectate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ code: spectateCode }),
-      });
-      const body = (await response.json().catch(() => ({}))) as {
-        roomId?: string;
-        error?: string;
-      };
-      if (!response.ok || !body.roomId) {
-        throw new Error(body.error ?? "No se encontró la sala");
-      }
-      onOpenSpectate(body.roomId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al espectar");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="space-y-8">
+      {canTeach && overview.liveGames.length > 0 ? (
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold">Partidas en desarrollo</h2>
+          {overview.liveGames.map((game) => (
+            <div
+              key={game.roomId}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4"
+            >
+              <div>
+                <p className="font-medium">
+                  <code className="rounded bg-white px-1">{game.code}</code> —
+                  Ronda {game.currentRound} de {game.roundCount}
+                </p>
+                <p className="text-sm text-zinc-600">
+                  {game.classroomNames.join(", ")} · {game.players.join(", ")}
+                </p>
+              </div>
+              <button
+                className="rounded bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"
+                onClick={() => onOpenSpectate(game.roomId)}
+              >
+                Espectar
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
       {overview.invitations.length > 0 ? (
         <div className="space-y-3">
           <h2 className="text-xl font-semibold">Invitaciones pendientes</h2>
@@ -189,33 +189,6 @@ export const Home = ({
               className="rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               Crear salón
-            </button>
-          </form>
-          <form
-            className="flex flex-wrap items-end gap-2"
-            onSubmit={(event) => void spectate(event)}
-          >
-            <label className="block">
-              <span className="text-sm font-medium text-zinc-700">
-                Espectar partida
-              </span>
-              <input
-                className="mt-1 block w-40 rounded border border-zinc-300 p-2 uppercase"
-                value={spectateCode}
-                onChange={(event) =>
-                  setSpectateCode(event.target.value.toUpperCase())
-                }
-                placeholder="Código"
-                maxLength={6}
-                required
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              Espectar
             </button>
           </form>
         </div>
