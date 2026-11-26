@@ -71,6 +71,8 @@ export interface Config {
     'game-rooms': GameRoom;
     submissions: Submission;
     media: Media;
+    classrooms: Classroom;
+    'classroom-invitations': ClassroomInvitation;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +84,8 @@ export interface Config {
     'game-rooms': GameRoomsSelect<false> | GameRoomsSelect<true>;
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    classrooms: ClassroomsSelect<false> | ClassroomsSelect<true>;
+    'classroom-invitations': ClassroomInvitationsSelect<false> | ClassroomInvitationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -242,6 +246,30 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "classrooms".
+ */
+export interface Classroom {
+  id: number;
+  name: string;
+  teacher: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "classroom-invitations".
+ */
+export interface ClassroomInvitation {
+  id: number;
+  classroom: number | Classroom;
+  user: number | User;
+  status: 'pending' | 'accepted' | 'rejected';
+  invitedBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -279,6 +307,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'classrooms';
+        value: number | Classroom;
+      } | null)
+    | ({
+        relationTo: 'classroom-invitations';
+        value: number | ClassroomInvitation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -412,6 +448,28 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "classrooms_select".
+ */
+export interface ClassroomsSelect<T extends boolean = true> {
+  name?: T;
+  teacher?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "classroom-invitations_select".
+ */
+export interface ClassroomInvitationsSelect<T extends boolean = true> {
+  classroom?: T;
+  user?: T;
+  status?: T;
+  invitedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

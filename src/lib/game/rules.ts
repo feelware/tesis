@@ -17,6 +17,9 @@ import type {
   GameSettings,
   LeaderboardEntry,
   LeaderboardRound,
+  MetricKey,
+  PlayerScore,
+  SortOrder,
 } from "./types";
 
 const MAX_RESPONSE_NOTES = 200;
@@ -230,8 +233,9 @@ export interface StrandSubmission {
   authorName: string;
   activity: Activity;
   receivedNotes: NoteEvent[];
-  responseNotes: NoteEvent[];
+  responseNotes: NoteEvent[] | null;
   recordingUrl: string | null;
+  evaluation: EvaluationResult | null;
 }
 
 // Reconstruye el "viaje" de cada melodía inicial: la versión original del
@@ -259,21 +263,71 @@ export const assembleStrands = (
         messages: [
           {
             authorName: "Sistema",
+            authorUserId: null,
             isSystem: true,
             roundNumber: null,
             activity: null,
             notes: head.receivedNotes,
             recordingUrl: null,
+            evaluation: null,
           },
-          ...chain.map((item) => ({
-            authorName: item.authorName,
-            isSystem: false,
-            roundNumber: item.roundNumber,
-            activity: item.activity,
-            notes: item.responseNotes,
-            recordingUrl: item.recordingUrl,
-          })),
+          ...chain.flatMap((item) =>
+            item.responseNotes === null
+              ? []
+              : [
+                  {
+                    authorName: item.authorName,
+                    authorUserId: item.playerId,
+                    isSystem: false,
+                    roundNumber: item.roundNumber,
+                    activity: item.activity,
+                    notes: item.responseNotes,
+                    recordingUrl: item.recordingUrl,
+                    evaluation: item.evaluation,
+                  },
+                ],
+          ),
         ],
       };
     });
 };
+
+export const scoreAverages = (
+  evaluations: (EvaluationResult | null)[],
+): { pitch: number; rhythm: number; overall: number } => {
+  const valid = evaluations.filter(
+    (evaluation): evaluation is EvaluationResult => evaluation !== null,
+  );
+  return {
+    pitch: mean(valid.map((evaluation) => evaluation.pitch.f1)),
+    rhythm: mean(valid.map((evaluation) => evaluation.rhythm.f1)),
+    overall: mean(valid.map((evaluation) => evaluation.overall)),
+  };
+};
+
+// Puntaje que representa a una partida al ordenarla: el del estudiante
+// filtrado, o el promedio de los estudiantes del salón participantes.
+export const gameSortScore = (
+  participants: PlayerScore[],
+  studentId: string | null,
+  metric: MetricKey,
+): number => {
+  if (studentId !== null) {
+    const filtered = participants.find(
+      (participant) => participant.userId === studentId,
+    );
+    return filtered ? filtered[metric] : 0;
+  }
+  return mean(participants.map((participant) => participant[metric]));
+};
+
+export const sortScores = <T>(
+  items: T[],
+  metric: keyof T,
+  order: SortOrder,
+): T[] =>
+  items.slice().sort((a, b) => {
+    const left = Number(a[metric]);
+    const right = Number(b[metric]);
+    return order === "asc" ? left - right : right - left;
+  });

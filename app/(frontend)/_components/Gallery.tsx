@@ -1,16 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { type Difficulty, type NoteEvent } from "@/lib/music";
-import { playNotes, type PlaybackHandle } from "@/lib/audio/playback";
+import { useEffect, useState } from "react";
 import type {
   GalleryData,
-  GalleryMessage,
   GameSettings,
   LeaderboardEntry,
   MyRoundRow,
 } from "@/lib/game/types";
-import { PianoRoll } from "./PianoRoll";
+import {
+  ACTIVITY_LABEL,
+  GRID_BEATS,
+  MelodyPanel,
+  messageLabel,
+  percent,
+  playMelodyMidi,
+  stopMelodyMidi,
+} from "./melody-view";
 
 interface GalleryProps {
   roomId: string;
@@ -18,86 +23,6 @@ interface GalleryProps {
   leaderboard: LeaderboardEntry[];
   onNewGame: () => void;
 }
-
-const GRID_BEATS: Record<Difficulty, number> = {
-  low: 1,
-  medium: 0.5,
-  high: 1 / 6,
-};
-
-const ACTIVITY_LABEL = {
-  dictation: "Dictado",
-  sight_singing: "Repentización",
-} as const;
-
-const percent = (value: number) => `${Math.round(value * 1000) / 10}%`;
-
-const rangeFor = (notes: NoteEvent[]) => {
-  if (notes.length === 0) {
-    return { minPitch: 55, maxPitch: 72, totalBeats: 8 };
-  }
-  const pitches = notes.map((note) => note.midiPitch);
-  const lastNote = notes[notes.length - 1];
-  return {
-    minPitch: Math.max(36, Math.min(...pitches) - 2),
-    maxPitch: Math.min(84, Math.max(...pitches) + 2),
-    totalBeats: Math.ceil(lastNote.onsetBeats + lastNote.durationBeats) + 2,
-  };
-};
-
-interface MelodyPanelProps {
-  notes: NoteEvent[];
-  gridBeats: number;
-  onPlay: () => void;
-  onStop: () => void;
-  recordingUrl?: string | null;
-}
-
-const MelodyPanel = ({
-  notes,
-  gridBeats,
-  onPlay,
-  onStop,
-  recordingUrl = null,
-}: MelodyPanelProps) => {
-  const range = rangeFor(notes);
-  return (
-    <div className="space-y-2">
-      <PianoRoll
-        notes={notes}
-        minPitch={range.minPitch}
-        maxPitch={range.maxPitch}
-        totalBeats={range.totalBeats}
-        gridBeats={gridBeats}
-      />
-      {recordingUrl ? (
-        <audio controls preload="none" src={recordingUrl} className="h-9 w-full max-w-md" />
-      ) : (
-        <div className="flex gap-2">
-          <button
-            className="rounded border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-50"
-            onClick={onPlay}
-          >
-            Escuchar melodía
-          </button>
-          <button
-            className="rounded border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-50"
-            onClick={onStop}
-          >
-            Detener
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const messageLabel = (message: GalleryMessage): string => {
-  if (message.isSystem || message.roundNumber === null) return "original";
-  return `ronda ${message.roundNumber} · ${
-    message.activity ? ACTIVITY_LABEL[message.activity] : ""
-  }`;
-};
 
 export const Gallery = ({
   roomId,
@@ -108,7 +33,6 @@ export const Gallery = ({
   const [data, setData] = useState<GalleryData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
-  const playbackRef = useRef<PlaybackHandle | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -135,22 +59,13 @@ export const Gallery = ({
     void load();
     return () => {
       cancelled = true;
-      playbackRef.current?.stop();
+      stopMelodyMidi();
     };
   }, [roomId]);
 
   useEffect(() => {
-    playbackRef.current?.stop();
+    stopMelodyMidi();
   }, [slide]);
-
-  const playMidi = useCallback((notes: NoteEvent[], tempoBpm: number) => {
-    playbackRef.current?.stop();
-    playbackRef.current = playNotes(notes, tempoBpm);
-  }, []);
-
-  const stopMidi = useCallback(() => {
-    playbackRef.current?.stop();
-  }, []);
 
   if (error) {
     return <p className="text-sm text-red-600">{error}</p>;
@@ -184,9 +99,7 @@ export const Gallery = ({
           <button
             className="rounded border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-50 disabled:opacity-40"
             disabled={isFinal}
-            onClick={() =>
-              setSlide((value) => Math.min(finalIndex, value + 1))
-            }
+            onClick={() => setSlide((value) => Math.min(finalIndex, value + 1))}
           >
             Siguiente →
           </button>
@@ -221,8 +134,8 @@ export const Gallery = ({
                   notes={message.notes}
                   gridBeats={gridBeats}
                   recordingUrl={message.recordingUrl}
-                  onPlay={() => playMidi(message.notes, tempoBpm)}
-                  onStop={stopMidi}
+                  onPlay={() => playMelodyMidi(message.notes, tempoBpm)}
+                  onStop={stopMelodyMidi}
                 />
               </div>
             </div>
@@ -272,8 +185,8 @@ export const Gallery = ({
                     <MelodyPanel
                       notes={row.receivedNotes}
                       gridBeats={gridBeats}
-                      onPlay={() => playMidi(row.receivedNotes, tempoBpm)}
-                      onStop={stopMidi}
+                      onPlay={() => playMelodyMidi(row.receivedNotes, tempoBpm)}
+                      onStop={stopMelodyMidi}
                     />
                   </div>
                   <div className="space-y-1">
@@ -282,8 +195,8 @@ export const Gallery = ({
                       notes={row.producedNotes}
                       gridBeats={gridBeats}
                       recordingUrl={row.recordingUrl}
-                      onPlay={() => playMidi(row.producedNotes, tempoBpm)}
-                      onStop={stopMidi}
+                      onPlay={() => playMelodyMidi(row.producedNotes, tempoBpm)}
+                      onStop={stopMelodyMidi}
                     />
                   </div>
                 </div>

@@ -2,6 +2,7 @@ import config from "@payload-config";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPayload, type Payload } from "payload";
 import type { GameRoom, Submission, User } from "@payload-types";
+import { isAdmin, isProfessor } from "@/lib/user";
 import { generateMelody, type Melody, type NoteEvent } from "@/lib/music";
 import {
   activityForRound,
@@ -16,11 +17,14 @@ import {
 import type {
   Activity,
   GalleryData,
+  GameSettings,
+  GalleryStrand,
   LeaderboardEntry,
   LeaderboardRound,
   MyRoundRow,
   RoomState,
   RoundState,
+  SpectateData,
   SubmissionInfo,
 } from "./types";
 
@@ -32,6 +36,12 @@ export class HttpError extends Error {
     this.status = status;
   }
 }
+
+export const requireProfessor = (user: User): void => {
+  if (!isAdmin(user) && !isProfessor(user)) {
+    throw new HttpError(403, "solo docentes y administradores pueden hacer esto");
+  }
+};
 
 let payloadInstance: Payload | null = null;
 
@@ -99,7 +109,7 @@ const generateRoomCode = (): string =>
     return ALPHABET[bytes[0] % ALPHABET.length];
   }).join("");
 
-const idOf = (value: number | { id: number | string }): number =>
+export const idOf = (value: number | { id: number | string }): number =>
   typeof value === "object" ? Number(value.id) : Number(value);
 
 const findRoom = async (payload: Payload, roomId: string): Promise<GameRoom> => {
@@ -114,7 +124,7 @@ const findRoom = async (payload: Payload, roomId: string): Promise<GameRoom> => 
   }
 };
 
-const fetchNames = async (
+export const fetchNames = async (
   payload: Payload,
   ids: number[],
 ): Promise<Map<number, string>> => {
@@ -135,6 +145,9 @@ export const createRoom = async (
   payload: Payload,
   user: User,
 ): Promise<{ roomId: string; code: string }> => {
+  if (isProfessor(user)) {
+    throw new HttpError(403, "los docentes no pueden jugar, solo espectar");
+  }
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const code = generateRoomCode();
     const existing = await payload.find({
@@ -165,6 +178,9 @@ export const joinRoom = async (
   user: User,
   codeValue: unknown,
 ): Promise<{ roomId: string; code: string }> => {
+  if (isProfessor(user)) {
+    throw new HttpError(403, "los docentes no pueden jugar, solo espectar");
+  }
   const code = String(codeValue ?? "").trim().toUpperCase();
   if (!/^[A-Z0-9]{6}$/.test(code)) {
     throw new HttpError(400, "el código debe tener 6 caracteres");
@@ -564,23 +580,17 @@ export const readRoomState = async (
   };
 };
 
-export const readGallery = async (
+const loadStrandSubmissions = async (
   payload: Payload,
-  user: User,
-  roomId: string,
-): Promise<GalleryData> => {
-  const room = await findRoom(payload, roomId);
+  room: GameRoom,
+  settings: GameSettings | null,
+): Promise<{
+  strandSubmissions: StrandSubmission[];
+  names: Map<number, string>;
+}> => {
   const participants = (room.participants ?? [])
     .slice()
     .sort((a, b) => a.joinOrder - b.joinOrder);
-  const participantIds = participants.map((item) => idOf(item.user));
-  if (!participantIds.includes(Number(user.id))) {
-    throw new HttpError(403, "no participas en esta sala");
-  }
-  if (room.status !== "finished") {
-    throw new HttpError(400, "la partida aún no ha terminado");
-  }
-  const settings = parseGameSettings(room.settings);
   const found = await payload.find({
     collection: "submissions",
     where: { room: { equals: room.id } },
@@ -607,15 +617,19 @@ export const readGallery = async (
   const urlByMediaId = new Map(
     media.docs.map((doc) => [Number(doc.id), doc.url ?? null]),
   );
+  const showRecordings = settings?.showRecordings ?? true;
   const recordingUrlFor = (doc: Submission): string | null => {
-    if (!settings.showRecordings) return null;
+    if (!showRecordings) return null;
     if (doc.activity !== "sight_singing" || !doc.recording) return null;
     return urlByMediaId.get(idOf(doc.recording)) ?? null;
   };
   const playerOrder = new Map(
     participants.map((item, index) => [idOf(item.user), index]),
   );
+  // En partidas en vivo solo las respuestas enviadas producen melodía; los
+  // envíos pendientes solo aportan la melodía recibida (mensaje del sistema).
   const strandSubmissions: StrandSubmission[] = docs
+    .filter((doc) => !doc.sourceSubmission || doc.status === "done")
     .map((doc): StrandSubmission => {
       const playerId = idOf(doc.player);
       return {
@@ -628,8 +642,10 @@ export const readGallery = async (
         authorName: names.get(playerId) ?? `jugador ${playerId}`,
         activity: doc.activity,
         receivedNotes: (doc.receivedMelody as unknown as Melody).notes,
-        responseNotes: (doc.response ?? []) as NoteEvent[],
+        responseNotes:
+          doc.status === "done" ? ((doc.response ?? []) as NoteEvent[]) : null,
         recordingUrl: recordingUrlFor(doc),
+        evaluation: (doc.evaluation ?? null) as SubmissionInfo["evaluation"],
       };
     })
     .sort(
@@ -638,6 +654,31 @@ export const readGallery = async (
         (playerOrder.get(Number(a.playerId)) ?? 0) -
           (playerOrder.get(Number(b.playerId)) ?? 0),
     );
+  return { strandSubmissions, names };
+};
+
+export const readGallery = async (
+  payload: Payload,
+  user: User,
+  roomId: string,
+): Promise<GalleryData> => {
+  const room = await findRoom(payload, roomId);
+  const participants = (room.participants ?? [])
+    .slice()
+    .sort((a, b) => a.joinOrder - b.joinOrder);
+  const participantIds = participants.map((item) => idOf(item.user));
+  if (!participantIds.includes(Number(user.id))) {
+    throw new HttpError(403, "no participas en esta sala");
+  }
+  if (room.status !== "finished") {
+    throw new HttpError(400, "la partida aún no ha terminado");
+  }
+  const settings = parseGameSettings(room.settings);
+  const { strandSubmissions } = await loadStrandSubmissions(
+    payload,
+    room,
+    settings,
+  );
   const strands = assembleStrands(strandSubmissions);
   const myRounds: MyRoundRow[] = strandSubmissions
     .filter((item) => item.playerId === String(user.id))
@@ -645,8 +686,47 @@ export const readGallery = async (
       roundNumber: item.roundNumber,
       activity: item.activity,
       receivedNotes: item.receivedNotes,
-      producedNotes: item.responseNotes,
+      producedNotes: item.responseNotes ?? [],
       recordingUrl: item.recordingUrl,
     }));
   return { showRecordings: settings.showRecordings, strands, myRounds };
+};
+
+export const readSpectate = async (
+  payload: Payload,
+  user: User,
+  roomId: string,
+): Promise<SpectateData> => {
+  requireProfessor(user);
+  const room = await findRoom(payload, roomId);
+  const settings = room.settings?.roundCount
+    ? parseGameSettings(room.settings)
+    : null;
+  const participants = (room.participants ?? [])
+    .slice()
+    .sort((a, b) => a.joinOrder - b.joinOrder);
+  const { strandSubmissions, names } = await loadStrandSubmissions(
+    payload,
+    room,
+    settings,
+  );
+  const strands: GalleryStrand[] = assembleStrands(strandSubmissions);
+  return {
+    room: {
+      id: String(room.id),
+      code: room.code,
+      status: room.status,
+      currentRound: room.currentRound,
+      roundCount: settings?.roundCount ?? 0,
+      settings,
+    },
+    players: participants.map((item) => {
+      const playerId = idOf(item.user);
+      return {
+        userId: String(playerId),
+        name: names.get(playerId) ?? `jugador ${playerId}`,
+      };
+    }),
+    strands,
+  };
 };

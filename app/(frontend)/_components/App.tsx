@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { MyOverview } from "@/lib/game/types";
 import { AuthPanel } from "./AuthPanel";
-import { Lobby } from "./Lobby";
+import { ClassroomView } from "./ClassroomView";
+import { Home } from "./Home";
 import { Room } from "./Room";
+import { SpectateView } from "./SpectateView";
+import { useUrlState } from "./useUrlState";
 
 export interface AuthUser {
   id: string;
@@ -23,10 +27,39 @@ const toAuthUser = (raw: RawUser): AuthUser => ({
   email: raw.email ?? "",
 });
 
+const APP_PARAMS = [
+  "classroom",
+  "student",
+  "metric",
+  "order",
+  "studentMetric",
+  "studentOrder",
+  "spectate",
+  "view",
+  "melody",
+  "player",
+];
+
 export const App = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [overview, setOverview] = useState<MyOverview | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
+  const [params, setParams] = useUrlState();
+
+  const loadOverview = useCallback(async () => {
+    try {
+      const response = await fetch("/api/my/overview", {
+        credentials: "include",
+      });
+      const body = (await response.json()) as MyOverview;
+      if (response.ok) {
+        setOverview(body);
+      }
+    } catch {
+      // sin conexión; se reintenta en el próximo refresco
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,6 +81,13 @@ export const App = () => {
             : null);
         if (!cancelled && response.ok && raw) {
           setUser(toAuthUser(raw));
+          const overviewResponse = await fetch("/api/my/overview", {
+            credentials: "include",
+          });
+          const overviewBody = (await overviewResponse.json()) as MyOverview;
+          if (!cancelled && overviewResponse.ok) {
+            setOverview(overviewBody);
+          }
         }
       } catch {
         // sin sesión iniciada
@@ -61,14 +101,20 @@ export const App = () => {
     };
   }, []);
 
+  const clearViews = useCallback(() => {
+    setParams(Object.fromEntries(APP_PARAMS.map((key) => [key, null])));
+  }, [setParams]);
+
   const logout = useCallback(async () => {
     await fetch("/api/users/logout", {
       method: "POST",
       credentials: "include",
     });
     setUser(null);
+    setOverview(null);
     setRoomId(null);
-  }, []);
+    clearViews();
+  }, [clearViews]);
 
   return (
     <div className="space-y-6">
@@ -88,14 +134,52 @@ export const App = () => {
       {loading ? (
         <p className="text-sm text-zinc-500">Cargando…</p>
       ) : !user ? (
-        <AuthPanel onAuthenticated={setUser} />
-      ) : !roomId ? (
-        <Lobby onEnter={setRoomId} />
-      ) : (
+        <AuthPanel
+          onAuthenticated={(nextUser) => {
+            setUser(nextUser);
+            void loadOverview();
+          }}
+        />
+      ) : params.get("spectate") ? (
+        <SpectateView
+          roomId={params.get("spectate") ?? ""}
+          params={params}
+          setParams={setParams}
+          onBack={clearViews}
+        />
+      ) : params.get("classroom") ? (
+        <ClassroomView
+          classroomId={params.get("classroom") ?? ""}
+          params={params}
+          setParams={setParams}
+          onOpenGame={(id) =>
+            setParams({
+              classroom: null,
+              student: null,
+              spectate: id,
+              view: "general",
+            })
+          }
+          onBack={clearViews}
+        />
+      ) : roomId ? (
         <Room
           roomId={roomId}
-          onExit={() => setRoomId(null)}
+          onExit={() => {
+            setRoomId(null);
+            void loadOverview();
+          }}
         />
+      ) : overview ? (
+        <Home
+          overview={overview}
+          onEnterRoom={setRoomId}
+          onOpenClassroom={(id) => setParams({ classroom: id })}
+          onOpenSpectate={(id) => setParams({ spectate: id, view: "general" })}
+          onRefresh={() => void loadOverview()}
+        />
+      ) : (
+        <p className="text-sm text-zinc-500">Cargando…</p>
       )}
     </div>
   );

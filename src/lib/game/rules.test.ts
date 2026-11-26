@@ -6,9 +6,12 @@ import {
   buildNextRoundSubmissions,
   computeLeaderboard,
   evaluateResponse,
+  gameSortScore,
   melodyFromResponse,
   parseGameSettings,
   parseResponseNotes,
+  scoreAverages,
+  sortScores,
   sourceIndexFor,
 } from "./rules";
 
@@ -282,6 +285,7 @@ describe("assembleStrands", () => {
     receivedNotes: [note(60, 0)],
     responseNotes,
     recordingUrl,
+    evaluation: null,
   });
 
   it("arma una cadena por melodía inicial con N+1 mensajes", () => {
@@ -316,6 +320,70 @@ describe("assembleStrands", () => {
       "Beto",
       "Ana",
     ]);
+  });
+});
+
+describe("scoreAverages", () => {
+  const evaluation = (pitch: number, rhythm: number, overall: number) => ({
+    pitch: { precision: pitch, recall: pitch, f1: pitch, matchedPairs: [], missedReferenceIndices: [], extraEstimatedIndices: [] },
+    rhythm: { precision: rhythm, recall: rhythm, f1: rhythm, matchedPairs: [], missedReferenceIndices: [], extraEstimatedIndices: [] },
+    overall,
+  });
+
+  it("promedia las evaluaciones de las rondas", () => {
+    expect(
+      scoreAverages([
+        evaluation(1, 0.5, 0.75),
+        evaluation(0.5, 1, 0.75),
+        null,
+      ]),
+    ).toEqual({ pitch: 0.75, rhythm: 0.75, overall: 0.75 });
+  });
+
+  it("sin evaluaciones el promedio es 0", () => {
+    expect(scoreAverages([])).toEqual({ pitch: 0, rhythm: 0, overall: 0 });
+    expect(scoreAverages([null])).toEqual({ pitch: 0, rhythm: 0, overall: 0 });
+  });
+});
+
+describe("gameSortScore", () => {
+  const players = [
+    { userId: "a", name: "Ana", pitch: 0.2, rhythm: 0.4, overall: 0.3 },
+    { userId: "b", name: "Beto", pitch: 0.8, rhythm: 0.6, overall: 0.7 },
+  ];
+
+  it("sin filtro usa el promedio de los participantes del salón", () => {
+    expect(gameSortScore(players, null, "overall")).toBeCloseTo(0.5);
+    expect(gameSortScore(players, null, "pitch")).toBeCloseTo(0.5);
+  });
+
+  it("con filtro usa el puntaje del estudiante", () => {
+    expect(gameSortScore(players, "a", "overall")).toBeCloseTo(0.3);
+    expect(gameSortScore(players, "b", "rhythm")).toBeCloseTo(0.6);
+    expect(gameSortScore(players, "no-existe", "overall")).toBe(0);
+  });
+});
+
+describe("sortScores", () => {
+  const items = [
+    { pitch: 0.2, rhythm: 0.9, overall: 0.5 },
+    { pitch: 0.8, rhythm: 0.1, overall: 0.4 },
+    { pitch: 0.5, rhythm: 0.5, overall: 0.6 },
+  ];
+
+  it("ordena de forma descendente y ascendente por métrica", () => {
+    expect(sortScores(items, "overall", "desc").map((i) => i.overall)).toEqual([
+      0.6, 0.5, 0.4,
+    ]);
+    expect(sortScores(items, "pitch", "asc").map((i) => i.pitch)).toEqual([
+      0.2, 0.5, 0.8,
+    ]);
+  });
+
+  it("no muta la lista original", () => {
+    const copy = items.slice();
+    sortScores(items, "rhythm", "desc");
+    expect(items).toEqual(copy);
   });
 });
 
