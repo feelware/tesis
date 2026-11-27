@@ -1358,7 +1358,7 @@ _Pendientes de este bloque:_ revisión del tesista; crear usuarios `professor` r
 
 1. ~~**Actualizar el capítulo IV** (hecho pendiente por cambio de implementación)~~ — **hecho el 26-11-2026**, incluido el módulo docente, las vistas nuevas y las features de feedback (ver el bloque «Insights de literatura y features de feedback» más abajo).
 2. Decisión del tesista sobre la pantalla de "espera" vs. alguna retroalimentación mínima (RF-20). La galería final ya está implementada (25-11-2026, ver arriba); queda abierta cualquier refinamiento de su contenido.
-3. Política de tiempo por ronda y manejo de desconexiones/rezagados para más de 2 jugadores (17.2).
+3. ~~Política de tiempo por ronda y manejo de desconexiones/rezagados para más de 2 jugadores (17.2)~~ **hecho el 27-11-2026**: reglas de recuperación y abandono implementadas y verificadas (ver el bloque «Reglas de recuperación y abandono» más abajo).
 4. Control de acceso por rol y validación de permisos en Payload (4.8.5): los roles de `users` y su control de acceso ya están implementados (ver arriba); queda pendiente el control de acceso por rol en `game_rooms`/`submissions` — la lectura de `submissions` vía REST sigue abierta (cualquier cliente podría leer respuestas ajenas; irrelevante para la prueba del tesista, pendiente para el estudio) — ~~y la reescritura de 4.8.5 en el capítulo IV~~ (hecho el 26-11-2026).
 5. Consentimiento, retención y eliminación de las grabaciones de audio (11.6): la persistencia ya está implementada (25-11-2026, ver arriba); ~~falta la política~~ **hecho el 26-11-2026**: política definida con alcance acotado al estudio y consentimiento informado como Anexo B de la tesis (ver el bloque «Política de datos de grabaciones y consentimiento» más abajo).
 6. Prueba real con dos usuarios en dos navegadores a cargo del tesista (la verificación automatizada cubrió el flujo completo; falta el ensayo humano con micrófono).
@@ -1409,6 +1409,20 @@ _Pendientes nuevos:_
 
 - Aplicar el consentimiento (Anexo B) en la sesión experimental y ejecutar la eliminación de grabaciones desde el panel administrativo al completar el análisis.
 - Confirmar con el asesor si la universidad exige aprobación de comité de ética para el experimento; el Anexo B no menciona aprobaciones que no existan.
+
+**Reglas de recuperación y abandono (27-11-2026):** cierre del PLACEHOLDER de 4.7.5 con reglas implementadas y verificadas. El tesista pidió avanzar 4.7.5 y aplazó 4.10.5 (validación con voz cantada, que depende de su input).
+
+_Decisiones de diseño (aporte propio, justificadas en 4.7.5):_
+
+1. **Sin cronómetro por ronda** (desviación justificada del benchmark Gartic Phone: el dictado exige tiempos de escucha desiguales y la presión temporal contaminaría la medida de precisión). En su lugar, **cierre manual de la ronda por el anfitrión** (o admin) desde la pantalla de espera: los no-enviados quedan en ausencia. El cronómetro queda como opción futura si la validación con estudiantes muestra bloqueos frecuentes.
+2. **Paso de largo ante ausencias:** el material de un jugador sin respuesta se transfiere sin transformar a su sucesor en la rotación (nadie se queda sin ejercicio y la cadena no se rompe). La ausencia no se puntúa como cero: se excluye del promedio y la clasificación la marca "ausente".
+3. **Retirada explícita** ("Salir de la sala" ahora llama a `POST /api/rooms/[id]/leave`): participante marcado `left` (campo nuevo en `GameRooms.participants[]`, con auto-push de esquema), fuera de las listas de jugadores, ausente en la ronda pendiente; **transferencia de anfitrión** al participante activo más antiguo; **cierre anticipado** de la partida si quedan menos de 2 activos; **reingreso por código** rehabilita al participante (`left=false`).
+
+_Código:_ `rules.ts` (`buildNextRoundSubmissions` con `receivedByPlayerIndex` y respuestas anulables, `nextHostUserId`), `server.ts` (`closeRound`, `leaveRoom`, avance solo con activos — filtrado por `player in activeIds` para que un retirado que envió antes no desbloquee la ronda—, `readRoomState` oculta retirados), endpoints `leave` y `close-round`, UI (botón "Cerrar ronda ahora" para el anfitrión con confirmación, "Salir de la sala" conectado, "ausente" en la clasificación de la galería), `GameRooms.participants[].left` + `payload-types.ts` regenerado.
+
+_Verificación:_ 111 pruebas unitarias (+4: paso de largo y `nextHostUserId`), lint/tsc/build limpios, y prueba de humo de la API con **25 comprobaciones** (3 escenarios: retirada en ronda con paso de largo y avance solo por activos; cierre manual con permisos y cierre anticipado con <2 activos; transferencia de anfitrión, listas que ocultan retirados y reingreso). Prueba de humo puntual en el scratchpad (`smoke-475.mjs`, no commiteada).
+
+_Tesis:_ 4.7.5 reescrito sin PLACEHOLDER (tres reglas: reconexión, retirada/ausencias y cierre manual, con la desviación de Gartic justificada); referencias cruzadas en 4.1.3, 4.10.6 y 4.10.7; Tablas 16 y 17 al día (111 unitarias; humo con 35 + 25 comprobaciones). Compila (105 páginas). **PLACEHOLDER restantes del capítulo IV: solo 4.10.5** (validación con voz cantada real, pendiente del input del tesista).
 
 ---
 
@@ -1547,6 +1561,8 @@ La organización anterior fue reemplazada por la estructura de once secciones de
 - tamaño de muestra y análisis estadístico.
 
 **Actualización (25-11-2026), decisión de diseño multijugador del prototipo (ver 15.3):** quedan provisionales o resueltos para la prueba con dos jugadores: número de rondas configurable (2–8); mínimo 2 jugadores por sala (sin máximo definido); asignación por rotación `(i − 1 + N) % N`, que también resuelve el número impar de jugadores y distribuye cada respuesta a un único jugador; sin cronómetro por ronda (la ronda avanza cuando todos envían su respuesta). Siguen abiertos: jugadores ausentes o rezagados, desconexión y reconexión, límites de tiempo por ronda para más jugadores, y el resto de la lista.
+
+**Actualización (27-11-2026):** se resolvieron las partidas de esta lista relativas a abandono y rezagados (ver 15.3, bloque «Reglas de recuperación y abandono» y 4.7.5 del capítulo IV): ausencias con paso de largo y exclusión del promedio, cierre manual de ronda por el anfitrión en lugar de cronómetro (decisión justificada), retirada con transferencia de anfitrión y cierre anticipado con menos de dos activos, reconexión por sondeo y reingreso por código. Quedan abiertos de esta lista: tamaños máximo de sala, número de intentos, tiempos por ronda (opción futura documentada) y el resto de decisiones de evaluación pedagógica.
 
 ---
 
@@ -1726,7 +1742,7 @@ Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentari
 
 **Actualización (26-11-2026):** la reescritura del capítulo IV (ver 15.3, bloque «Insights de literatura y features de feedback») dejó el estado de PLACEHOLDER así: **ya no son PLACEHOLDER** (reescritos con evidencia): 4.2.4, 4.7.3, 4.8.1, 4.8.5, 4.9.7, 4.10.6, 4.10.7 y 4.11; **PLACEHOLDER (parcial)**: 4.7.5 (comportamiento real documentado; reglas de abandono/rezagados/tiempos abiertas) y 4.8.4 (grabaciones persistidas; política de consentimiento/retención pendiente); **PLACEHOLDER sin cambios**: 4.10.5 (validación con voz cantada real). La lista siguiente es el registro histórico del estado anterior.
 
-**Actualización (26-11-2026, tarde):** 4.8.4 dejó de ser PLACEHOLDER: la política de datos de grabaciones quedó definida con alcance acotado al estudio y el consentimiento informado se añadió como Anexo B (ver 15.3, bloque «Política de datos de grabaciones y consentimiento informado»). Quedan como PLACEHOLDER únicamente 4.7.5 (parcial) y 4.10.5.
+**Actualización (27-11-2026):** 4.7.5 dejó de ser PLACEHOLDER: las reglas de recuperación y abandono (reconexión, retirada/ausencias con paso de largo, cierre manual por el anfitrión) quedaron implementadas y verificadas (ver 15.3, bloque «Reglas de recuperación y abandono»). **Queda como PLACEHOLDER únicamente 4.10.5** (validación con voz cantada real, pendiente del input del tesista).
 
 - 4.2.4, párrafo de comunicación en tiempo real: definir el proveedor definitivo, la autenticación, los canales y la presencia; documentar límites, privacidad y pruebas de integración. Actualmente se describe el diseño y la comparación entre servicio administrado y servidor WebSocket propio.
 - 4.7.3: mecánica multijugador (salas, códigos, asignación, número impar de jugadores, trazabilidad de la cadena). Reescribir con la implementación y las pruebas de asignación.

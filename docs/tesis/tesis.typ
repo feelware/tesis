@@ -572,7 +572,7 @@ Desde el punto de vista de la ingeniería de software, el desarrollo adoptó las
 
 === 4.1.3. Alcance y trazabilidad
 
-El prototipo implementa el flujo completo del juego: acceso y cuentas, salas multijugador por código, configuración de la partida, generación de melodías, rondas alternadas de dictado y repentización con transcripción, intercambio encadenado de producciones entre jugadores, evaluación en el servidor, galería final, historial del estudiante y módulo docente con salones de clase, invitaciones y espectación de partidas. Las reglas de abandono y reconexión y el control de acceso a nivel de las colecciones de juego quedan especificados como diseño de la versión completa (secciones 4.7.5 y 4.8.5); la política de datos de las grabaciones de voz está definida con un alcance acotado al estudio experimental (sección 4.8.4). La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
+El prototipo implementa el flujo completo del juego: acceso y cuentas, salas multijugador por código, configuración de la partida, generación de melodías, rondas alternadas de dictado y repentización con transcripción, intercambio encadenado de producciones entre jugadores, evaluación en el servidor, galería final, historial del estudiante y módulo docente con salones de clase, invitaciones y espectación de partidas. El control de acceso a nivel de las colecciones de juego queda especificado como diseño de la versión completa (sección 4.8.5); la política de datos de las grabaciones de voz está definida con un alcance acotado al estudio experimental (sección 4.8.4) y las reglas de recuperación y abandono se describen en la sección 4.7.5. La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
 
 #block(breakable: false)[
 #leyenda([Tabla], 4, [Trazabilidad entre objetivos específicos y secciones del capítulo])
@@ -1165,13 +1165,13 @@ donde $n$ es el número de respuestas puntuadas y $S_i$ es la puntuación global
 
 === 4.7.5. Reglas de recuperación y abandono
 
-// PLACEHOLDER (parcial): el prototipo documenta su comportamiento real ante
-// recargas y envíos duplicados; las reglas de abandono y de tiempos por ronda
-// siguen abiertas y deben reescribirse con pruebas de reconexión.
+Tres reglas gobiernan la recuperación y el abandono, implementadas en el prototipo y verificadas con una prueba de humo de la API de 25 comprobaciones (sección 4.10.6).
 
-En el prototipo, el estado de la partida reside en el servidor y los clientes lo observan por sondeo, de modo que una recarga de la página o una desconexión temporal no afectan a la partida: el jugador reanuda la vista en el punto en que se encuentra la ronda y su envío previo se conserva. Un jugador no puede enviar dos respuestas en la misma ronda: el segundo envío se rechaza en el servidor. Estas dos reglas se verifican en la prueba de humo de la sección 4.10.6.
+Reconexión. El estado de la partida reside en el servidor y los clientes lo observan por sondeo, de modo que una recarga de la página o una desconexión temporal no interrumpen la partida: el jugador reanuda la vista en el punto en que se encuentra la ronda y su envío previo se conserva. Un jugador no puede enviar dos respuestas en la misma ronda: el segundo envío se rechaza en el servidor.
 
-Quedan abiertos los casos de un jugador que abandona sin enviar, la tolerancia a rezagados cuando hay más de dos jugadores y los tiempos por ronda. La versión completa definirá si la ronda se cierra con las respuestas disponibles —con ausencia, no con puntuación de cero, para el jugador que no envió—, si se introduce un cronómetro por ronda y qué ocurre si el anfitrión abandona la sala. Estas reglas se verificarán con pruebas de sincronización y de reconexión antes de la sesión con estudiantes.
+Retirada y ausencias. Salir de la sala marca al participante como retirado: queda fuera de las listas de jugadores y cuenta como ausente en la ronda pendiente. La ausencia no se puntúa como cero: se excluye del promedio (sección 4.7.4) y se muestra como tal en la clasificación final. El material de un jugador sin respuesta no se pierde ni rompe la cadena: pasa sin transformar a su sucesor en la rotación, de modo que todos los jugadores activos siguen recibiendo ejercicio en cada ronda. Si el anfitrión se retira, el rol se transfiere al participante activo más antiguo por orden de unión; si la retirada deja menos de dos jugadores activos en una partida en curso, la partida se cierra con las rondas ya jugadas. Un participante retirado puede reingresar por código y retomar sus envíos pendientes.
+
+Cierre de ronda por el anfitrión. Cuando hay rezagados que no terminan, el anfitrión —o el administrador— puede cerrar la ronda desde la pantalla de espera: los envíos pendientes quedan como ausencias y la partida continúa. Se eligió el cierre manual en lugar del cronómetro por ronda que emplea Gartic Phone porque el dictado y la repentinización exigen tiempos de escucha y escritura desiguales entre jugadores, y una presión temporal artificial podría contaminar la precisión, que es precisamente el objeto de la medición; el cronómetro queda como opción de la versión completa si la validación con estudiantes mostrara partidas bloqueadas con frecuencia. Esta desviación del benchmark de flujo de juego adoptado se justifica por el carácter educativo del artefacto.
 
 == 4.8. Persistencia y modelo de datos
 
@@ -1444,8 +1444,8 @@ Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de p
   columns: (3.6cm, 5.8cm, 6.5cm),
   header: ([*Nivel*], [*Alcance*], [*Herramienta y evidencia*]),
   rows: (
-    ([Unitarias], [Generador, evaluador, informe de errores, reglas de juego, feedback y parámetros de transcripción], [Vitest; 107 pruebas.]),
-    ([Humo], [Transcripción de una sinusoide de 2 s y flujo multijugador contra la API (roles, salas, rondas, invitaciones, espectación)], [Pruebas del tracker DSP y script de humo con 35 comprobaciones.]),
+    ([Unitarias], [Generador, evaluador, informe de errores, reglas de juego, feedback y parámetros de transcripción], [Vitest; 111 pruebas.]),
+    ([Humo], [Transcripción de una sinusoide de 2 s y flujo multijugador contra la API (roles, salas, rondas, invitaciones, espectación, recuperación y abandono)], [Pruebas del tracker DSP y scripts de humo con 35 y 25 comprobaciones.]),
     ([Barrido], [25 casos sintéticos con ruido y vibrato], [`tune:transcription`; ajuste de parámetros.]),
     ([Compilación], [Build de producción de Next.js], [`next build`; sin errores.]),
     ([Navegador], [Flujo multijugador completo, galería, historial y vistas docentes], [Recorrido manual en Chrome con capturas de la Figura 12 a la Figura 19.]),
@@ -1454,7 +1454,7 @@ Las pruebas se organizaron en cinco niveles: unitarias, de humo, de barrido de p
 
 === 4.10.2. Pruebas unitarias
 
-La Tabla 17 resume las 107 pruebas unitarias. El generador concentra 30 pruebas porque cada propiedad estructural se verifica sobre 25 semillas por nivel y su evaluación reproducible añade una prueba más; el evaluador concentra 21, incluyendo los casos límite de la Tabla 13; las reglas de juego —actividad por ronda, asignación encadenada, evaluación de respuestas, puntuación, ordenaciones y reconstrucción de cadenas— concentran 29; el informe de errores y el feedback del historial concentran 18; y la transcripción concentra 9, entre parámetros de inferencia y pruebas del tracker DSP.
+La Tabla 17 resume las 111 pruebas unitarias. El generador concentra 30 pruebas porque cada propiedad estructural se verifica sobre 25 semillas por nivel y su evaluación reproducible añade una prueba más; el evaluador concentra 21, incluyendo los casos límite de la Tabla 13; las reglas de juego —actividad por ronda, asignación encadenada con paso de largo de ausencias, transferencia de anfitrión, evaluación de respuestas, puntuación, ordenaciones y reconstrucción de cadenas— concentran 33; el informe de errores y el feedback del historial concentran 18; y la transcripción concentra 9, entre parámetros de inferencia y pruebas del tracker DSP.
 
 #block(breakable: false)[
 #leyenda([Tabla], 17, [Resultados de las pruebas unitarias])
@@ -1464,10 +1464,10 @@ La Tabla 17 resume las 107 pruebas unitarias. El generador concentra 30 pruebas 
   rows: (
     ([Generador], [30], [Propiedades estructurales, modulación, reproducibilidad y evaluación reproducible del capítulo V.]),
     ([Evaluador], [21], [Emparejamiento, tolerancias y casos límite.]),
-    ([Reglas de juego], [29], [Rondas, asignación encadenada, puntuación, ordenaciones y cadenas.]),
+    ([Reglas de juego], [33], [Rondas, asignación encadenada con ausencias, anfitrión, puntuación, ordenaciones y cadenas.]),
     ([Informe de errores y feedback], [18], [Localización de errores, tendencias y pistas de mejora.]),
     ([Transcripción], [9], [Parámetros de inferencia y tracker DSP.]),
-    ([Total], [107], [—]),
+    ([Total], [111], [—]),
   ),
 )]
 
@@ -1502,13 +1502,13 @@ El protocolo de validación con voz cantada real comprende un conjunto de grabac
 
 === 4.10.6. Pruebas de la versión multijugador
 
-El flujo multijugador se verificó con una prueba de humo de la API de 35 comprobaciones y con un recorrido en navegador con dos sesiones independientes. La prueba de humo cubre: registro e inicio de sesión con cookie, sala por código, inicio reservado al anfitrión, melodías iniciales distintas por jugador, encadenamiento exacto de la ronda 1 a la 2 en ambos sentidos —cada jugador recibe la respuesta del otro y ninguno la propia—, bloqueo del doble envío en una misma ronda, ausencia de fuga de respuestas ajenas antes de tiempo, cierre de la partida y cálculo de la clasificación. Sobre el módulo docente cubre además la autorización por rol —el estudiante no accede a la espectación ni al detalle de salones ajenos, y el docente no puede jugar—, las invitaciones con aceptar, rechazar y re-invitar, el filtrado por estudiante con su puntaje individual, el historial con posición y la espectación en vivo y en frío con sus tres sub-vistas. Las invariantes de la asignación encadenada, la puntuación y la reconstrucción de cadenas se verifican además en las 29 pruebas unitarias de reglas de juego (Tabla 17).
+El flujo multijugador se verificó con dos pruebas de humo de la API —35 comprobaciones del flujo de juego y del módulo docente, y 25 de recuperación y abandono— y con un recorrido en navegador con dos sesiones independientes. La primera prueba cubre: registro e inicio de sesión con cookie, sala por código, inicio reservado al anfitrión, melodías iniciales distintas por jugador, encadenamiento exacto de la ronda 1 a la 2 en ambos sentidos —cada jugador recibe la respuesta del otro y ninguno la propia—, bloqueo del doble envío en una misma ronda, ausencia de fuga de respuestas ajenas antes de tiempo, cierre de la partida y cálculo de la clasificación. Sobre el módulo docente cubre además la autorización por rol —el estudiante no accede a la espectación ni al detalle de salones ajenos, y el docente no puede jugar—, las invitaciones con aceptar, rechazar y re-invitar, el filtrado por estudiante con su puntaje individual, el historial con posición y la espectación en vivo y en frío con sus tres sub-vistas. La segunda prueba cubre las reglas de la sección 4.7.5: retirada de un jugador en una ronda en curso con paso de largo de su material al sucesor, avance de la ronda solo cuando terminan los jugadores activos, ausencias excluidas del promedio y marcadas como tales, cierre manual de la ronda por el anfitrión con rechazo del cierre por un no anfitrión, cierre anticipado de la partida cuando quedan menos de dos jugadores activos, transferencia del anfitrión al participante activo más antiguo, reingreso por código del participante retirado y rechazo del cierre sobre una partida terminada. Las invariantes de la asignación encadenada, el paso de largo, la transferencia de anfitrión, la puntuación y la reconstrucción de cadenas se verifican además en las 33 pruebas unitarias de reglas de juego (Tabla 17).
 
-El recorrido en navegador verificó la creación y unión a salas desde dos sesiones, la alternancia de rondas, la pantalla de espera, la galería con grabaciones y el filtrado por configuración, además de las vistas docentes y de espectación en vivo y sobre partidas terminadas. Quedan pendientes las pruebas de reconexión y abandono y la medición de latencia del transporte de sincronización (sección 4.7.5).
+El recorrido en navegador verificó la creación y unión a salas desde dos sesiones, la alternancia de rondas, la pantalla de espera, la galería con grabaciones y el filtrado por configuración, además de las vistas docentes y de espectación en vivo y sobre partidas terminadas. Queda pendiente la medición de la latencia del transporte de sincronización.
 
 === 4.10.7. Limitaciones y amenazas a la validez
 
-La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a recorridos manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo completo —multijugador, galería, historial y vistas docentes—, pero las reglas de abandono y reconexión y el control de acceso a nivel de las colecciones de juego siguen abiertos (secciones 4.7.5 y 4.8.5). La política de datos de las grabaciones se delimita al estudio experimental (sección 4.8.4): la gobernanza de datos propia de un producto comercial queda fuera del alcance del artefacto, y las grabaciones se eliminarán tras el análisis. El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El registro de la dificultad alta y la validez del puntaje compuesto global son limitaciones reconocidas del diseño actual; las reglas del feedback formativo usan umbrales propios que requieren validación con docentes.
+La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a recorridos manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo completo —multijugador, galería, historial y vistas docentes—, con reglas de recuperación y abandono definidas y verificadas (sección 4.7.5); el control de acceso a nivel de las colecciones de juego sigue abierto (sección 4.8.5) y el cronómetro por ronda queda descartado para el prototipo a favor del cierre manual del anfitrión. La política de datos de las grabaciones se delimita al estudio experimental (sección 4.8.4): la gobernanza de datos propia de un producto comercial queda fuera del alcance del artefacto, y las grabaciones se eliminarán tras el análisis. El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El registro de la dificultad alta y la validez del puntaje compuesto global son limitaciones reconocidas del diseño actual; las reglas del feedback formativo usan umbrales propios que requieren validación con docentes.
 
 == 4.11. Síntesis del capítulo
 
