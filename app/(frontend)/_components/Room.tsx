@@ -54,6 +54,16 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
 
   const refresh = () => setTick((value) => value + 1);
 
+  const leaveAndExit = async () => {
+    if (state && state.room.status !== "finished") {
+      await fetch(`/api/rooms/${roomId}/leave`, {
+        method: "POST",
+        credentials: "include",
+      }).catch(() => undefined);
+    }
+    onExit();
+  };
+
   const copyCode = async () => {
     const code = state?.room.code;
     if (!code) return;
@@ -87,7 +97,7 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
         </h2>
         <button
           className="rounded border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-50"
-          onClick={onExit}
+          onClick={() => void leaveAndExit()}
         >
           Salir de la sala
         </button>
@@ -104,6 +114,7 @@ export const Room = ({ roomId, onExit }: RoomProps) => {
           round={state.round}
           settings={state.room.settings}
           roundCount={state.room.settings?.roundCount ?? 0}
+          isHost={state.me.userId === state.room.hostUserId}
           onSubmitted={refresh}
         />
       ) : state.room.status === "finished" && state.leaderboard ? (

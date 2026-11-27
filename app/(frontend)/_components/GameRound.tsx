@@ -15,6 +15,7 @@ interface GameRoundProps {
   round: RoundState;
   settings: GameSettings | null;
   roundCount: number;
+  isHost: boolean;
   onSubmitted: () => void;
 }
 
@@ -34,12 +35,14 @@ export const GameRound = ({
   round,
   settings,
   roundCount,
+  isHost,
   onSubmitted,
 }: GameRoundProps) => {
   const [phase, setPhase] = useState<"playing" | "submitting" | "submitted">(
     "playing",
   );
   const [sendError, setSendError] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
 
   const melody: Melody | null = round.submission?.receivedMelody ?? null;
 
@@ -107,6 +110,31 @@ export const GameRound = ({
     }
   };
 
+  const closeRound = async () => {
+    if (closing) return;
+    setClosing(true);
+    setSendError(null);
+    try {
+      const result = await fetch(`/api/rooms/${roomId}/close-round`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const body = (await result.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!result.ok) {
+        throw new Error(body.error ?? "No se pudo cerrar la ronda");
+      }
+      onSubmitted();
+    } catch (err) {
+      setSendError(
+        err instanceof Error ? err.message : "Error al cerrar la ronda",
+      );
+    } finally {
+      setClosing(false);
+    }
+  };
+
   const header = (
     <header>
       <h2 className="text-xl font-semibold">
@@ -130,6 +158,11 @@ export const GameRound = ({
     return (
       <div className="space-y-4">
         {header}
+        {sendError ? (
+          <p className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+            {sendError}
+          </p>
+        ) : null}
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <p className="text-zinc-700">
             {phase === "submitting"
@@ -146,6 +179,29 @@ export const GameRound = ({
               </li>
             ))}
           </ul>
+          {isHost ? (
+            <div className="mt-4 space-y-2">
+              <button
+                className="rounded border border-amber-300 bg-amber-50 px-3 py-1 text-sm hover:bg-amber-100 disabled:opacity-50"
+                disabled={closing}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "¿Cerrar la ronda ahora? Los jugadores que no hayan enviado quedarán en ausencia.",
+                    )
+                  ) {
+                    void closeRound();
+                  }
+                }}
+              >
+                Cerrar ronda ahora
+              </button>
+              <p className="text-xs text-zinc-500">
+                Los que no envíen quedarán en ausencia y su melodía pasará sin
+                cambios al siguiente jugador.
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
     );

@@ -108,6 +108,11 @@ export const GameRooms: CollectionConfig = {
           type: "number",
           required: true,
         },
+        {
+          name: "left",
+          type: "checkbox",
+          defaultValue: false,
+        },
       ],
     },
   ],

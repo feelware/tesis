@@ -8,6 +8,7 @@ import {
   evaluateResponse,
   gameSortScore,
   melodyFromResponse,
+  nextHostUserId,
   parseGameSettings,
   parseResponseNotes,
   scoreAverages,
@@ -98,11 +99,18 @@ describe("melodyFromResponse", () => {
 });
 
 describe("buildNextRoundSubmissions", () => {
+  const received = [
+    chainMelody([note(48, 0)]),
+    chainMelody([note(50, 0)]),
+    chainMelody([note(52, 0)]),
+  ];
+
   it("cada jugador recibe la respuesta del jugador anterior en la rotación", () => {
     const responses = [[note(60, 0)], [note(64, 0)], [note(67, 0)]];
     const { roundNumber, submissions } = buildNextRoundSubmissions({
       finishedRoundNumber: 1,
       playerCount: 3,
+      receivedByPlayerIndex: received,
       responsesByPlayerIndex: responses,
       tempoBpm: 90,
       difficulty: "low",
@@ -124,6 +132,7 @@ describe("buildNextRoundSubmissions", () => {
     const { submissions } = buildNextRoundSubmissions({
       finishedRoundNumber: 2,
       playerCount: 2,
+      receivedByPlayerIndex: received.slice(0, 2),
       responsesByPlayerIndex: responses,
       tempoBpm: 100,
       difficulty: "medium",
@@ -132,6 +141,65 @@ describe("buildNextRoundSubmissions", () => {
     expect(submissions[0].receivedMelody.notes).toEqual(responses[1]);
     expect(submissions[1].receivedMelody.notes).toEqual(responses[0]);
     expect(submissions[0].receivedMelody.id).toBe("abc123-r3-p2");
+  });
+
+  it("el material de un origen sin respuesta pasa de largo sin transformar", () => {
+    const responses: (NoteEvent[] | null)[] = [
+      [note(60, 0)],
+      null,
+      [note(67, 0)],
+    ];
+    const { submissions } = buildNextRoundSubmissions({
+      finishedRoundNumber: 1,
+      playerCount: 3,
+      receivedByPlayerIndex: received,
+      responsesByPlayerIndex: responses,
+      tempoBpm: 90,
+      difficulty: "low",
+      roomSeed: "abc123",
+    });
+    expect(submissions[0].receivedMelody.notes).toEqual([note(67, 0)]);
+    expect(submissions[1].receivedMelody.notes).toEqual([note(60, 0)]);
+    expect(submissions[2].receivedMelody).toBe(received[1]);
+    expect(submissions.map((item) => item.sourcePlayerIndex)).toEqual([2, 0, 1]);
+  });
+});
+
+describe("nextHostUserId", () => {
+  const participants = [
+    { userId: "a", joinOrder: 0, left: false },
+    { userId: "b", joinOrder: 1, left: true },
+    { userId: "c", joinOrder: 2, left: false },
+  ];
+
+  it("mantiene al anfitrión si sigue activo", () => {
+    expect(nextHostUserId(participants, "a")).toBe("a");
+  });
+
+  it("transfiere el anfitrión al participante activo más antiguo", () => {
+    expect(nextHostUserId(participants, "b")).toBe("a");
+    expect(
+      nextHostUserId(
+        [
+          { userId: "a", joinOrder: 0, left: true },
+          { userId: "b", joinOrder: 1, left: true },
+          { userId: "c", joinOrder: 2, left: false },
+        ],
+        "a",
+      ),
+    ).toBe("c");
+  });
+
+  it("sin participantes activos no queda anfitrión", () => {
+    expect(
+      nextHostUserId(
+        [
+          { userId: "a", joinOrder: 0, left: true },
+          { userId: "b", joinOrder: 1, left: true },
+        ],
+        "a",
+      ),
+    ).toBeNull();
   });
 });
 

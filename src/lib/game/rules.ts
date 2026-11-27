@@ -74,10 +74,14 @@ export interface NextSubmission {
   receivedMelody: Melody;
 }
 
+// Construye las asignaciones de la ronda siguiente. Un origen sin respuesta
+// (ausencia o retirada) no rompe la cadena: su material pasa de largo, y el
+// sucesor recibe sin transformar la melodía que el origen había recibido.
 export const buildNextRoundSubmissions = (params: {
   finishedRoundNumber: number;
   playerCount: number;
-  responsesByPlayerIndex: NoteEvent[][];
+  receivedByPlayerIndex: Melody[];
+  responsesByPlayerIndex: (NoteEvent[] | null)[];
   tempoBpm: number;
   difficulty: Difficulty;
   roomSeed: string;
@@ -86,21 +90,42 @@ export const buildNextRoundSubmissions = (params: {
   const submissions = params.responsesByPlayerIndex.map(
     (_, playerIndex): NextSubmission => {
       const sourcePlayerIndex = sourceIndexFor(playerIndex, params.playerCount);
+      const response = params.responsesByPlayerIndex[sourcePlayerIndex];
       return {
         playerIndex,
         sourcePlayerIndex,
-        receivedMelody: melodyFromResponse({
-          response: params.responsesByPlayerIndex[sourcePlayerIndex],
-          roomSeed: params.roomSeed,
-          roundNumber,
-          sourcePlayerIndex,
-          tempoBpm: params.tempoBpm,
-          difficulty: params.difficulty,
-        }),
+        receivedMelody:
+          response === null || response === undefined
+            ? params.receivedByPlayerIndex[sourcePlayerIndex]
+            : melodyFromResponse({
+                response,
+                roomSeed: params.roomSeed,
+                roundNumber,
+                sourcePlayerIndex,
+                tempoBpm: params.tempoBpm,
+                difficulty: params.difficulty,
+              }),
       };
     },
   );
   return { roundNumber, submissions };
+};
+
+// Anfitrión de una sala tras la salida del actual: el propio anfitrión si
+// sigue activo; si no, el participante activo más antiguo por orden de unión.
+export const nextHostUserId = (
+  participants: { userId: string; joinOrder: number; left: boolean }[],
+  currentHostUserId: string,
+): string | null => {
+  const active = participants
+    .filter((participant) => !participant.left)
+    .sort((a, b) => a.joinOrder - b.joinOrder);
+  return (
+    active.find((participant) => participant.userId === currentHostUserId)
+      ?.userId ??
+    active[0]?.userId ??
+    null
+  );
 };
 
 export const parseResponseNotes = (value: unknown): NoteEvent[] => {

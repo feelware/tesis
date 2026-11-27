@@ -168,10 +168,23 @@ export const Gallery = ({
                 {leaderboard.map((entry, index) => (
                   <tr key={entry.userId} className="border-b border-zinc-200">
                     <td className="p-2">{index + 1}</td>
-                    <td className="p-2">{entry.name}</td>
-                    <td className="p-2">{percent(entry.pitch)}</td>
-                    <td className="p-2">{percent(entry.rhythm)}</td>
-                    <td className="p-2">{percent(entry.overall)}</td>
+                    <td className="p-2">
+                      {entry.name}
+                      {entry.rounds.length === 0 ? " (ausente)" : ""}
+                    </td>
+                    {entry.rounds.length === 0 ? (
+                      <>
+                        <td className="p-2 text-zinc-400">—</td>
+                        <td className="p-2 text-zinc-400">—</td>
+                        <td className="p-2 text-zinc-400">—</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2">{percent(entry.pitch)}</td>
+                        <td className="p-2">{percent(entry.rhythm)}</td>
+                        <td className="p-2">{percent(entry.overall)}</td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

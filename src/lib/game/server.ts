@@ -11,6 +11,7 @@ import {
   computeLeaderboard,
   errorReportFor,
   evaluateResponse,
+  nextHostUserId,
   parseGameSettings,
   parseResponseNotes,
   type StrandSubmission,
@@ -199,7 +200,26 @@ export const joinRoom = async (
   await withRoomLock(String(room.id), async () => {
     const current = await findRoom(payload, String(room.id));
     const participants = current.participants ?? [];
-    if (participants.some((item) => idOf(item.user) === Number(user.id))) {
+    const existing = participants.find(
+      (item) => idOf(item.user) === Number(user.id),
+    );
+    if (existing) {
+      if (existing.left) {
+        await payload.update({
+          collection: "game-rooms",
+          id: current.id,
+          data: {
+            participants: participants.map((item) => ({
+              user: idOf(item.user),
+              joinOrder: item.joinOrder,
+              left:
+                idOf(item.user) === Number(user.id)
+                  ? false
+                  : (item.left ?? false),
+            })),
+          },
+        });
+      }
       return;
     }
     if (current.status !== "waiting") {
@@ -218,8 +238,9 @@ export const joinRoom = async (
           ...participants.map((item) => ({
             user: idOf(item.user),
             joinOrder: item.joinOrder,
+            left: item.left ?? false,
           })),
-          { user: user.id, joinOrder },
+          { user: user.id, joinOrder, left: false },
         ],
       },
     });
@@ -305,9 +326,22 @@ const advanceRound = async (
   const submissionByPlayer = new Map(
     submissions.docs.map((doc) => [idOf(doc.player), doc]),
   );
+  const receivedByPlayerIndex = participants.map(
+    (participant) =>
+      (
+        submissionByPlayer.get(idOf(participant.user))
+          ?.receivedMelody as unknown as Melody
+      ) ?? generateMelody({
+        difficulty: settings.difficulty,
+        seed: `${room.sessionSeed ?? room.code}-r${roundNumber}-p${idOf(participant.user)}`,
+        tempoBpm: settings.tempoBpm,
+      }),
+  );
   const responsesByPlayerIndex = participants.map((participant) => {
     const submission = submissionByPlayer.get(idOf(participant.user));
-    return (submission?.response ?? []) as NoteEvent[];
+    return (submission?.status === "done"
+      ? ((submission.response ?? []) as NoteEvent[])
+      : null);
   });
 
   if (roundNumber >= settings.roundCount) {
@@ -322,6 +356,7 @@ const advanceRound = async (
   const next = buildNextRoundSubmissions({
     finishedRoundNumber: roundNumber,
     playerCount: participants.length,
+    receivedByPlayerIndex,
     responsesByPlayerIndex,
     tempoBpm: settings.tempoBpm,
     difficulty: settings.difficulty,
@@ -421,19 +456,128 @@ export const submitResponse = async (
           submission.activity === "sight_singing" ? recordingId : null,
       },
     });
+    const activeIds = participants
+      .filter((item) => !item.left)
+      .map((item) => idOf(item.user));
     const done = await payload.count({
       collection: "submissions",
       where: {
         room: { equals: room.id },
         roundNumber: { equals: room.currentRound },
+        player: { in: activeIds },
         status: { equals: "done" },
       },
     });
-    if (done.totalDocs < participants.length) {
+    if (done.totalDocs < activeIds.length) {
       return { advanced: false };
     }
     await advanceRound(payload, room);
     return { advanced: true };
+  });
+};
+
+// Cierre manual de la ronda por el anfitrión (o un administrador) cuando hay
+// rezagados: los envíos pendientes quedan como ausencias y su material pasa de
+// largo. Es la alternativa al cronómetro por ronda (ver 4.7.5 de la tesis).
+export const closeRound = async (
+  payload: Payload,
+  user: User,
+  roomId: string,
+): Promise<void> => {
+  await withRoomLock(roomId, async () => {
+    const room = await findRoom(payload, roomId);
+    if (room.status !== "in_progress") {
+      throw new HttpError(400, "la partida no está en curso");
+    }
+    if (String(idOf(room.host)) !== String(user.id) && !isAdmin(user)) {
+      throw new HttpError(403, "solo el anfitrión puede cerrar la ronda");
+    }
+    const participants = room.participants ?? [];
+    const activeIds = participants
+      .filter((item) => !item.left)
+      .map((item) => idOf(item.user));
+    const pending = await payload.count({
+      collection: "submissions",
+      where: {
+        room: { equals: room.id },
+        roundNumber: { equals: room.currentRound },
+        player: { in: activeIds },
+        status: { equals: "pending" },
+      },
+    });
+    if (pending.totalDocs === 0) {
+      throw new HttpError(400, "no hay envíos pendientes que cerrar");
+    }
+    await advanceRound(payload, room);
+  });
+};
+
+// Salida explícita de la sala: el participante queda marcado como retirado y
+// cuenta como ausente en la ronda pendiente. El anfitrión se transfiere al
+// participante activo más antiguo, y si quedan menos de dos activos en una
+// partida en curso, la partida se cierra con las rondas ya jugadas.
+export const leaveRoom = async (
+  payload: Payload,
+  user: User,
+  roomId: string,
+): Promise<void> => {
+  await withRoomLock(roomId, async () => {
+    const room = await findRoom(payload, roomId);
+    const participants = room.participants ?? [];
+    const mine = participants.find(
+      (item) => idOf(item.user) === Number(user.id),
+    );
+    if (!mine) {
+      throw new HttpError(403, "no participas en esta sala");
+    }
+    if (room.status === "finished") {
+      throw new HttpError(400, "la partida ya terminó");
+    }
+    const flags = participants.map((item) => ({
+      userId: String(idOf(item.user)),
+      rawUserId: idOf(item.user),
+      joinOrder: item.joinOrder ?? 0,
+      left: idOf(item.user) === Number(user.id) ? true : (item.left ?? false),
+    }));
+    const hostUserId = nextHostUserId(flags, String(idOf(room.host)));
+    await payload.update({
+      collection: "game-rooms",
+      id: room.id,
+      data: {
+        participants: flags.map((item) => ({
+          user: item.rawUserId,
+          joinOrder: item.joinOrder,
+          left: item.left,
+        })),
+        ...(hostUserId !== null ? { host: Number(hostUserId) } : {}),
+      },
+    });
+    if (room.status !== "in_progress") {
+      return;
+    }
+    const activeIds = flags
+      .filter((item) => !item.left)
+      .map((item) => item.rawUserId);
+    if (activeIds.length < 2) {
+      await payload.update({
+        collection: "game-rooms",
+        id: room.id,
+        data: { status: "finished" },
+      });
+      return;
+    }
+    const done = await payload.count({
+      collection: "submissions",
+      where: {
+        room: { equals: room.id },
+        roundNumber: { equals: room.currentRound },
+        player: { in: activeIds },
+        status: { equals: "done" },
+      },
+    });
+    if (done.totalDocs >= activeIds.length) {
+      await advanceRound(payload, room);
+    }
   });
 };
 
@@ -451,6 +595,9 @@ export const readRoomState = async (
     throw new HttpError(403, "no participas en esta sala");
   }
   const hostId = idOf(room.host);
+  const activeIds = participants
+    .filter((item) => !item.left)
+    .map((item) => idOf(item.user));
 
   let round: RoundState | null = null;
   let leaderboard: LeaderboardEntry[] | null = null;
@@ -489,11 +636,13 @@ export const readRoomState = async (
               null) as SubmissionInfo["evaluation"],
           }
         : null,
-      players: found.docs.map((doc) => ({
-        userId: String(idOf(doc.player)),
-        name: "",
-        done: doc.status === "done",
-      })),
+      players: found.docs
+        .filter((doc) => activeIds.includes(idOf(doc.player)))
+        .map((doc) => ({
+          userId: String(idOf(doc.player)),
+          name: "",
+          done: doc.status === "done",
+        })),
     };
   } else if (room.status === "finished") {
     const found = await payload.find({
@@ -537,15 +686,17 @@ export const readRoomState = async (
   const nameFor = (id: number | string): string =>
     names.get(Number(id)) ?? `jugador ${id}`;
 
-  const participantsInfo = participants.map((item) => {
-    const playerId = idOf(item.user);
-    return {
-      userId: String(playerId),
-      name: nameFor(playerId),
-      joinOrder: item.joinOrder,
-      isHost: playerId === hostId,
-    };
-  });
+  const participantsInfo = participants
+    .filter((item) => !item.left)
+    .map((item) => {
+      const playerId = idOf(item.user);
+      return {
+        userId: String(playerId),
+        name: nameFor(playerId),
+        joinOrder: item.joinOrder,
+        isHost: playerId === hostId,
+      };
+    });
 
   if (round) {
     round.players = round.players.map((player) => ({

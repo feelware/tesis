@@ -174,6 +174,7 @@ export interface GameRoom {
     | {
         user: number | User;
         joinOrder: number;
+        left?: boolean | null;
         id?: string | null;
       }[]
     | null;
@@ -406,6 +407,7 @@ export interface GameRoomsSelect<T extends boolean = true> {
     | {
         user?: T;
         joinOrder?: T;
+        left?: T;
         id?: T;
       };
   updatedAt?: T;
