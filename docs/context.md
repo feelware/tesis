@@ -1360,7 +1360,7 @@ _Pendientes de este bloque:_ revisión del tesista; crear usuarios `professor` r
 2. Decisión del tesista sobre la pantalla de "espera" vs. alguna retroalimentación mínima (RF-20). La galería final ya está implementada (25-11-2026, ver arriba); queda abierta cualquier refinamiento de su contenido.
 3. Política de tiempo por ronda y manejo de desconexiones/rezagados para más de 2 jugadores (17.2).
 4. Control de acceso por rol y validación de permisos en Payload (4.8.5): los roles de `users` y su control de acceso ya están implementados (ver arriba); queda pendiente el control de acceso por rol en `game_rooms`/`submissions` — la lectura de `submissions` vía REST sigue abierta (cualquier cliente podría leer respuestas ajenas; irrelevante para la prueba del tesista, pendiente para el estudio) — ~~y la reescritura de 4.8.5 en el capítulo IV~~ (hecho el 26-11-2026).
-5. Consentimiento, retención y eliminación de las grabaciones de audio (11.6): la persistencia ya está implementada (25-11-2026, ver arriba); falta la política.
+5. Consentimiento, retención y eliminación de las grabaciones de audio (11.6): la persistencia ya está implementada (25-11-2026, ver arriba); ~~falta la política~~ **hecho el 26-11-2026**: política definida con alcance acotado al estudio y consentimiento informado como Anexo B de la tesis (ver el bloque «Política de datos de grabaciones y consentimiento» más abajo).
 6. Prueba real con dos usuarios en dos navegadores a cargo del tesista (la verificación automatizada cubrió el flujo completo; falta el ensayo humano con micrófono).
 7. Validación de la transcripción con voz cantada real (10.5) y revisión docente de las decisiones musicales (8.4).
 
@@ -1396,8 +1396,19 @@ _Contradicción detectada (no corregida; requiere decisión del tesista):_ las s
 
 _Pendientes tras esta sesión:_
 
-1. Quedan como PLACEHOLDER en el capítulo IV: 4.7.5 (parcial: reglas de abandono, rezagados y tiempos por ronda), 4.8.4 (parcial: consentimiento, retención y eliminación de grabaciones) y 4.10.5 (validación con voz cantada real).
-2. Pendientes sin cambios: control de acceso REST a nivel de colección, prueba humana con dos usuarios y micrófono real, validación musical con docentes, revisión del tesista de las features nuevas y de las capturas, y decisiones abiertas de 17.2.
+1. Quedan como PLACEHOLDER en el capítulo IV: 4.7.5 (parcial: reglas de abandono, rezagados y tiempos por ronda) y 4.10.5 (validación con voz cantada real). El de 4.8.4 se resolvió más tarde el mismo día (ver el bloque «Política de datos de grabaciones y consentimiento»).
+2. Pendientes sin cambios: control de acceso REST a nivel de colección (`GameRooms`/`Submissions`), prueba humana con dos usuarios y micrófono real, validación musical con docentes, revisión del tesista de las features nuevas y de las capturas, y decisiones abiertas de 17.2.
+
+**Política de datos de grabaciones y consentimiento informado (26-11-2026):** implementación de la recomendación acordada con el tesista: la política de consentimiento, retención y eliminación **no se descarta**, pero se delimita a un alcance mínimo acotado al estudio experimental, metodológicamente justificado —el artefacto es un prototipo de investigación dentro del DSRM sin despliegue comercial, de modo que la gobernanza de datos propia de un producto queda fuera de las actividades de diseño, pero las obligaciones con los participantes del estudio se cubren con consentimiento informado y eliminación posterior de las grabaciones—.
+
+- **Código:** `Media` (`src/collections/Media.ts`) restringe su lectura —incluidos los archivos servidos en `/api/media/file/*`— a usuarios con sesión iniciada; `create` ya exigía autenticación y `update`/`delete` siguen reservados al administrador. Verificado en runtime: lectura anónima de `/api/media` → "not allowed", archivo anónimo → 403, lectura autenticada → 200 (antes `read: () => true`, es decir, grabaciones públicas). *Nota operativa:* un `next dev` huérfano no recarga cambios de `src/collections`; tras tocar colecciones hay que reiniciar el servidor (se detectó porque la verificación anónima seguía devolviendo datos con el servidor viejo).
+- **tesis.typ:** 4.8.4 reescrito sin PLACEHOLDER (política de tres medidas —consentimiento, acceso, retención— con la delimitación de alcance justificada) y nuevo **Anexo B. Consentimiento informado para la sesión experimental** (una página: finalidad, datos recopilados, uso de grabaciones, voluntariedad con derecho de eliminación, conservación hasta completar el análisis, confidencialidad y tabla de firmas). Referencias cruzadas añadidas en 3.7, 4.1.3, 4.8.5, 4.10.7 y la Tabla 7. Compila sin errores (104 páginas).
+- **PLACEHOLDER restantes del capítulo IV:** solo 4.7.5 (parcial) y 4.10.5.
+
+_Pendientes nuevos:_
+
+- Aplicar el consentimiento (Anexo B) en la sesión experimental y ejecutar la eliminación de grabaciones desde el panel administrativo al completar el análisis.
+- Confirmar con el asesor si la universidad exige aprobación de comité de ética para el experimento; el Anexo B no menciona aprobaciones que no existan.
 
 ---
 
@@ -1714,6 +1725,8 @@ Los siguientes apartados están marcados en `docs/tesis/tesis.typ` con comentari
 **Actualización (25-11-2026):** el incremento multijugador del prototipo (ver 15.3) deja desactualizados varios apartados del capítulo IV (4.7.3, 4.7.5, 4.8.2, 4.8.3, 4.8.5, 4.9, 4.10.5, 4.10.6, la tabla 15 y las "correcciones" de 21.6 sobre persistencia y mecánica). La lista de pendientes de actualización está en 15.3.
 
 **Actualización (26-11-2026):** la reescritura del capítulo IV (ver 15.3, bloque «Insights de literatura y features de feedback») dejó el estado de PLACEHOLDER así: **ya no son PLACEHOLDER** (reescritos con evidencia): 4.2.4, 4.7.3, 4.8.1, 4.8.5, 4.9.7, 4.10.6, 4.10.7 y 4.11; **PLACEHOLDER (parcial)**: 4.7.5 (comportamiento real documentado; reglas de abandono/rezagados/tiempos abiertas) y 4.8.4 (grabaciones persistidas; política de consentimiento/retención pendiente); **PLACEHOLDER sin cambios**: 4.10.5 (validación con voz cantada real). La lista siguiente es el registro histórico del estado anterior.
+
+**Actualización (26-11-2026, tarde):** 4.8.4 dejó de ser PLACEHOLDER: la política de datos de grabaciones quedó definida con alcance acotado al estudio y el consentimiento informado se añadió como Anexo B (ver 15.3, bloque «Política de datos de grabaciones y consentimiento informado»). Quedan como PLACEHOLDER únicamente 4.7.5 (parcial) y 4.10.5.
 
 - 4.2.4, párrafo de comunicación en tiempo real: definir el proveedor definitivo, la autenticación, los canales y la presencia; documentar límites, privacidad y pruebas de integración. Actualmente se describe el diseño y la comparación entre servicio administrado y servidor WebSocket propio.
 - 4.7.3: mecánica multijugador (salas, códigos, asignación, número impar de jugadores, trazabilidad de la cadena). Reescribir con la implementación y las pruebas de asignación.

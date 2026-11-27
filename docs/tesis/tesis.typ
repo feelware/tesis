@@ -507,7 +507,7 @@ La unidad de análisis corresponde a cada estudiante participante de la investig
 
 == 3.7. Técnicas de recolección de datos
 
-Para la recolección de datos se empleará la técnica de evaluación mediante pruebas de desempeño, aplicadas a los participantes antes y después de la intervención educativa. Estas evaluaciones serán similares en naturaleza a aquellas propuestas por docentes de cursos formales de entrenamiento auditivo, incluyendo actividades de dictado y repentización musical.
+Para la recolección de datos se empleará la técnica de evaluación mediante pruebas de desempeño, aplicadas a los participantes antes y después de la intervención educativa. Estas evaluaciones serán similares en naturaleza a aquellas propuestas por docentes de cursos formales de entrenamiento auditivo, incluyendo actividades de dictado y repentización musical. La participación será voluntaria y requerirá consentimiento informado (Anexo B), que cubre el uso de las grabaciones de voz de las tareas de repentización y su retención durante el estudio.
 
 == 3.8. Técnicas de análisis de datos
 
@@ -572,7 +572,7 @@ Desde el punto de vista de la ingeniería de software, el desarrollo adoptó las
 
 === 4.1.3. Alcance y trazabilidad
 
-El prototipo implementa el flujo completo del juego: acceso y cuentas, salas multijugador por código, configuración de la partida, generación de melodías, rondas alternadas de dictado y repentización con transcripción, intercambio encadenado de producciones entre jugadores, evaluación en el servidor, galería final, historial del estudiante y módulo docente con salones de clase, invitaciones y espectación de partidas. Las reglas de abandono y reconexión, la política de retención de grabaciones y el control de acceso a nivel de colección quedan especificados como diseño de la versión completa (secciones 4.7.5, 4.8.4 y 4.8.5). La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
+El prototipo implementa el flujo completo del juego: acceso y cuentas, salas multijugador por código, configuración de la partida, generación de melodías, rondas alternadas de dictado y repentización con transcripción, intercambio encadenado de producciones entre jugadores, evaluación en el servidor, galería final, historial del estudiante y módulo docente con salones de clase, invitaciones y espectación de partidas. Las reglas de abandono y reconexión y el control de acceso a nivel de las colecciones de juego quedan especificados como diseño de la versión completa (secciones 4.7.5 y 4.8.5); la política de datos de las grabaciones de voz está definida con un alcance acotado al estudio experimental (sección 4.8.4). La Tabla 4 relaciona los objetivos específicos con las secciones del capítulo.
 
 #block(breakable: false)[
 #leyenda([Tabla], 4, [Trazabilidad entre objetivos específicos y secciones del capítulo])
@@ -724,7 +724,7 @@ Los requisitos no funcionales se tradujeron en decisiones concretas de arquitect
     ([Usabilidad], [Piano roll, instrucciones por ronda y feedback inmediato], [Comprensión de la tarea sin conocimientos de notación.]),
     ([Rendimiento], [Inferencia en Web Worker y watchdog de 30 s], [La interfaz no se bloquea durante la transcripción.]),
     ([Seguridad], [Validación en servidor, roles de usuario y control de acceso por campo; mutaciones solo por endpoints de juego], [Evitar que el cliente altere resultados o consulte datos ajenos; pendiente el acceso a nivel de colección.]),
-    ([Privacidad], [Procesamiento local del audio y retención definida (diseño)], [Protección de las grabaciones de voz.]),
+    ([Privacidad], [Procesamiento local del audio, lectura de `Media` restringida a usuarios autenticados y retención acotada al estudio], [Protección de las grabaciones de voz sin exposición pública.]),
     ([Trazabilidad], [`sessionSeed`, `roundNumber` y relación melodía-respuesta], [Reconstruir la cadena de una partida.]),
     ([Reproducibilidad], [Semilla, `generatorVersion` y parámetros del modelo], [Repetir una melodía o una inferencia.]),
     ([Mantenibilidad], [Dominio separado de React y de Payload], [Probar sin navegador ni base de datos.]),
@@ -1227,16 +1227,17 @@ La trazabilidad se sostiene en tres relaciones de cada envío: `receivedMelody` 
 
 === 4.8.4. Archivos de audio y retención
 
-// PLACEHOLDER (parcial): la persistencia está implementada; la política de
-// consentimiento, retención y eliminación sigue pendiente de definición.
+El prototipo conserva las grabaciones de voz: se almacenan como archivos en la colección `Media` (almacenamiento local en el entorno de desarrollo) y el envío las referencia por identificador; si la subida falla, la respuesta se registra igualmente y las vistas muestran la transcripción simbólica. Cada grabación tiene un límite de 30 s, y la configuración de la sala controla si las grabaciones se muestran en la galería, de modo que un docente puede desactivarlas en contextos sensibles a las burlas.
 
-El prototipo conserva las grabaciones de voz: se almacenan como archivos en la colección `Media` (almacenamiento local en el entorno de desarrollo) y el envío las referencia por identificador; si la subida falla, la respuesta se registra igualmente y las vistas muestran la transcripción simbólica. Cada grabación tiene un límite de 30 s, y la configuración de la sala controla si las grabaciones se muestran en la galería, de modo que un docente puede desactivarlas en contextos sensibles a las burlas. La retención debe definirse antes de la sesión con estudiantes e incluir el consentimiento informado, el plazo de conservación, el procedimiento de eliminación y las condiciones de acceso. El audio se trata como dato personal y no se expone públicamente por defecto.
+La política de datos de las grabaciones se define con un alcance acotado al estudio experimental y comprende tres medidas. En cuanto al consentimiento, la participación en la sesión es voluntaria y exige consentimiento informado (Anexo B), que describe el uso de las grabaciones y el derecho del participante a retirarlas. En cuanto al acceso, el audio se trata como dato personal y no se expone públicamente: la lectura de `Media` exige sesión iniciada —también para los archivos servidos— y las vistas de galería y espectación solo muestran grabaciones a los participantes de la partida y a los docentes, mientras que el borrado está reservado al administrador. En cuanto a la retención, las grabaciones se conservan únicamente durante el desarrollo del estudio y se eliminan desde el panel administrativo una vez completado el análisis.
+
+La delimitación del alcance de la política es una decisión consciente: el artefacto es un prototipo de investigación y no se despliega como producto, de modo que la gobernanza de datos propia de un servicio comercial —almacenamiento de objetos, retención por lotes, portabilidad y procedimientos de ejercicio de derechos— queda fuera de las actividades de diseño del artefacto en el DSRM. Esta delimitación se declara como limitación en la sección 4.10.7 y no afecta a las obligaciones del investigador respecto de los participantes del estudio, que el consentimiento informado y la eliminación posterior cubren.
 
 === 4.8.5. Control de acceso
 
 El prototipo define tres roles en `Users`: estudiante, docente y administrador. El rol se fija como estudiante en el registro —el campo de rol solo puede escribirlo un administrador— y determina el alcance de las vistas: el estudiante consulta sus datos y sus partidas; el docente consulta los salones que administra, sus estudiantes y sus partidas; el administrador gestiona usuarios. La lectura de un usuario está limitada al propio usuario, al docente y al administrador, y el rol no es legible para los estudiantes. Estas reglas se implementan con el control de acceso por campo y por colección de Payload y se verifican con una prueba de autorización que incluye el rechazo de la auto-promoción de rol, la lectura y actualización de usuarios ajenos (403) y el borrado reservado al administrador.
 
-Las consultas de juego y de salones pasan por endpoints propios que validan las reglas en servidor —el docente solo accede al detalle de sus salones, la espectación exige rol docente o administrador y las mutaciones de juego se rechazan fuera de la secuencia de la partida—; el cliente no puede alterar resultados. Queda pendiente restringir la lectura de las colecciones a nivel de API, hoy abierta para facilitar la verificación funcional del prototipo; esta configuración no se traslada a la versión completa.
+Las consultas de juego y de salones pasan por endpoints propios que validan las reglas en servidor —el docente solo accede al detalle de sus salones, la espectación exige rol docente o administrador y las mutaciones de juego se rechazan fuera de la secuencia de la partida—; el cliente no puede alterar resultados. Queda pendiente restringir la lectura de `GameRooms` y `Submissions` a nivel de API, hoy abierta para facilitar la verificación funcional del prototipo; `Media` ya limita su lectura —incluidos los archivos servidos— a usuarios con sesión iniciada (sección 4.8.4). Ninguna de estas configuraciones provisionales se traslada a la versión completa.
 
 == 4.9. Interfaz y retroalimentación
 
@@ -1507,7 +1508,7 @@ El recorrido en navegador verificó la creación y unión a salas desde dos sesi
 
 === 4.10.7. Limitaciones y amenazas a la validez
 
-La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a recorridos manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo completo —multijugador, galería, historial y vistas docentes—, pero las reglas de abandono y reconexión, la política de retención de grabaciones y el control de acceso a nivel de colección siguen abiertos (secciones 4.7.5, 4.8.4 y 4.8.5). El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El registro de la dificultad alta y la validez del puntaje compuesto global son limitaciones reconocidas del diseño actual; las reglas del feedback formativo usan umbrales propios que requieren validación con docentes.
+La validación de la transcripción se realizó con audio sintético; la voz cantada introduce vibrato, portamentos, consonantes y respiración que pueden alterar la detección. La evaluación de usabilidad se limitó a recorridos manuales en un navegador de escritorio; no se realizó un estudio con usuarios. La evaluación pedagógica corresponde al capítulo V y no se deduce de las pruebas técnicas. El prototipo implementa el flujo completo —multijugador, galería, historial y vistas docentes—, pero las reglas de abandono y reconexión y el control de acceso a nivel de las colecciones de juego siguen abiertos (secciones 4.7.5 y 4.8.5). La política de datos de las grabaciones se delimita al estudio experimental (sección 4.8.4): la gobernanza de datos propia de un producto comercial queda fuera del alcance del artefacto, y las grabaciones se eliminarán tras el análisis. El piano roll simplifica la lectura respecto del pentagrama y puede reducir la validez ecológica de la repentización. El registro de la dificultad alta y la validez del puntaje compuesto global son limitaciones reconocidas del diseño actual; las reglas del feedback formativo usan umbrales propios que requieren validación con docentes.
 
 == 4.11. Síntesis del capítulo
 
@@ -2699,3 +2700,34 @@ La evaluación de la calidad musical con docentes y la comparación con ejercici
 #set page(flipped: false, margin: (x: 2.54cm, y: 2.54cm))
 #set text(size: 12pt)
 #set par(first-line-indent: 1.27cm, leading: 1em, spacing: 1em)
+
+#pagebreak(weak: true)
+
+== Anexo B. Consentimiento informado para la sesión experimental
+
+El presente documento establece las condiciones de participación en la sesión experimental de evaluación del videojuego de entrenamiento auditivo desarrollado como proyecto de tesis en la Universidad Nacional Mayor de San Marcos.
+
+*Finalidad de la sesión.* La sesión evalúa la efectividad del videojuego en el desarrollo de habilidades auditivas, mediante actividades de dictado y repentinización melódica. Los datos recopilados se utilizarán exclusivamente con fines de investigación y de redacción de la tesis.
+
+*Datos recopilados.* Durante la sesión se registran las respuestas musicales, las puntuaciones de desempeño y las grabaciones de voz realizadas en las tareas de repentinización.
+
+*Uso de las grabaciones.* Las grabaciones se reproducen dentro de la plataforma para los participantes de la misma partida, funcionalidad que el docente puede desactivar. También pueden reproducirse como evidencia en la documentación o la defensa de la tesis. No se publicarán en medios abiertos ni se utilizarán con fines comerciales.
+
+*Voluntariedad.* La participación es voluntaria. Puede retirarse en cualquier momento sin consecuencias y solicitar la eliminación de sus grabaciones y respuestas, que se suprimirán de la plataforma.
+
+*Conservación y acceso.* Los datos se conservan durante el desarrollo del estudio y se eliminan una vez completado el análisis. El acceso a los datos queda limitado al investigador responsable y al asesor de tesis.
+
+*Confidencialidad.* Los resultados se publicarán de forma agregada, sin identificar a los participantes.
+
+#v(1em)
+
+#table(
+  columns: (1fr, 1fr),
+  align: left,
+  inset: 8pt,
+  stroke: 0.5pt,
+  [*Participante*], [*Investigador responsable*],
+  [Nombre: #h(1fr)], [Nombre: Jesus Stevan Diaz Ingol],
+  [Firma: #h(1fr)], [Firma: #h(1fr)],
+  [Fecha: #h(1fr)], [Fecha: #h(1fr)],
+)
