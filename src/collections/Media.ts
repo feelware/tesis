@@ -14,7 +14,7 @@ export const Media: CollectionConfig = {
   },
   access: {
     create: ({ req }) => req.user !== null,
-    read: () => true,
+    read: ({ req }) => req.user !== null,
     update: fieldAdminAccess,
     delete: fieldAdminAccess,
   },
